@@ -1,0 +1,12 @@
+{
+  "promotion": {
+    "requiredReviewerRoles": [
+      "lead-architect",
+      "platform-owner",
+      "maintainer"
+    ],
+    "requireApprovalNotes": true,
+    "requireManifestValidation": true,
+    "allowRollback": true
+  }
+}
