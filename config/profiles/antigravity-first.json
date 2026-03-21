@@ -1,0 +1,14 @@
+{
+  "name": "antigravity-first",
+  "description": "Use Antigravity for planning and skills, specialists for implementation.",
+  "planning": [
+    "antigravity-real",
+    "antigravity-stub"
+  ],
+  "implementation": [
+    "cursor-real",
+    "windsurf-real",
+    "cursor-stub",
+    "windsurf-stub"
+  ]
+}
