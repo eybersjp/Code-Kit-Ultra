@@ -4,13 +4,18 @@ about: Report a reproducible bug
 ---
 
 ## Summary
+What happened?
 
-## Command run
+## Steps to reproduce
+1.
+2.
+3.
 
 ## Expected behavior
 
 ## Actual behavior
 
-## Dry-run or real?
-
-## Redacted logs or artifacts
+## Environment
+- profile:
+- adapter path:
+- dry-run or real:

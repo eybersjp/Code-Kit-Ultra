@@ -4,9 +4,10 @@ about: Suggest an improvement
 ---
 
 ## Problem
+What problem does this solve?
 
 ## Proposed solution
 
-## Why it helps adoption or usability
-
 ## Alternatives considered
+
+## Additional context

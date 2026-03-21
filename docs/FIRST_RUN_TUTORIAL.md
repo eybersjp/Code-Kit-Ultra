@@ -1,19 +1,17 @@
 # First Run Tutorial
 
 ## Goal
-Reach first visible success fast.
+Run your first dry-run scenario successfully.
 
 ## Steps
+1. copy `.env.example` to `.env`
+2. install dependencies
+3. run bootstrap
+4. run preflight
+5. execute:
 ```bash
-cp .env.example .env
-bash scripts/doctor.sh
-bash scripts/demo.sh
+npm run ck -- init "Build a planning engine for solar CRM" --dry-run
 ```
 
 ## Expected result
-A timestamped folder appears in `artifacts/test-runs/` with:
-- `run-report.json`
-- `report.md`
-
-## Next step
-Pick a use case from `docs/TOP_5_USE_CASES.md`.
+You should get a timestamped artifact bundle under `artifacts/test-runs/`.
