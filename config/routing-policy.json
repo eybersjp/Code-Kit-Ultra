@@ -1,0 +1,25 @@
+{
+  "defaultAdapter": "fallback-mock",
+  "routingPolicies": [
+    {
+      "taskType": "planning",
+      "preferred": ["cursor-mock", "antigravity-mock"]
+    },
+    {
+      "taskType": "coding",
+      "preferred": ["windsurf-mock", "cursor-mock"]
+    },
+    {
+      "taskType": "skills",
+      "preferred": ["antigravity-mock", "cursor-mock"]
+    },
+    {
+      "taskType": "automation",
+      "preferred": ["n8n-mock", "windmill-mock"]
+    },
+    {
+      "taskType": "reporting",
+      "preferred": ["windsurf-mock", "windmill-mock"]
+    }
+  ]
+}
