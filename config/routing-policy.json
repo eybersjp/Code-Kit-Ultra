@@ -1,0 +1,40 @@
+{
+  "defaultAdapter": "fallback-stub",
+  "routingPolicies": [
+    {
+      "taskType": "planning",
+      "preferred": [
+        "cursor-stub",
+        "antigravity-stub"
+      ]
+    },
+    {
+      "taskType": "coding",
+      "preferred": [
+        "windsurf-stub",
+        "cursor-stub"
+      ]
+    },
+    {
+      "taskType": "skills",
+      "preferred": [
+        "antigravity-stub",
+        "cursor-stub"
+      ]
+    },
+    {
+      "taskType": "automation",
+      "preferred": [
+        "n8n-stub",
+        "windmill-stub"
+      ]
+    },
+    {
+      "taskType": "reporting",
+      "preferred": [
+        "windsurf-stub",
+        "windmill-stub"
+      ]
+    }
+  ]
+}
