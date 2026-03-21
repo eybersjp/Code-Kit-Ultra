@@ -1,0 +1,11 @@
+name: Package Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: zip -r code-kit-ultra-artifacts.zip . -x "node_modules/*" ".git/*"
