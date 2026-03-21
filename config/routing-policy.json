@@ -1,0 +1,43 @@
+{
+  "routingPolicies": [
+    {
+      "taskType": "planning",
+      "preferred": [
+        "antigravity-real",
+        "antigravity-stub",
+        "cursor-stub"
+      ]
+    },
+    {
+      "taskType": "skills",
+      "preferred": [
+        "antigravity-real",
+        "antigravity-stub"
+      ]
+    },
+    {
+      "taskType": "implementation",
+      "preferred": [
+        "cursor-real",
+        "windsurf-real",
+        "cursor-stub",
+        "windsurf-stub",
+        "antigravity-real",
+        "antigravity-stub"
+      ]
+    },
+    {
+      "taskType": "automation",
+      "preferred": [
+        "n8n-stub",
+        "windmill-stub"
+      ]
+    },
+    {
+      "taskType": "deployment",
+      "preferred": [
+        "windmill-stub"
+      ]
+    }
+  ]
+}
