@@ -1,4 +1,5 @@
 import type { TaskType, GeneratedSkillManifest } from "./types";
+export type { TaskType, GeneratedSkillManifest };
 
 export interface PlatformAdapter {
   name: string;

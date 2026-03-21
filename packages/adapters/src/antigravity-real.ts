@@ -10,10 +10,9 @@ export class AntigravityRealAdapter extends BaseAdapter {
       ok: true,
       output: {
         adapter: this.name,
-        mode: "real",
+        mode: this.kind,
         dryRun: true,
-        payload,
-        note: "Dry-run for Antigravity real adapter."
+        payload
       },
       classification: "simulated" as const
     };
