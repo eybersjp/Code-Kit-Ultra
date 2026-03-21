@@ -2,6 +2,8 @@
 
 **Problem**: A solar installation company needs a custom CRM with leads, quotes, project tracking, and invoicing, but lacks the internal resource for a 3-month build.
 
+![Solar CRM Showcase](../assets/branding/crm_showcase.png)
+
 **How Code Kit Ultra Helps**:
 
 - **Autonomous Intake**: Translates the messy CRM idea into a structured implementation plan.

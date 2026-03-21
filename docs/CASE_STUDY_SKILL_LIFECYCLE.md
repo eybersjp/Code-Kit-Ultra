@@ -2,6 +2,8 @@
 
 **Problem**: A platform team needs to quickly add support for a new "Quantum Weather Modeling" capability, but building the skill from scratch takes days.
 
+![AI Skill Lifecycle](../assets/branding/skill_lifecycle.png)
+
 **How Code Kit Ultra Helps**:
 
 - **AI Skill Authoring**: Generates a complete `SKILL.md` and `manifest.json` from a single descriptive prompt.

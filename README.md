@@ -1,5 +1,7 @@
 # Code Kit Ultra: The AI Operating System for Product Delivery 🚀
 
+![Code Kit Ultra Hero Banner](assets/branding/hero_banner.png)
+
 **From Idea to Production-Ready, Governed, and Scalable in Minutes.**
 
 ---
@@ -15,9 +17,15 @@
 Most AI tools stop at "Hello World." **Code Kit Ultra** takes you to "Prime Time." It is a zero-friction, governed orchestration engine designed to turn complex product ideas into production-grade solutions using specialized AI adapters (Antigravity, Cursor, Windsurf).
 
 ### Top 3 Use Cases
-1.  **[SaaS Rapid Prototyping](docs/CASE_STUDY_SIMPLE_CRM.md)**: Build a governed CRM or Internal Tool schema in 60 seconds.
-2.  **[Enterprise Ops Automation](docs/CASE_STUDY_INTERNAL_TOOL.md)**: Orchestrate complex workflows across disparate systems with human-in-the-loop safety.
-3.  **[Self-Extending Skill Ecosystem](docs/CASE_STUDY_SKILL_LIFECYCLE.md)**: Generate, review, promote, and rollback custom AI skills with 100% auditability.
+
+1. **[SaaS Rapid Prototyping](docs/CASE_STUDY_SIMPLE_CRM.md)**: Build a governed CRM or Internal Tool schema in 60 seconds.
+   ![Solar CRM Showcase](assets/branding/crm_showcase.png)
+
+2. **[Enterprise Ops Automation](docs/CASE_STUDY_INTERNAL_TOOL.md)**: Orchestrate complex workflows across disparate systems.
+   ![Workflow Automation](assets/branding/workflow_automation.png)
+
+3. **[Self-Extending Skill Ecosystem](docs/CASE_STUDY_SKILL_LIFECYCLE.md)**: Generate, review, and promote AI skills.
+   ![Skill Lifecycle](assets/branding/skill_lifecycle.png)
 
 ---
 
@@ -68,7 +76,7 @@ npm run ck -- init "Build a field-service CRM for solar installers"
 | **Specialist Adapters** | ✅ Live | v1.0.1 |
 | **Visual Proof Assets** | ✅ Live | v1.0.2 |
 | **Case Study Sprint** | 🏗️ Active | v1.0.3 |
-| **Multi-Adapter Parallelism**| 📅 Q3 2026 | v1.1.0 |
+| **Multi-Adapter Parallelism** | 📅 Q3 2026 | v1.1.0 |
 
 ---
 

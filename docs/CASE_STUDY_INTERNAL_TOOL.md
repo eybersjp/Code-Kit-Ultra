@@ -2,6 +2,8 @@
 
 **Problem**: An operations team needs an internal tool to orchestrate approvals across Slack and Jira, but manual coordination is slow and error-prone.
 
+![Enterprise Workflow Automation](../assets/branding/workflow_automation.png)
+
 **How Code Kit Ultra Helps**:
 
 - **Multi-Platform Routing**: Uses the `governance-policy.json` to route planning to Antigravity and implementation stubs to specialists.
