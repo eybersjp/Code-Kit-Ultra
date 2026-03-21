@@ -2,7 +2,7 @@
   "name": "code-kit-ultra",
   "private": true,
   "type": "module",
-  "version": "1.0.2",
+  "version": "1.0.3-traction",
   "scripts": {
     "dev": "tsx apps/cli/src/index.ts",
     "ck": "tsx apps/cli/src/index.ts",
@@ -17,7 +17,9 @@
     "build:public-release": "bash scripts/build-public-release.sh",
     "checksums": "bash scripts/generate-checksums.sh",
     "doctor": "bash scripts/doctor.sh",
-    "demo": "bash scripts/demo.sh"
+    "demo": "bash scripts/demo.sh",
+    "demo-crm": "bash scripts/demo-crm.sh",
+    "demo-internal": "bash scripts/demo-internal-tool.sh"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
