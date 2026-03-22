@@ -1,52 +1,362 @@
 [
   {
-    "skillId": "skill_auth_setup",
-    "keywords": [
-      "auth",
-      "login",
-      "roles",
-      "users",
-      "rbac"
+    "skillId": "architecture-planning",
+    "name": "Architecture Planning",
+    "category": "architecture",
+    "description": "Shape the system architecture, boundaries, and implementation strategy for product ideas.",
+    "triggers": [
+      "architecture",
+      "system design",
+      "scaffold",
+      "structure",
+      "monorepo"
     ],
-    "taskType": "implementation"
+    "projectTypes": [
+      "web-app",
+      "website",
+      "automation",
+      "ai-agent",
+      "api",
+      "unknown"
+    ],
+    "taskTriggers": [
+      "define-architecture",
+      "choose-implementation-path"
+    ],
+    "priority": 100
   },
   {
-    "skillId": "skill_crm_schema_design",
-    "keywords": [
+    "skillId": "typescript-monorepo",
+    "name": "TypeScript Monorepo Foundation",
+    "category": "engineering",
+    "description": "Set up TypeScript monorepos, shared packages, and repository structure cleanly.",
+    "triggers": [
+      "typescript",
+      "monorepo",
+      "repo",
+      "workspace",
+      "cli",
+      "package"
+    ],
+    "projectTypes": [
+      "web-app",
+      "website",
+      "automation",
+      "ai-agent",
+      "api",
+      "unknown"
+    ],
+    "taskTriggers": [
+      "define-architecture",
+      "prepare-execution-report"
+    ],
+    "priority": 85
+  },
+  {
+    "skillId": "crm-workflows",
+    "name": "CRM Workflow Design",
+    "category": "business-system",
+    "description": "Model leads, pipeline stages, customer records, quoting and operations workflows.",
+    "triggers": [
       "crm",
       "leads",
       "pipeline",
-      "customers"
-    ],
-    "taskType": "planning"
-  },
-  {
-    "skillId": "skill_quote_engine",
-    "keywords": [
+      "customer",
+      "sales",
+      "deal",
       "quote",
-      "pricing",
-      "proposal",
-      "estimate"
+      "proposal"
     ],
-    "taskType": "implementation"
+    "projectTypes": [
+      "web-app",
+      "automation",
+      "api"
+    ],
+    "taskTriggers": [
+      "clarify-scope",
+      "identify-skills",
+      "choose-implementation-path"
+    ],
+    "priority": 95
   },
   {
-    "skillId": "skill_invoice_workflow",
-    "keywords": [
-      "invoice",
-      "billing",
-      "payments"
+    "skillId": "saas-multitenancy",
+    "name": "SaaS Multitenancy",
+    "category": "architecture",
+    "description": "Plan tenancy boundaries, role segregation, account isolation, and commercial SaaS foundations.",
+    "triggers": [
+      "saas",
+      "multi-tenant",
+      "multitenant",
+      "tenant",
+      "accounts",
+      "workspace"
     ],
-    "taskType": "automation"
+    "projectTypes": [
+      "web-app",
+      "api"
+    ],
+    "taskTriggers": [
+      "define-architecture",
+      "validate-risks"
+    ],
+    "priority": 92
   },
   {
-    "skillId": "skill_admin_dashboard_builder",
-    "keywords": [
-      "dashboard",
-      "admin",
-      "analytics",
-      "kpi"
+    "skillId": "auth-rbac",
+    "name": "Authentication and RBAC",
+    "category": "security",
+    "description": "Design authentication, access control, permissions, and multi-role behavior.",
+    "triggers": [
+      "auth",
+      "authentication",
+      "login",
+      "roles",
+      "role-based",
+      "rbac",
+      "permissions",
+      "users"
     ],
-    "taskType": "implementation"
+    "projectTypes": [
+      "web-app",
+      "automation",
+      "ai-agent",
+      "api"
+    ],
+    "taskTriggers": [
+      "define-architecture",
+      "validate-risks"
+    ],
+    "priority": 90
+  },
+  {
+    "skillId": "landing-page-copy-ux",
+    "name": "Landing Page Copy and UX",
+    "category": "marketing",
+    "description": "Design page structure, messaging hierarchy, conversion flow, and launch assets.",
+    "triggers": [
+      "landing page",
+      "landing",
+      "marketing site",
+      "website",
+      "homepage",
+      "copy",
+      "seo"
+    ],
+    "projectTypes": [
+      "website"
+    ],
+    "taskTriggers": [
+      "design-content-structure",
+      "plan-launch-analytics"
+    ],
+    "priority": 94
+  },
+  {
+    "skillId": "workflow-automation",
+    "name": "Workflow Automation",
+    "category": "automation",
+    "description": "Map systems, triggers, actions, and operational automations safely.",
+    "triggers": [
+      "automation",
+      "automate",
+      "workflow",
+      "sync",
+      "trigger",
+      "integration",
+      "zap",
+      "n8n"
+    ],
+    "projectTypes": [
+      "automation",
+      "ai-agent"
+    ],
+    "taskTriggers": [
+      "map-workflow-systems",
+      "validate-risks",
+      "choose-implementation-path"
+    ],
+    "priority": 98
+  },
+  {
+    "skillId": "integration-mapping",
+    "name": "Integration Mapping",
+    "category": "integration",
+    "description": "Plan data movement across third-party services, APIs, and operational systems.",
+    "triggers": [
+      "integration",
+      "integrate",
+      "api",
+      "webhook",
+      "sync",
+      "erp",
+      "crm",
+      "calendar",
+      "email"
+    ],
+    "projectTypes": [
+      "automation",
+      "web-app",
+      "api",
+      "ai-agent"
+    ],
+    "taskTriggers": [
+      "map-workflow-systems",
+      "validate-risks"
+    ],
+    "priority": 89
+  },
+  {
+    "skillId": "agent-orchestration",
+    "name": "Agent Orchestration",
+    "category": "ai-system",
+    "description": "Define agent workflows, tool boundaries, evaluation, and safe execution loops.",
+    "triggers": [
+      "agent",
+      "ai agent",
+      "multi-agent",
+      "assistant",
+      "autonomous",
+      "tool calling",
+      "workflow engine"
+    ],
+    "projectTypes": [
+      "ai-agent",
+      "automation"
+    ],
+    "taskTriggers": [
+      "define-agent-boundaries",
+      "design-evaluation-loop",
+      "validate-risks"
+    ],
+    "priority": 99
+  },
+  {
+    "skillId": "prompt-and-evaluation",
+    "name": "Prompting and Evaluation",
+    "category": "ai-system",
+    "description": "Design prompts, benchmark tasks, evaluation loops, and response-quality checks.",
+    "triggers": [
+      "prompt",
+      "evaluation",
+      "benchmark",
+      "judge",
+      "rubric",
+      "quality",
+      "llm"
+    ],
+    "projectTypes": [
+      "ai-agent"
+    ],
+    "taskTriggers": [
+      "design-evaluation-loop",
+      "prepare-execution-report"
+    ],
+    "priority": 88
+  },
+  {
+    "skillId": "api-contract-design",
+    "name": "API Contract Design",
+    "category": "backend",
+    "description": "Define endpoints, schemas, integration contracts, and service boundaries.",
+    "triggers": [
+      "api",
+      "endpoint",
+      "rest",
+      "graphql",
+      "schema",
+      "backend"
+    ],
+    "projectTypes": [
+      "api",
+      "web-app",
+      "automation"
+    ],
+    "taskTriggers": [
+      "define-api-contracts",
+      "define-architecture"
+    ],
+    "priority": 93
+  },
+  {
+    "skillId": "testing-foundation",
+    "name": "Testing Foundation",
+    "category": "quality",
+    "description": "Establish smoke tests, validation checks, and execution confidence for new slices.",
+    "triggers": [
+      "test",
+      "testing",
+      "qa",
+      "quality",
+      "verification",
+      "smoke test"
+    ],
+    "projectTypes": [
+      "web-app",
+      "website",
+      "automation",
+      "ai-agent",
+      "api",
+      "unknown"
+    ],
+    "taskTriggers": [
+      "validate-risks",
+      "prepare-execution-report"
+    ],
+    "priority": 84
+  },
+  {
+    "skillId": "deployment-readiness",
+    "name": "Deployment Readiness",
+    "category": "delivery",
+    "description": "Prepare deployment decisions, hosting assumptions, launch checks, and environment planning.",
+    "triggers": [
+      "deploy",
+      "deployment",
+      "hosting",
+      "production",
+      "launch",
+      "release"
+    ],
+    "projectTypes": [
+      "web-app",
+      "website",
+      "automation",
+      "ai-agent",
+      "api",
+      "unknown"
+    ],
+    "taskTriggers": [
+      "choose-implementation-path",
+      "plan-launch-analytics",
+      "prepare-execution-report"
+    ],
+    "priority": 80
+  },
+  {
+    "skillId": "general-solution-scaffold",
+    "name": "General Solution Scaffold",
+    "category": "fallback",
+    "description": "Fallback skill used when no specialized registry entries score high enough.",
+    "triggers": [
+      "solution",
+      "build",
+      "system",
+      "project"
+    ],
+    "projectTypes": [
+      "web-app",
+      "website",
+      "automation",
+      "ai-agent",
+      "api",
+      "unknown"
+    ],
+    "taskTriggers": [
+      "clarify-scope",
+      "define-architecture",
+      "choose-implementation-path"
+    ],
+    "priority": 40
   }
 ]

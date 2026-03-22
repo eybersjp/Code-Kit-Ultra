@@ -1,85 +1,164 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import chalk from "chalk";
-import fs from "node:fs";
-import path from "node:path";
-import { runVerticalSlice } from "../../../packages/orchestrator/src/index";
-import { saveRunReport } from "../../../packages/memory/src/run-store";
-import { adapterHealthReport } from "../../../packages/adapters/src/router";
-import { validateAllAdapterEnv } from "../../../packages/adapters/src/env";
-import { executeTask } from "../../../packages/orchestrator/src/execute-task";
-import type { Mode, TaskType, UserInput } from "../../../packages/shared/src/types";
+import { loadProjectMemory } from "../../../packages/memory/src";
+import { runVerticalSlice } from "../../../packages/orchestrator/src";
+import type { GateDecision, Mode, SelectedSkill, Task } from "../../../packages/shared/src";
 
-function artifactDir() {
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-  return path.resolve(`artifacts/test-runs/${stamp}`);
+function normalizeMode(input: string | undefined): Mode {
+  if (input === "safe" || input === "god" || input === "balanced") {
+    return input;
+  }
+
+  return "balanced";
 }
 
-function writeMarkdownReport(dir: string, report: Awaited<ReturnType<typeof runVerticalSlice>>) {
-  const md = [
-    "# Code Kit Ultra Run Report",
-    "",
-    `- Created: ${report.createdAt}`,
-    `- Mode: ${report.input.mode}`,
-    `- Summary: ${report.summary}`,
-    "",
-    "## Routes",
-    ...report.routes.map((r) => `- ${r.taskType}: ${r.adapterName} [${r.mode}]`),
-    "",
-    "## Execution",
-    ...((report.execution || []).map((e: any) => `- ${e.taskType}: ${e.adapter} ok=${e.ok} dryRun=${e.dryRun} classification=${e.classification}`)),
-    "",
-    "## Skills",
-    ...report.selectedSkills.map((s) => `- ${s.skillId} (${s.source})`)
-  ].join("\n");
-  fs.writeFileSync(path.join(dir, "report.md"), md, "utf-8");
-  fs.writeFileSync(path.join(dir, "gates.json"), JSON.stringify(report.gates, null, 2), "utf-8");
+function printSection(title: string): void {
+  console.log(chalk.yellow(`\n${title}`));
+}
+
+function printPlan(plan: Task[]): void {
+  printSection("Plan:");
+  if (!plan.length) {
+    console.log("- None");
+    return;
+  }
+
+  for (const task of plan) {
+    const dependencySuffix = task.dependencies.length
+      ? ` [deps: ${task.dependencies.join(", ")}]`
+      : "";
+    console.log(`- ${task.id}: ${task.title}${dependencySuffix}`);
+  }
+}
+
+function printSkills(skills: SelectedSkill[]): void {
+  printSection("Selected Skills:");
+  if (!skills.length) {
+    console.log("- None");
+    return;
+  }
+
+  for (const skill of skills) {
+    const reason = typeof skill.reason === "string" ? ` — ${skill.reason}` : "";
+    const score = typeof skill.score === "number" ? ` (score=${skill.score})` : "";
+    console.log(`- ${skill.skillId ?? skill.name}${score}${reason}`);
+  }
+}
+
+function printGates(gates: GateDecision[]): void {
+  printSection("Gates:");
+  if (!gates.length) {
+    console.log("- None");
+    return;
+  }
+
+  for (const gate of gates) {
+    // GateDecision has .gate in shared/types.ts, but Phase 8 uses .id / .name
+    const gateId = (gate as any).id ?? (gate as any).name ?? gate.gate ?? "gate";
+    const action = (gate as any).recommendedAction ? ` | action: ${(gate as any).recommendedAction}` : "";
+    console.log(`- ${gateId}: ${gate.status} | ${gate.reason}${action}`);
+  }
 }
 
 const program = new Command();
-program.name("code-kit").description("Code Kit Ultra CLI").version("0.6.0");
 
-program.command("init")
+program
+  .name("code-kit")
+  .description("Code Kit Ultra CLI")
+  .version("0.1.0");
+
+program
+  .command("init")
   .argument("<idea>", "Project idea")
   .option("-m, --mode <mode>", "safe | balanced | god", "balanced")
-  .option("--dry-run", "Run safely without external execution", false)
-  .action(async (idea, options) => {
-    const input: UserInput = { idea, mode: options.mode as Mode, dryRun: Boolean(options.dryRun), deliverable: "app", priority: "quality", skillLevel: "intermediate" };
-    const report = await runVerticalSlice(input);
-    const dir = artifactDir();
-    fs.mkdirSync(dir, { recursive: true });
-    const reportPath = saveRunReport(report, dir);
-    writeMarkdownReport(dir, report);
-    fs.writeFileSync(path.join(dir, "console.log"), report.summary + "\n", "utf-8");
+  .option("--dry-run", "mark the run as a dry run", false)
+  .action((idea: string, options: { mode?: string; dryRun?: boolean }) => {
+    const trimmedIdea = idea.trim();
 
-    console.log(chalk.cyan("\nCode Kit Ultra — Phase 6 Antigravity\n"));
-    console.log(chalk.green("Summary:"), report.summary);
-    report.routes.forEach((r) => console.log(`- route ${r.taskType}: ${r.adapterName} (${r.mode})`));
-    (report.execution || []).forEach((e: any) => console.log(`- exec ${e.taskType}: ${e.adapter} ok=${e.ok} dryRun=${e.dryRun}`));
-    console.log(chalk.green(`\nArtifacts: ${dir}`));
-    console.log(chalk.green(`JSON: ${reportPath}\n`));
+    if (!trimmedIdea) {
+      console.error(chalk.red("Error: idea must not be empty."));
+      process.exitCode = 1;
+      return;
+    }
+
+    const result = runVerticalSlice({
+      idea: trimmedIdea,
+      mode: normalizeMode(options.mode),
+      dryRun: Boolean(options.dryRun),
+    });
+
+    console.log(chalk.cyan("\nCode Kit Ultra — Vertical Slice Report\n"));
+    console.log(chalk.green("Summary:"), result.report.summary);
+    console.log(chalk.green("Overall gate status:"), result.overallGateStatus);
+    console.log(chalk.green("Artifact directory:"), result.artifactDirectory);
+    console.log(chalk.green("Artifact report path:"), result.artifactReportPath);
+    console.log(chalk.green("Memory path:"), result.memoryPath);
+
+    printSection("Assumptions:");
+    if (!result.report.assumptions.length) {
+      console.log("- None");
+    } else {
+      for (const assumption of result.report.assumptions) {
+        console.log(`- ${assumption.text}`);
+      }
+    }
+
+    printSection("Clarifying Questions:");
+    if (!result.report.clarifyingQuestions.length) {
+      console.log("- None");
+    } else {
+      for (const question of result.report.clarifyingQuestions) {
+        const prefix = question.blocking ? "[blocking] " : "";
+        console.log(`- ${prefix}${question.text}`);
+      }
+    }
+
+    printPlan(result.report.plan);
+    printSkills(result.report.selectedSkills);
+    printGates(result.report.gates);
+
+    console.log("");
   });
-
-program.command("execute")
-  .argument("<taskType>")
-  .requiredOption("--payload <json>")
-  .option("--dry-run", "Execute as dry-run", false)
-  .action(async (taskType, options) => {
-    const payload = JSON.parse(options.payload);
-    const result = await executeTask(taskType as TaskType, payload, Boolean(options.dryRun));
-    console.log(JSON.stringify(result, null, 2));
-  });
-
-program.command("adapters").action(async () => {
-  const report = await adapterHealthReport();
-  console.log(chalk.cyan("\nAdapter Health\n"));
-  report.forEach((r) => console.log(`- ${r.name}: ok=${r.ok} | ${r.details}`));
-});
 
 program.command("validate-env").action(() => {
-  const report = validateAllAdapterEnv();
-  console.log(chalk.cyan("\nAdapter Env Validation\n"));
-  report.forEach((r) => console.log(`- ${r.name}: ok=${r.ok} ${r.missing.length ? `| missing=${r.missing.join(", ")}` : ""}`));
+  const memory = loadProjectMemory();
+  console.log(
+    JSON.stringify(
+      {
+        status: "ok",
+        lastRunAt: memory.lastRunAt,
+        lastIdea: memory.lastIdea,
+        totalStoredRuns: memory.runs.length,
+      },
+      null,
+      2,
+    ),
+  );
 });
 
-program.parseAsync();
+program.command("metrics").action(() => {
+  const memory = loadProjectMemory();
+  const runsByMode: Record<string, number> = {};
+
+  for (const run of memory.runs) {
+    const key = run.mode ?? "unknown";
+    runsByMode[key] = (runsByMode[key] ?? 0) + 1;
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        totalRuns: memory.runs.length,
+        uniqueIdeas: new Set(memory.recentIdeas).size,
+        lastRunAt: memory.lastRunAt,
+        lastIdea: memory.lastIdea,
+        runsByMode,
+      },
+      null,
+      2,
+    ),
+  );
+});
+
+program.parse();

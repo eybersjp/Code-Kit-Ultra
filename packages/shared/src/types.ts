@@ -1,89 +1,115 @@
-export type Mode = "safe" | "balanced" | "god";
-export type GateType = "clarity" | "scope" | "architecture" | "build" | "qa" | "security" | "cost" | "deployment" | "launch";
-export type TaskType = "planning" | "implementation" | "skills" | "automation" | "deployment" | "general";
+/**
+ * Core types for the Antigravity system.
+ * These types define the shared data model used across all packages.
+ */
 
+export type Mode = "safe" | "balanced" | "god";
+
+export type TaskStatus = "pending" | "in-progress" | "completed" | "failed" | "rolled-back";
+
+export type GateStatus = "pass" | "fail" | "needs-review" | "blocked" | "pending";
+
+export type TaskType = 
+  | "planning" 
+  | "implementation" 
+  | "skills" 
+  | "automation" 
+  | "deployment" 
+  | "general";
+
+/**
+ * The initial intake from the user.
+ */
 export interface UserInput {
   idea: string;
   mode: Mode;
   dryRun?: boolean;
-  skillLevel?: "beginner" | "intermediate" | "advanced";
-  priority?: "speed" | "quality" | "low-cost" | "best-ux" | "scalability" | "business-ready";
-  deliverable?: "app" | "automation" | "website" | "mvp" | "internal-tool" | "agent-system" | "docs" | "business-package";
+  metadata?: Record<string, unknown>;
 }
 
+/**
+ * A rule-based or AI-inferred assumption about the project.
+ */
 export interface Assumption {
   id: string;
   text: string;
   confidence: "low" | "medium" | "high";
 }
 
+/**
+ * A question generated to resolve ambiguity in the project idea.
+ */
 export interface ClarifyingQuestion {
   id: string;
   text: string;
   blocking: boolean;
 }
 
-export interface PlanTask {
+/**
+ * The result of the intake and clarification phase.
+ */
+export interface ClarificationResult {
+  normalizedIdea: string;
+  inferredProjectType: string;
+  assumptions: Assumption[];
+  clarifyingQuestions: ClarifyingQuestion[];
+  completeness: "sufficient-for-initial-planning" | "needs-clarification";
+}
+
+export interface Task {
   id: string;
   title: string;
   description: string;
-  phase: string;
-  taskType: TaskType;
-  doneDefinition: string;
+  status: TaskStatus;
+  type: TaskType;
+  dependencies: string[];
+  metadata?: Record<string, unknown>;
 }
 
-export interface SkillMatch {
+export interface SelectedSkill {
   skillId: string;
+  name?: string;
+  category?: string;
   reason: string;
-  source: "installed" | "generated";
-  taskType: TaskType;
-  generatedPath?: string;
+  score?: number;
+  source: "registry" | "fallback" | "generated" | "installed";
 }
 
 export interface GateDecision {
-  gate: GateType;
-  status: "pass" | "needs-review" | "blocked";
+  gate: string;
+  status: GateStatus;
   reason: string;
   shouldPause: boolean;
+  recommendedAction?: string; // Added for Phase 7/8
 }
 
-export interface RouteSelection {
-  taskType: TaskType;
-  adapterName: string;
-  reason: string;
-  mode: "real" | "stub";
+export interface RunReport {
+  id?: string;
+  input: UserInput;
+  intakeResult?: ClarificationResult; // Kept for logic
+  assumptions: Assumption[]; // Added for direct access in Phase 8
+  clarifyingQuestions: ClarifyingQuestion[]; // Added for direct access in Phase 8
+  plan: Task[]; // Added to replace 'tasks' in Phase 8 usage
+  tasks?: Task[]; // Kept for potential backward compatibility
+  selectedSkills: SelectedSkill[];
+  gates: GateDecision[];
+  summary: string;
+  overallGateStatus: GateStatus; // Added for Phase 8
+  status?: "success" | "failure" | "in-progress"; // Kept for Phase 2 compatibility
+  createdAt: string;
+  updatedAt?: string;
 }
 
+// Support types for contracts.ts
 export interface GeneratedSkillManifest {
   skillId: string;
   version: string;
   status: "generated" | "reviewed" | "approved" | "installed" | "rolled-back";
   createdAt: string;
-  promotedAt?: string;
-  rolledBackAt?: string;
-  review?: {
-    reviewer?: string;
-    notes?: string;
-    approved?: boolean;
-    reviewedAt?: string;
-  };
   auditTrail: Array<{
     action: string;
     by?: string;
     at: string;
     notes?: string;
   }>;
-}
-
-export interface RunReport {
-  input: UserInput;
-  assumptions: Assumption[];
-  clarifyingQuestions: ClarifyingQuestion[];
-  plan: PlanTask[];
-  selectedSkills: SkillMatch[];
-  routes: RouteSelection[];
-  gates: GateDecision[];
-  execution?: unknown[];
-  summary: string;
-  createdAt: string;
 }
