@@ -6,9 +6,13 @@ npm run typecheck
 npm run test:smoke
 npm run validate:docs
 
-if [ ! -f ".env" ]; then
-  echo ".env is missing"
-  exit 1
+if [ -z "$GITHUB_ACTIONS" ]; then
+  if [ ! -f ".env" ]; then
+    echo ".env is missing"
+    exit 1
+  fi
+else
+  echo "CI environment detected, skipping .env check"
 fi
 
 echo "Preflight passed"

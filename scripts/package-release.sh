@@ -6,6 +6,6 @@ VERSION=$(cat VERSION | tr -d '[:space:]')
 ZIP="release/code-kit-ultra-${VERSION}.zip"
 
 rm -f "$ZIP"
-zip -r "$ZIP" . -x "node_modules/*" ".git/*" "release/*" "dist/*"
+zip -r "$ZIP" . -x "node_modules/*" ".git/*" "release/*" ".codekit/*" "artifacts/*"
 
 echo "Created $ZIP"
