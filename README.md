@@ -58,6 +58,31 @@ npm run ck -- init "Build a field-service CRM for solar installers"
 
 ---
 
+## Installation
+
+```bash
+# Via pnpm
+pnpm add -g . 
+
+# Or via npm
+npm install -g .
+```
+
+After installation, you can run the CLI using the `codekit` command.
+
+```bash
+codekit init "I need a micro-service for fleet monitoring"
+```
+
+## Features
+
+- **Deterministic Core**: Rule-based intake and planning.
+- **Governed Progress**: Automated quality gates.
+- **Multi-Adapter Support**: Strategic routing for AI agents.
+- **Rollback Safety**: Instant recovery if a promoted skill fails validation.
+
+---
+
 ## 📸 Proof of Excellence
 
 > [!TIP]
@@ -65,7 +90,6 @@ npm run ck -- init "Build a field-service CRM for solar installers"
 
 - **Unified Control Plane**: Planning via Antigravity, Implementation via Cursor.
 - **Governed Promotion**: No skill reaches production without an audit trail.
-- **Rollback Safety**: Instant recovery if a promoted skill fails validation.
 
 ---
 
