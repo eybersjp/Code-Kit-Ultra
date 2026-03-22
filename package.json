@@ -2,7 +2,7 @@
   "name": "code-kit-ultra",
   "private": true,
   "type": "module",
-  "version": "1.0.3-traction",
+  "version": "1.0.3",
   "scripts": {
     "dev": "tsx apps/cli/src/index.ts",
     "ck": "tsx apps/cli/src/index.ts",

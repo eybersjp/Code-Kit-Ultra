@@ -1,61 +1,161 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import chalk from "chalk";
-import fs from "node:fs";
-import path from "node:path";
+import { loadProjectMemory } from "../../../packages/memory/src";
+import { runVerticalSlice } from "../../../packages/orchestrator/src";
+import type { GateDecision, Mode, SelectedSkill, Task } from "../../../packages/shared/src";
 
-function ensureDirs() {
-  fs.mkdirSync(".codekit/memory", { recursive: true });
-  fs.mkdirSync(".codekit/audit", { recursive: true });
-  fs.mkdirSync("artifacts/test-runs", { recursive: true });
-  fs.mkdirSync("release", { recursive: true });
+function normalizeMode(input: string | undefined): Mode {
+  if (input === "safe" || input === "god" || input === "balanced") {
+    return input;
+  }
+  return "balanced";
 }
 
-function metrics() {
-  const file = path.resolve(".codekit/memory/project-memory.json");
-  if (!fs.existsSync(file)) return { totalExecutions: 0, successRate: 0, topAdapters: [] };
-  const data = JSON.parse(fs.readFileSync(file, "utf-8"));
-  const executions = data.executionHistory || [];
-  const successCount = executions.filter((x: any) => x.ok).length;
-  const counts = Object.entries(data.adapterSuccessCounts || {}).map(([name, count]) => ({ name, count }));
-  return { totalExecutions: executions.length, successRate: executions.length ? successCount / executions.length : 0, topAdapters: counts };
+function printSection(title: string): void {
+  console.log(chalk.yellow(`\n${title}`));
 }
 
-function recordExecution(adapter: string, taskType: string, ok: boolean) {
-  const file = path.resolve(".codekit/memory/project-memory.json");
-  const seed = { executionHistory: [], adapterSuccessCounts: {} as Record<string, number> };
-  const data = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf-8")) : seed;
-  data.executionHistory.push({ adapter, taskType, ok, at: new Date().toISOString() });
-  if (ok) data.adapterSuccessCounts[adapter] = (data.adapterSuccessCounts[adapter] || 0) + 1;
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf-8");
+function printPlan(plan: Task[]): void {
+  printSection("Plan:");
+  if (!plan.length) {
+    console.log("- None");
+    return;
+  }
+
+  for (const task of plan) {
+    const dependencySuffix = task.dependencies.length
+      ? ` [deps: ${task.dependencies.join(", ")}]`
+      : "";
+    console.log(`- ${task.id}: ${task.title}${dependencySuffix}`);
+  }
+}
+
+function printSkills(skills: SelectedSkill[]): void {
+  printSection("Selected Skills:");
+  if (!skills.length) {
+    console.log("- None");
+    return;
+  }
+
+  for (const skill of skills) {
+    const reason = typeof skill.reason === "string" ? ` — ${skill.reason}` : "";
+    const score = typeof skill.score === "number" ? ` (score=${skill.score})` : "";
+    console.log(`- ${skill.skillId ?? skill.name}${score}${reason}`);
+  }
+}
+
+function printGates(gates: GateDecision[]): void {
+  printSection("Gates:");
+  if (!gates.length) {
+    console.log("- None");
+    return;
+  }
+
+  for (const gate of gates) {
+    const action = gate.recommendedAction ? ` | action: ${gate.recommendedAction}` : "";
+    console.log(`- ${gate.gate}: ${gate.status} | ${gate.reason}${action}`);
+  }
 }
 
 const program = new Command();
-program.name("code-kit").description("Code Kit Ultra CLI").version("1.0.0");
+
+program
+  .name("code-kit")
+  .description("Code Kit Ultra CLI")
+  .version("1.0.3");
+
+program
+  .command("init")
+  .argument("<idea>", "Project idea")
+  .option("-m, --mode <mode>", "safe | balanced | god", "balanced")
+  .option("--dry-run", "mark the run as a dry run", false)
+  .action((idea: string, options: { mode?: string; dryRun?: boolean }) => {
+    const trimmedIdea = idea.trim();
+
+    if (!trimmedIdea) {
+      console.error(chalk.red("Error: idea must not be empty."));
+      process.exitCode = 1;
+      return;
+    }
+
+    const result = runVerticalSlice({
+      idea: trimmedIdea,
+      mode: normalizeMode(options.mode),
+      dryRun: Boolean(options.dryRun),
+    });
+
+    console.log(chalk.cyan("\nCode Kit Ultra — Vertical Slice Report\n"));
+    console.log(chalk.green("Summary:"), result.report.summary);
+    console.log(chalk.green("Overall gate status:"), result.overallGateStatus);
+    console.log(chalk.green("Artifact directory:"), result.artifactDirectory);
+    console.log(chalk.green("Artifact report path:"), result.artifactReportPath);
+    console.log(chalk.green("Memory path:"), result.memoryPath);
+
+    printSection("Assumptions:");
+    if (!result.report.assumptions.length) {
+      console.log("- None");
+    } else {
+      for (const assumption of result.report.assumptions) {
+        console.log(`- ${assumption.text}`);
+      }
+    }
+
+    printSection("Clarifying Questions:");
+    if (!result.report.clarifyingQuestions.length) {
+      console.log("- None");
+    } else {
+      for (const question of result.report.clarifyingQuestions) {
+        const prefix = question.blocking ? "[blocking] " : "";
+        console.log(`- ${prefix}${question.text}`);
+      }
+    }
+
+    printPlan(result.report.plan);
+    printSkills(result.report.selectedSkills);
+    printGates(result.report.gates);
+
+    console.log("");
+  });
 
 program.command("validate-env").action(() => {
-  ensureDirs();
-  console.log("Environment validation entry point ready.");
+  const memory = loadProjectMemory();
+  console.log(
+    JSON.stringify(
+      {
+        status: "ok",
+        lastRunAt: memory.lastRunAt,
+        lastIdea: memory.lastIdea,
+        totalStoredRuns: memory.runs.length,
+      },
+      null,
+      2,
+    ),
+  );
 });
 
 program.command("metrics").action(() => {
-  ensureDirs();
-  console.log(JSON.stringify(metrics(), null, 2));
-});
+  const memory = loadProjectMemory();
+  const runsByMode: Record<string, number> = {};
 
-program.command("init")
-  .argument("<idea>")
-  .option("--dry-run", "dry run", false)
-  .action((idea, options) => {
-    ensureDirs();
-    recordExecution("antigravity-stub", "planning", true);
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const dir = path.resolve(`artifacts/test-runs/${stamp}`);
-    fs.mkdirSync(dir, { recursive: true });
-    const report = { idea, dryRun: Boolean(options.dryRun), summary: "Phase 10 public release starter run" };
-    fs.writeFileSync(path.join(dir, "run-report.json"), JSON.stringify(report, null, 2), "utf-8");
-    console.log(chalk.green(`Artifacts: ${dir}`));
-  });
+  for (const run of memory.runs) {
+    const key = run.mode ?? "unknown";
+    runsByMode[key] = (runsByMode[key] ?? 0) + 1;
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        totalRuns: memory.runs.length,
+        uniqueIdeas: new Set(memory.recentIdeas).size,
+        lastRunAt: memory.lastRunAt,
+        lastIdea: memory.lastIdea,
+        runsByMode,
+      },
+      null,
+      2,
+    ),
+  );
+});
 
 program.parse();

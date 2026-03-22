@@ -6,7 +6,7 @@
 
 ---
 
-[![v1.0.2](https://img.shields.io/badge/Release-v1.0.3--traction-blue)](https://github.com/eybersjp/Code-Kit-Ultra)
+[![v1.0.3](https://img.shields.io/badge/Release-v1.0.3-blue)](https://github.com/eybersjp/Code-Kit-Ultra)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://github.com/eybersjp/Code-Kit-Ultra/actions/workflows/ci.yml/badge.svg)](https://github.com/eybersjp/Code-Kit-Ultra/actions)
 

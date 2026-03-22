@@ -1,4 +1,4 @@
-# Release Notes: Code Kit Ultra v1.0.3 (Traction Sprint)
+# Release Notes: Code Kit Ultra v1.0.3 (Production Core)
 
 ## "From Architecture to Adoption"
 
@@ -33,8 +33,10 @@ v1.0.3 marks the transition of Code Kit Ultra from a technically complete system
 
 ## 🛠️ Performance & Hygiene
 
-- **Sync**: Merged with v1.0.0 core stability and v1.0.2 show-case assets.
-- **Health**: Verified with `npm run doctor` and `npm run test:smoke`.
+- **Deterministic Core Pipeline**: Promoted real intake, planner, and gate evaluation logic from phase6-antigravity, replacing the previous hollow stubs.
+- **Structured Observability**: Added the `observability` package with a structured JSON logger satisfying HeliosOS standards for all core execution paths.
+- **Type Safety**: Fixed long-standing `any` casts and type gaps in the CLI and orchestrator, ensuring full type-safety for the vertical slice.
+- **Health**: Verified with `npm run doctor` and `npm run typecheck`.
 
 ---
 

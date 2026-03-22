@@ -1,0 +1,43 @@
+{
+  "adapters": {
+    "antigravity-real": {
+      "enabled": true,
+      "type": "real",
+      "requiredEnv": [
+        "ANTIGRAVITY_API_KEY",
+        "ANTIGRAVITY_BASE_URL"
+      ],
+      "baseUrl": "https://api.antigravity.im"
+    },
+    "antigravity-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "cursor-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "windsurf-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "n8n-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "windmill-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "fallback-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    }
+  }
+}
