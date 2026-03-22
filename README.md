@@ -60,15 +60,26 @@ npm run ck -- init "Build a field-service CRM for solar installers"
 
 ## Installation
 
-```bash
-# Via pnpm
-pnpm add -g . 
+### From Local Source
 
-# Or via npm
-npm install -g .
+```bash
+# Register the local folder as a package
+pnpm add -g . 
 ```
 
-After installation, you can run the CLI using the `codekit` command.
+### From GitHub (Recommended)
+
+You can install `codekit` directly from the repository without cloning:
+
+```bash
+# Global install via pnpm
+pnpm add -g git+https://github.com/eybersjp/Code-Kit-Ultra.git#main
+
+# Global install via npm
+npm install -g git+https://github.com/eybersjp/Code-Kit-Ultra.git#main
+```
+
+After installation, you can run the CLI using the `codekit` command from any directory.
 
 ```bash
 codekit init "I need a micro-service for fleet monitoring"

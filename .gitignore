@@ -1,7 +1,7 @@
 .codekit/
 tmp/
 artifacts/
-dist/
+# dist/ (allowed for git installs)
 node_modules/
 skills/generated/
 .env
