@@ -1,15 +1,14 @@
 import type { Mode, RunReport } from "../../shared/src";
 import { recordRun } from "../../memory/src";
-import { runIntake } from "./intake";
-import { evaluateGates } from "./gate-manager";
 import { getModePolicy } from "./mode-controller";
-import { buildPlanFromClarification } from "./planner";
-import { selectSkills } from "../../skill-engine/src";
+import { runOrchestrationStep } from "./phase-engine";
 
 export interface RunVerticalSliceInput {
   idea: string;
   mode?: Mode;
   dryRun?: boolean;
+  approvedGates?: string[];
+  currentRun?: RunReport; // New: support continuing an existing run
 }
 
 export interface RunVerticalSliceResult {
@@ -18,42 +17,55 @@ export interface RunVerticalSliceResult {
   artifactReportPath: string;
   memoryPath: string;
   overallGateStatus: string;
+  currentPhase: string;
 }
 
-export function runVerticalSlice(input: RunVerticalSliceInput): RunVerticalSliceResult {
-  const mode = input.mode ?? "balanced";
+export async function runVerticalSlice(input: RunVerticalSliceInput): Promise<RunVerticalSliceResult> {
+  const mode = input.mode ?? "builder";
   const policy = getModePolicy(mode);
 
-  const intakeResult = runIntake({ idea: input.idea, mode });
-  const plan = buildPlanFromClarification(intakeResult);
-  const selectedSkills = selectSkills({
-    clarification: intakeResult,
-    plan,
-  });
-  const gateResult = evaluateGates({
-    clarificationResult: intakeResult,
-    plan,
-    selectedSkills,
-    mode,
-  });
-
-  const report: RunReport = {
+  let report: RunReport = input.currentRun || {
     createdAt: new Date().toISOString(),
-    summary: `${policy.label} mode run completed with overall status: ${gateResult.overallStatus}.`,
+    summary: `${policy.label} mode run initiated.`,
     input: {
       idea: input.idea,
       mode,
       dryRun: Boolean(input.dryRun),
     },
-    intakeResult,
-    assumptions: intakeResult.assumptions,
-    clarifyingQuestions: intakeResult.clarifyingQuestions,
-    plan,
-    selectedSkills,
-    gates: gateResult.decisions,
-    overallGateStatus: gateResult.overallStatus,
-    status: "success",
+    assumptions: [],
+    clarifyingQuestions: [],
+    plan: [],
+    selectedSkills: [],
+    gates: [],
+    approvedGates: input.approvedGates ?? [],
+    overallGateStatus: "pending",
+    currentPhase: "intake",
+    completedPhases: [],
+    status: "in-progress",
   };
+
+  // Execution Logic based on Mode
+  // Expert mode: One step at a time
+  // Turbo mode: Loop until blocked or finished
+  // Builder/Pro: Balanced
+  
+  const shouldContinue = (rep: RunReport) => {
+    if (rep.status === "blocked" || rep.status === "awaiting-approval" || rep.status === "success") return false;
+    if (mode === "expert") return false; // Stop after every step in expert mode
+    return true;
+  };
+
+  // Run the first step
+  let stepResult = await runOrchestrationStep(report);
+  report = stepResult;
+
+  // Continue if autonomous
+  if (mode !== "expert") {
+    while (!stepResult.isFinished && report.status === "in-progress") {
+      stepResult = await runOrchestrationStep(report);
+      report = stepResult;
+    }
+  }
 
   const persisted = recordRun(report);
 
@@ -62,6 +74,7 @@ export function runVerticalSlice(input: RunVerticalSliceInput): RunVerticalSlice
     artifactDirectory: persisted.artifactDirectory,
     artifactReportPath: persisted.artifactReportPath,
     memoryPath: persisted.memoryPath,
-    overallGateStatus: gateResult.overallStatus,
+    overallGateStatus: report.overallGateStatus,
+    currentPhase: report.currentPhase,
   };
 }

@@ -1,4 +1,4 @@
-# Code Kit Ultra: The AI Operating System for Product Delivery 🚀
+# Code Kit Ultra: The Governed AI Operating System for Product Delivery 🚀
 
 ![Code Kit Ultra Hero Banner](assets/branding/hero_banner.png)
 
@@ -6,15 +6,36 @@
 
 ---
 
-[![v1.0.3](https://img.shields.io/badge/Release-v1.0.3-blue)](https://github.com/eybersjp/Code-Kit-Ultra)
+[![v1.1.0](https://img.shields.io/badge/Release-v1.1.0-blue)](https://github.com/eybersjp/Code-Kit-Ultra)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://github.com/eybersjp/Code-Kit-Ultra/actions/workflows/ci.yml/badge.svg)](https://github.com/eybersjp/Code-Kit-Ultra/actions)
 
 ---
 
+## ⚠️ Current State
+
+Code Kit Ultra provides a **fully governed execution framework**.
+
+Agent intelligence (LLM-driven generation) is:
+
+- partially implemented
+- evolving rapidly
+
+The system guarantees:
+
+- safe execution
+- auditability
+- reproducibility
+
+But does not yet guarantee:
+
+- production-perfect code generation.
+
+---
+
 ## ⚡ Why Code Kit Ultra?
 
-Most AI tools stop at "Hello World." **Code Kit Ultra** takes you to "Prime Time." It is a zero-friction, governed orchestration engine designed to turn complex product ideas into production-grade solutions using specialized AI adapters (Antigravity, Cursor, Windsurf).
+Most AI tools stop at "Hello World." **Code Kit Ultra** takes you to "Prime Time." It is a governed, multi-agent AI execution system designed to turn complex product ideas into production-grade solutions. It provides a secure, auditable workspace where AI agents perform real work under human oversight.
 
 ### Top 3 Use Cases
 
@@ -31,29 +52,59 @@ Most AI tools stop at "Hello World." **Code Kit Ultra** takes you to "Prime Time
 
 ## 🚀 Get Started in 2 Minutes
 
-### 1. The 60-Second Health Check
+### 1. The Governed Health Check
 
 Ensure your environment is ready for excellence.
 
 ```bash
-npm install
-npm run doctor
+# Site health check
+npm run ck -- /ck-doctor
 ```
 
-### 2. Witness Your First Success
+### 2. Witness Your Governed Execution
 
-Execute the high-visibility demo and inspect the results.
+Execute a preview-and-queue flow to see how Code Kit Ultra handles risk.
 
 ```bash
-npm run demo
+# Run with preview mode
+npm run ck -- /ck-run "Demo project" --mode expert
 ```
 
 ### 3. Build Your Idea
 
-Initialize your first project with governed orchestration.
+Initialize your first project with namespaced command orchestration.
 
 ```bash
-npm run ck -- init "Build a field-service CRM for solar installers"
+npm run ck -- /ck-init "Build a field-service CRM for solar installers"
+```
+
+---
+
+## 📖 Canonical Flows
+
+To prevent command explosion from overwhelming your workflow, use these two primary flows:
+
+### ⚡ Quick Mode (Turbo)
+
+*Use for simple tasks where you trust the execution.*
+
+```bash
+/ck-mode turbo
+/ck-init "Build X"
+/ck-run
+```
+
+### 🧠 Controlled Mode (Builder/Pro)
+
+*Use for complex builds requiring line-level audit.*
+
+```bash
+/ck-mode builder
+/ck-init "Build X"
+/ck-run
+/ck-preview
+/ck-approve-batch <id>
+/ck-run
 ```
 
 ---
@@ -79,10 +130,11 @@ pnpm add -g git+https://github.com/eybersjp/Code-Kit-Ultra.git#main
 npm install -g git+https://github.com/eybersjp/Code-Kit-Ultra.git#main
 ```
 
-After installation, you can run the CLI using the `codekit` command from any directory.
+After installation, you can run the CLI using the `codekit` command with namespaced protocol.
 
 ```bash
-codekit init "I need a micro-service for fleet monitoring"
+codekit /ck-init "I need a micro-service for fleet monitoring"
+codekit /ck-run
 ```
 
 ## Features
@@ -108,10 +160,12 @@ codekit init "I need a micro-service for fleet monitoring"
 
 | Feature | Status | Milestone |
 | :--- | :--- | :--- |
-| **Specialist Adapters** | ✅ Live | v1.0.1 |
-| **Visual Proof Assets** | ✅ Live | v1.0.2 |
-| **Case Study Sprint** | 🏗️ Active | v1.0.3 |
-| **Multi-Adapter Parallelism** | 📅 Q3 2026 | v1.1.0 |
+| **Command Protocol (/ck-*)** | ✅ Live | v1.1.0 |
+| **Governed Autonomy Modes** | ✅ Live | v1.1.0 |
+| **Operational Stack (.ck/)** | ✅ Live | v1.1.0 |
+| **Trust & Audit Layer (Phase 2)** | 🏗️ Active | v1.1.1 |
+| **Governed Execution Layer** | 🏗️ Active | v1.2.0 |
+| **Multi-Agent Parallelism** | 📅 Q1 2027 | v2.0.0 |
 
 ---
 
@@ -124,3 +178,4 @@ codekit init "I need a micro-service for fleet monitoring"
 ---
 
 *Code Kit Ultra: Not just technically impressive—organization-ready.*
+

@@ -3,7 +3,7 @@
  * These types define the shared data model used across all packages.
  */
 
-export type Mode = "safe" | "balanced" | "god";
+export type Mode = "turbo" | "builder" | "pro" | "expert";
 
 export type TaskStatus = "pending" | "in-progress" | "completed" | "failed" | "rolled-back";
 
@@ -81,7 +81,21 @@ export interface GateDecision {
   reason: string;
   shouldPause: boolean;
   recommendedAction?: string;
+  explanation?: {
+    impact: string;
+    fix: string;
+  };
 }
+
+export type Phase =
+  | "intake"
+  | "planning"
+  | "skills"
+  | "gating"
+  | "building"
+  | "testing"
+  | "reviewing"
+  | "deployment";
 
 export interface RunReport {
   id?: string;
@@ -92,9 +106,12 @@ export interface RunReport {
   plan: Task[];
   selectedSkills: SelectedSkill[];
   gates: GateDecision[];
+  approvedGates: string[];
   summary: string;
   overallGateStatus: GateStatus;
-  status?: "success" | "failure" | "in-progress";
+  currentPhase: Phase;
+  completedPhases: Phase[];
+  status?: "success" | "failure" | "in-progress" | "blocked" | "awaiting-approval";
   createdAt: string;
   updatedAt?: string;
 }
@@ -111,4 +128,16 @@ export interface GeneratedSkillManifest {
     at: string;
     notes?: string;
   }>;
+}
+
+export interface CommandContext {
+  mode: Mode;
+  runId?: string;
+  workspaceRoot?: string;
+}
+
+export interface CommandResult {
+  ok: boolean;
+  message: string;
+  data?: unknown;
 }

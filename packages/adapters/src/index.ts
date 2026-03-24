@@ -6,17 +6,26 @@ export type {
   PlatformAdapter,
 } from "./types";
 
-export { antigravityAdapter } from "./antigravity-adapter";
-export { cursorAdapter } from "./cursor-adapter";
-export { windsurfAdapter } from "./windsurf-adapter";
-
-import type { AdapterExecutionRequest, AdapterRecommendation, PlatformAdapter } from "./types";
 import { antigravityAdapter } from "./antigravity-adapter";
 import { cursorAdapter } from "./cursor-adapter";
 import { windsurfAdapter } from "./windsurf-adapter";
+import { openaiAdapter } from "./openai-adapter";
+import { geminiAdapter } from "./gemini-adapter";
+import { claudeAdapter } from "./claude-adapter";
+
+export { antigravityAdapter, cursorAdapter, windsurfAdapter, openaiAdapter, geminiAdapter, claudeAdapter };
+
+import type { AdapterExecutionRequest, AdapterRecommendation, PlatformAdapter } from "./types";
 
 export function getAvailableAdapters(): PlatformAdapter[] {
-  return [antigravityAdapter, cursorAdapter, windsurfAdapter];
+  return [
+    antigravityAdapter,
+    cursorAdapter,
+    windsurfAdapter,
+    openaiAdapter,
+    geminiAdapter,
+    claudeAdapter,
+  ];
 }
 
 export function recommendAdapters(input: AdapterExecutionRequest): AdapterRecommendation[] {

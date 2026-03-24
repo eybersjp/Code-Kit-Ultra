@@ -1,4 +1,8 @@
 .codekit/
+.ck/
+.gemini/
+.agent/
+.agents/
 tmp/
 artifacts/
 dist/

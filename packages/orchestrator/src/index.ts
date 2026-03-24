@@ -7,3 +7,11 @@ export type { GateEvaluationInput, GateEvaluationResult } from "./gate-manager";
 
 export { runVerticalSlice } from "./run-vertical-slice";
 export type { RunVerticalSliceInput, RunVerticalSliceResult } from "./run-vertical-slice";
+
+export * from "./action-runner";
+export * from "./log-writer";
+export * from "./rollback-metadata";
+export * from "./batch-queue";
+export * from "./execution-preview";
+export * from "./resume-run";
+export * from "./rollback-engine";

@@ -1,22 +1,34 @@
-# Roadmap
+# Code Kit Ultra Roadmap
 
-## v1.x
-- stable public release
-- strengthen specialist adapters
-- improve observability and dashboards
-- expand templates and examples
+The roadmap for Code Kit Ultra focuses on transitioning from a planning-centric AI tool to a fully governed, autonomous software execution platform.
 
-## v1.1
-- richer policy-based routing
-- improved skill lifecycle tooling
-- enhanced team workflows
+## 🏁 Phase 1: Foundation & Alignment (v1.1.0)
 
-## v1.2
-- packaging improvements
-- optional npm/global CLI distribution
-- hosted observability exploration
+- ✅ Namespaced command protocol (`/ck-*`)
+- ✅ Autonomous mode system (`turbo | builder | pro | expert`)
+- ✅ Operational package structure (`command-engine`, `agents`, `gates`, `security`, `tools`)
+- ✅ Structured persistence model (`.ck/*`)
 
-## Long-term
-- enterprise team features
-- adapter marketplace concepts
-- hosted control plane options
+## 🏗️ Phase 2: Governed Execution (v1.2.0)
+
+- 🏗️ **Action Runner**: Secure, phase-aware filesystem and command execution.
+- 🏗️ **Queue/Approve/Execute Flow**: Approval-required batches for high-risk actions.
+- 🏗️ **Resumable Runs**: State-aware runs that can survive restarts.
+- 🏗️ **Rollback Engine**: Snapshot-based recovery for multi-file changes.
+
+## 🛡️ Phase 3: Trust & Safety Layer (v1.3.0)
+
+- 📅 **Diff Previews**: Line-level file modifications previews before execution.
+- 📅 **Provenance & Signing**: Audit trail for agent-generated actions.
+- 📅 **Run Ledger**: Immutable event-stream of all system and agent activities.
+
+## 🚀 Phase 4: Scaling & Intelligence (v2.0+)
+
+- 📅 **Multi-Agent Parallelism**: Coordinated execution across specialized agent groups.
+- 📅 **Advanced Tool Ecosystem**: Richer integration with cloud, CI/CD, and dev tools.
+- 📅 **Enterprise Governance**: Team-wide policies, shared memory, and cross-repo orchestration.
+
+---
+
+### Last Updated: 2026-03-24
+

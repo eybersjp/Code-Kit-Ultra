@@ -6,12 +6,30 @@ import type { Mode, RunReport } from "../../shared/src";
  * A lightweight memory entry for one recorded run.
  */
 export interface ProjectMemoryRunEntry {
+  id: string; // Machine-readable unique identifier for the run
   recordedAt: string;
   artifactDirectory: string;
   artifactReportPath: string;
   summary?: string;
   idea?: string;
   mode?: Mode;
+  approvedGates?: string[];
+  currentPhase?: string;
+}
+
+/**
+ * Get the full RunReport for a specific run ID.
+ */
+export function getMemoryByRunId(runId: string, options?: RunStoreOptions): RunReport | null {
+  const memory = loadProjectMemory(options);
+  const entry = memory.runs.find(r => r.id === runId);
+  if (!entry) return null;
+
+  const reportPath = entry.artifactReportPath;
+  if (!fs.existsSync(reportPath)) return null;
+
+  const raw = fs.readFileSync(reportPath, "utf-8");
+  return JSON.parse(raw) as RunReport;
 }
 
 /**
@@ -182,7 +200,7 @@ function extractObjectProperty(source: unknown, keys: string[]): Record<string, 
 }
 
 function isMode(value: unknown): value is Mode {
-  return value === "safe" || value === "balanced" || value === "god";
+  return value === "turbo" || value === "builder" || value === "pro" || value === "expert";
 }
 
 function dedupePreserveOrder(values: string[]): string[] {
@@ -329,12 +347,15 @@ export function recordRun(
   const summary = extractSummaryFromReport(report);
 
   const newRunEntry: ProjectMemoryRunEntry = {
+    id: report.id || `run-${toSafeTimestamp()}`,
     recordedAt,
     artifactDirectory,
     artifactReportPath,
     summary,
     idea,
     mode,
+    approvedGates: report.approvedGates,
+    currentPhase: report.currentPhase,
   };
 
   const maxRecentIdeas = options?.maxRecentIdeas ?? DEFAULT_MAX_RECENT_IDEAS;
@@ -389,6 +410,7 @@ function isProjectMemoryRunEntry(value: unknown): value is ProjectMemoryRunEntry
     typeof entry.artifactReportPath === "string" &&
     (typeof entry.summary === "string" || typeof entry.summary === "undefined") &&
     (typeof entry.idea === "string" || typeof entry.idea === "undefined") &&
-    (typeof entry.mode === "string" || typeof entry.mode === "undefined")
+    (typeof entry.mode === "string" || typeof entry.mode === "undefined") &&
+    (typeof entry.currentPhase === "string" || typeof entry.currentPhase === "undefined")
   );
 }

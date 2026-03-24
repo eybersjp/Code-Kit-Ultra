@@ -14,6 +14,7 @@ export interface GateEvaluationInput {
   plan: Task[];
   selectedSkills: SelectedSkill[];
   mode?: Mode;
+  approvedGates?: string[]; // Gates that have been manually approved
 }
 
 export interface GateEvaluationResult {
@@ -22,7 +23,7 @@ export interface GateEvaluationResult {
   summary: string;
 }
 
-const DEFAULT_MODE: Mode = "balanced";
+const DEFAULT_MODE: Mode = "builder";
 
 export function evaluateGates(input: GateEvaluationInput): GateEvaluationResult {
   const mode = input.mode ?? DEFAULT_MODE;
@@ -34,7 +35,29 @@ export function evaluateGates(input: GateEvaluationInput): GateEvaluationResult 
     evaluatePlanReadinessGate(input, policy),
     evaluateSkillCoverageGate(input, policy),
     evaluateAmbiguityRiskGate(input, policy),
-  ];
+  ].map(decision => {
+    // If gate is manually approved, force it to pass
+    if (input.approvedGates?.includes(decision.gate)) {
+      return {
+        ...decision,
+        status: "pass" as GateStatus,
+        reason: `${decision.reason} (MANUALLY APPROVED)`,
+        shouldPause: false
+      };
+    }
+    
+    // Turbo mode auto-pass logic for non-critical gates
+    if (mode === "turbo" && decision.status === "needs-review") {
+      return {
+        ...decision,
+        status: "pass" as GateStatus,
+        reason: `${decision.reason} (AUTO-PASSED VIA TURBO)`,
+        shouldPause: false
+      };
+    }
+    
+    return decision;
+  });
 
   const overallStatus = getOverallGateStatus(decisions);
   const summary = buildGateSummary(overallStatus, decisions);
@@ -70,6 +93,10 @@ function evaluateObjectiveClarityGate(input: GateEvaluationInput, policy: ModePo
       name: "Objective clarity",
       status: "blocked",
       reason: "No usable normalized objective was found in the clarification result.",
+      explanation: {
+        impact: "The system cannot proceed without a clear project goal.",
+        fix: "Define a more specific project idea or run /ck-init again."
+      }
     });
   }
 
@@ -79,6 +106,10 @@ function evaluateObjectiveClarityGate(input: GateEvaluationInput, policy: ModePo
       name: "Objective clarity",
       status: "needs-review",
       reason: "A project objective exists, but the project category is still unclear.",
+      explanation: {
+        impact: "Skill selection might be less accurate without a category.",
+        fix: "Manually approve with /ck-approve objective-clarity or clarify the idea."
+      }
     });
   }
 
@@ -99,6 +130,10 @@ function evaluateRequirementsCompletenessGate(input: GateEvaluationInput, policy
       name: "Requirements completeness",
       status: "blocked",
       reason: `The intake still has ${questionCount} open clarifying questions, which is too many for a safe run in ${policy.mode} mode.`,
+      explanation: {
+        impact: "Missing details may lead to incorrect implementation.",
+        fix: "Answer the clarifying questions or switch to a more permissive mode like Turbo."
+      }
     });
   }
 
@@ -108,6 +143,10 @@ function evaluateRequirementsCompletenessGate(input: GateEvaluationInput, policy
       name: "Requirements completeness",
       status: "needs-review",
       reason: `The intake has ${questionCount} open clarifying questions, so the requirements are not fully settled yet.`,
+      explanation: {
+        impact: "Some aspects of the project are still undefined.",
+        fix: "Review the questions or proceed if you are confident."
+      }
     });
   }
 
@@ -129,6 +168,10 @@ function evaluatePlanReadinessGate(input: GateEvaluationInput, policy: ModePolic
       name: "Plan readiness",
       status: "blocked",
       reason: "No plan tasks were generated for this run.",
+      explanation: {
+        impact: "The orchestrator has no steps to execute.",
+        fix: "Run /ck-plan to generate a structured implementation plan."
+      }
     });
   }
 
@@ -138,6 +181,10 @@ function evaluatePlanReadinessGate(input: GateEvaluationInput, policy: ModePolic
       name: "Plan readiness",
       status: "needs-review",
       reason: `The plan has ${tasks.length} task(s) and ${hasDependencies ? "does" : "does not"} include explicit dependencies, so execution readiness is partial.`,
+      explanation: {
+        impact: "Sequential execution might be unreliable without clear dependencies.",
+        fix: "Refine the plan or approve via /ck-approve plan-readiness."
+      }
     });
   }
 
@@ -161,6 +208,10 @@ function evaluateSkillCoverageGate(input: GateEvaluationInput, policy: ModePolic
       name: "Skill coverage",
       status: "blocked",
       reason: "No skills were selected for this run.",
+      explanation: {
+        impact: "The system lacks the necessary capabilities to perform the tasks.",
+        fix: "Ensure the skill registry is loaded or manually select relevant skills."
+      }
     });
   }
 
@@ -173,6 +224,10 @@ function evaluateSkillCoverageGate(input: GateEvaluationInput, policy: ModePolic
       name: "Skill coverage",
       status: "needs-review",
       reason: `The run selected ${skills.length} skill(s), but specialist coverage is still weak.`,
+      explanation: {
+        impact: "Generic skills might not handle project-specific complexities well.",
+        fix: "Add specialist skills or approve via /ck-approve skill-coverage."
+      }
     });
   }
 
@@ -195,6 +250,10 @@ function evaluateAmbiguityRiskGate(input: GateEvaluationInput, policy: ModePolic
       name: "Ambiguity risk",
       status: "blocked",
       reason: "Ambiguity is too high for safe progression.",
+      explanation: {
+        impact: "High risk of building something that doesn't match the intent.",
+        fix: "Provide more context or switch to Builder/Turbo mode to bypass strict checks."
+      }
     });
   }
 
@@ -204,6 +263,10 @@ function evaluateAmbiguityRiskGate(input: GateEvaluationInput, policy: ModePolic
       name: "Ambiguity risk",
       status: "needs-review",
       reason: `The run currently depends on ${assumptions} assumptions and ${questionCount} open questions, which increases ambiguity risk.`,
+      explanation: {
+        impact: "Potential for misalignment between intent and result.",
+        fix: "Review assumptions and questions or run /ck-approve ambiguity-risk."
+      }
     });
   }
 
@@ -220,12 +283,14 @@ function createGateDecision(params: {
   name: string;
   status: GateStatus;
   reason: string;
+  explanation?: { impact: string; fix: string };
 }): GateDecision {
   return {
     gate: params.id,
     status: params.status,
     reason: params.reason,
     shouldPause: params.status !== "pass",
+    explanation: params.explanation,
   };
 }
 

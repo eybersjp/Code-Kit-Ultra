@@ -13,13 +13,62 @@ export interface ModePolicy {
     ambiguityReviewThreshold: number;
     ambiguityBlockThreshold: number;
   };
+  execution: {
+    autoExecuteSafeActions: boolean;
+    requireApprovalForMediumRisk: boolean;
+    requireApprovalForHighRisk: boolean;
+    allowCommandExecution: boolean;
+    dryRunByDefault: boolean;
+  };
 }
 
 const MODE_POLICIES: Record<Mode, ModePolicy> = {
-  safe: {
-    mode: "safe",
-    label: "Safe",
-    description: "Conservative progression with stricter review and more surfaced questions.",
+  turbo: {
+    mode: "turbo",
+    label: "Turbo",
+    description: "High-speed autonomous build with minimal friction.",
+    maxClarifyingQuestions: 2,
+    gateThresholds: {
+      maxQuestionsBeforeReview: 99, // Essentially no review for questions
+      maxQuestionsBeforeBlock: 15,
+      minimumPlanTasks: 3,
+      minimumSelectedSkills: 1,
+      ambiguityReviewThreshold: 10,
+      ambiguityBlockThreshold: 15,
+    },
+    execution: {
+      autoExecuteSafeActions: true,
+      requireApprovalForMediumRisk: false,
+      requireApprovalForHighRisk: true,
+      allowCommandExecution: true,
+      dryRunByDefault: false,
+    },
+  },
+  builder: {
+    mode: "builder",
+    label: "Builder",
+    description: "Structure-focused with partial automation and minimal approvals.",
+    maxClarifyingQuestions: 5,
+    gateThresholds: {
+      maxQuestionsBeforeReview: 5,
+      maxQuestionsBeforeBlock: 10,
+      minimumPlanTasks: 5,
+      minimumSelectedSkills: 2,
+      ambiguityReviewThreshold: 4,
+      ambiguityBlockThreshold: 8,
+    },
+    execution: {
+      autoExecuteSafeActions: true,
+      requireApprovalForMediumRisk: true,
+      requireApprovalForHighRisk: true,
+      allowCommandExecution: true,
+      dryRunByDefault: false,
+    },
+  },
+  pro: {
+    mode: "pro",
+    label: "Pro",
+    description: "Controlled execution with mandatory approval checkpoints.",
     maxClarifyingQuestions: 8,
     gateThresholds: {
       maxQuestionsBeforeReview: 3,
@@ -27,41 +76,41 @@ const MODE_POLICIES: Record<Mode, ModePolicy> = {
       minimumPlanTasks: 6,
       minimumSelectedSkills: 2,
       ambiguityReviewThreshold: 2,
-      ambiguityBlockThreshold: 5,
-    },
-  },
-  balanced: {
-    mode: "balanced",
-    label: "Balanced",
-    description: "Practical default with moderate tolerance for ambiguity.",
-    maxClarifyingQuestions: 5,
-    gateThresholds: {
-      maxQuestionsBeforeReview: 5,
-      maxQuestionsBeforeBlock: 9,
-      minimumPlanTasks: 5,
-      minimumSelectedSkills: 2,
-      ambiguityReviewThreshold: 3,
       ambiguityBlockThreshold: 6,
     },
+    execution: {
+      autoExecuteSafeActions: false,
+      requireApprovalForMediumRisk: true,
+      requireApprovalForHighRisk: true,
+      allowCommandExecution: true,
+      dryRunByDefault: true,
+    },
   },
-  god: {
-    mode: "god",
-    label: "God",
-    description: "Aggressive forward motion with high ambiguity tolerance.",
-    maxClarifyingQuestions: 3,
+  expert: {
+    mode: "expert",
+    label: "Expert",
+    description: "Manual orchestration with full deterministic control.",
+    maxClarifyingQuestions: 15,
     gateThresholds: {
-      maxQuestionsBeforeReview: 7,
-      maxQuestionsBeforeBlock: 12,
-      minimumPlanTasks: 4,
-      minimumSelectedSkills: 1,
-      ambiguityReviewThreshold: 5,
-      ambiguityBlockThreshold: 8,
+      maxQuestionsBeforeReview: 1,
+      maxQuestionsBeforeBlock: 5,
+      minimumPlanTasks: 8,
+      minimumSelectedSkills: 3,
+      ambiguityReviewThreshold: 1,
+      ambiguityBlockThreshold: 4,
+    },
+    execution: {
+      autoExecuteSafeActions: false,
+      requireApprovalForMediumRisk: true,
+      requireApprovalForHighRisk: true,
+      allowCommandExecution: true,
+      dryRunByDefault: true,
     },
   },
 };
 
-export function getModePolicy(mode: Mode = "balanced"): ModePolicy {
-  return MODE_POLICIES[mode] ?? MODE_POLICIES.balanced;
+export function getModePolicy(mode: Mode = "builder"): ModePolicy {
+  return MODE_POLICIES[mode] ?? MODE_POLICIES.builder;
 }
 
 type QuestionLike = {
@@ -87,7 +136,7 @@ function priorityWeight(question: QuestionLike): number {
   }
 }
 
-export function trimQuestionsByMode<T extends QuestionLike>(questions: T[], mode: Mode = "balanced"): T[] {
+export function trimQuestionsByMode<T extends QuestionLike>(questions: T[], mode: Mode = "builder"): T[] {
   const policy = getModePolicy(mode);
   const sorted = [...questions].sort((a, b) => priorityWeight(b) - priorityWeight(a));
   return sorted.slice(0, policy.maxClarifyingQuestions);

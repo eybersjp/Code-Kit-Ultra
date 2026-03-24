@@ -13,6 +13,7 @@ export {
   saveRunReport,
   saveRunReportToDirectory,
   recordRun,
+  getMemoryByRunId,
   getProjectMemoryPathForDebug,
   getArtifactsRootForDebug,
 } from "./run-store";
