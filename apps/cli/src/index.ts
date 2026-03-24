@@ -96,7 +96,7 @@ const program = new Command();
 program
   .name("code-kit")
   .description("Code Kit Ultra CLI")
-  .version("1.0.3");
+  .version("1.1.1-trust");
 
 async function executePipeline(idea: string | undefined, options: { mode?: Mode; approvedGates?: string[]; stage?: string }) {
   const memory = loadProjectMemory();
@@ -417,12 +417,89 @@ program
           lastRunAt: memory.lastRunAt,
           lastIdea: memory.lastIdea,
           totalStoredRuns: memory.runs.length,
-          version: "1.1.0",
+          version: "1.1.1-trust",
         },
         null,
         2,
       ),
     );
+  });
+
+program
+  .command("/ck-constraints")
+  .description("Define constraint policies for governed autonomy")
+  .argument("<json>", "Constraint policy JSON")
+  .action(async (json: string) => {
+    const { handleConstraints } = await import("../../../packages/command-engine/src/handlers/constraints");
+    const memory = loadProjectMemory();
+    const lastRun = memory.runs[0];
+    const context = {
+      mode: lastRun?.mode || "builder" as Mode,
+      runId: lastRun?.id,
+      workspaceRoot: process.cwd(),
+    };
+    const result = await handleConstraints({ text: json }, context);
+    if (result.ok) {
+      console.log(chalk.green(`\nSuccess: ${result.message}`));
+    } else {
+      console.error(chalk.red(`\nError: ${result.message}`));
+    }
+  });
+
+program
+  .command("/ck-validate")
+  .description("Validate a batch structure")
+  .argument("<json>", "Batch JSON")
+  .action(async (json: string) => {
+    const { handleValidate } = await import("../../../packages/command-engine/src/handlers/validate");
+    const result = await handleValidate({ text: json }, { mode: "builder" as Mode });
+    if (result.ok) {
+      console.log(chalk.green(`\nSuccess: ${result.message}`));
+    } else {
+      console.error(chalk.red(`\nError: ${result.message}`));
+    }
+  });
+
+program
+  .command("/ck-consensus")
+  .description("Compute consensus between agents")
+  .argument("<json>", "Votes array JSON")
+  .action(async (json: string) => {
+    const { handleConsensus } = await import("../../../packages/command-engine/src/handlers/consensus");
+    const result = await handleConsensus({ text: json }, { mode: "builder" as Mode });
+    if (result.ok) {
+      console.log(chalk.green(`\nSuccess: ${result.message}`));
+    } else {
+      console.error(chalk.yellow(`\nRevision Required: ${result.message}`));
+    }
+  });
+
+program
+  .command("/ck-score")
+  .description("Score execution confidence")
+  .argument("<json>", "Score payload JSON")
+  .action(async (json: string) => {
+    const { handleScore } = await import("../../../packages/command-engine/src/handlers/score");
+    const result = await handleScore({ text: json }, { mode: "builder" as Mode });
+    if (result.ok) {
+      console.log(chalk.green(`\nConfidence High: ${result.message}`));
+    } else {
+      console.error(chalk.red(`\nConfidence Low: ${result.message}`));
+    }
+  });
+
+program
+  .command("/ck-killswitch")
+  .description("Evaluate the kill switch for a batch")
+  .argument("<json>", "Kill switch payload JSON")
+  .action(async (json: string) => {
+    const { handleKillSwitch } = await import("../../../packages/command-engine/src/handlers/killswitch");
+    const result = await handleKillSwitch({ text: json }, { mode: "builder" as Mode });
+    if (result.ok) {
+      console.log(chalk.green(`\nSuccess: ${result.message}`));
+    } else {
+      console.error(chalk.red(`\nBlocked: ${result.message}`));
+    }
   });
 
 program

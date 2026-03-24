@@ -5,6 +5,9 @@ import { selectSkills } from "../../skill-engine/src";
 import { evaluateGates } from "./gate-manager";
 import { runActionBatch } from "./action-runner";
 import type { BuilderActionBatch } from "../../agents/src/action-types";
+import { runGovernedAutonomy } from "../../governance/src/governed-pipeline";
+import { loadConstraintPolicy } from "../../governance/src/policy-store";
+import type { ConsensusVote } from "../../governance/src/consensus-engine";
 
 export interface PhaseContext {
   idea: string;
@@ -144,7 +147,38 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
       };
     }
 
-    // 4. Auto-execute if safe or approved
+    // 4. Governed Autonomy Layer (Phase 3)
+    const currentPolicy = loadConstraintPolicy(workspaceRoot, runId) || {
+      maxFilesChanged: 20,
+      maxCommands: 5,
+      allowedPaths: ["src", "packages", "apps", "config"],
+    };
+
+    // Simulated votes from agents for now
+    const votes: ConsensusVote[] = [
+      { agent: "planner", decision: "approve", confidence: 0.9, notes: ["Directly follows approved plan."] },
+      { agent: "builder", decision: "approve", confidence: 0.95, notes: ["Safe file mutations identified."] },
+    ];
+
+    const governance = runGovernedAutonomy({
+      originalIdea: ctx.idea,
+      batch,
+      policy: currentPolicy,
+      votes,
+    });
+
+    if (!governance.allowed) {
+      return {
+        nextPhase: "building",
+        updates: {
+          summary: `Governed execution blocked: ${governance.killSwitch.reason} (Score: ${governance.confidence.overall})`,
+          status: "blocked",
+        },
+        status: "blocked",
+      };
+    }
+
+    // 5. Auto-execute if safe or approved
     const result = runActionBatch({
       workspaceRoot,
       mode: ctx.mode,
@@ -152,13 +186,16 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
       approvedGates: ctx.approvedGates,
     });
 
+    const isBlocked = result.results.some(r => r.status === "blocked");
+    const isAwaiting = result.results.some(r => r.status === "approval_required");
+
     return {
-      nextPhase: result.results.some(r => r.status === "blocked") ? "building" : "testing",
+      nextPhase: isBlocked ? "building" : "testing",
       updates: {
         summary: result.summary,
-        status: result.results.some(r => r.status === "blocked") ? "failure" : (result.results.some(r => r.status === "approval_required") ? "awaiting-approval" : "success")
+        status: isBlocked ? "blocked" : (isAwaiting ? "awaiting-approval" : "success")
       },
-      status: result.results.some(r => r.status === "blocked") ? "blocked" : (result.results.some(r => r.status === "approval_required") ? "awaiting-approval" : "success"),
+      status: isBlocked ? "blocked" : (isAwaiting ? "awaiting-approval" : "success"),
     };
   },
   testing: async (ctx) => {
