@@ -1,18 +1,1 @@
-#!/usr/bin/env bash
-set -e
-
-echo "== Preflight Check =="
-npm run typecheck
-npm run test:smoke
-npm run validate:docs
-
-if [ -z "$GITHUB_ACTIONS" ]; then
-  if [ ! -f ".env" ]; then
-    echo ".env is missing"
-    exit 1
-  fi
-else
-  echo "CI environment detected, skipping .env check"
-fi
-
-echo "Preflight passed"
+#!/usr/bin/env bashset -eecho "== Preflight Check =="npm run typechecknpm run test:smokenpm run validate:docsif [ -z "$GITHUB_ACTIONS" ]; then  if [ ! -f ".env" ]; then    echo ".env is missing"    exit 1  fielse  echo "CI environment detected, skipping .env check"fiecho "Preflight passed"
