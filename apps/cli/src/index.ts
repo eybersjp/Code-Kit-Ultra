@@ -275,8 +275,8 @@ program
   });
 
 program
-  .command("/ck-report")
-  .description("Display the Code Kit Ultra status report")
+  .command("/ck-project-report")
+  .description("Display the Code Kit Ultra project status report")
   .action(() => {
     const memory = loadProjectMemory();
     const lastRun = memory.runs[0];
@@ -501,6 +501,90 @@ program
       console.error(chalk.red(`\nBlocked: ${result.message}`));
     }
   });
+
+program
+  .command("/ck-trace")
+  .description("View the governance trace for a specific runId")
+  .argument("<runId>", "The run ID to trace")
+  .action(async (runId: string) => {
+    const { handleTrace } = await import("../../../packages/command-engine/src/handlers/trace");
+    handleTrace(JSON.stringify({ runId }));
+  });
+
+program
+  .command("/ck-timeline")
+  .description("View the event timeline for a specific runId")
+  .argument("<runId>", "The run ID to view")
+  .action(async (runId: string) => {
+    const { handleTimeline } = await import("../../../packages/command-engine/src/handlers/timeline");
+    handleTimeline(JSON.stringify({ runId }));
+  });
+
+program
+  .command("/ck-report")
+  .description("Generate a markdown execution report for a runId")
+  .argument("<runId>", "The run ID to report")
+  .action(async (runId: string) => {
+    const { handleReport } = await import("../../../packages/command-engine/src/handlers/report");
+    handleReport(JSON.stringify({ runId }));
+  });
+
+program
+  .command("/ck-score-explain")
+  .description("Explain the confidence score breakdown for a runId")
+  .argument("<runId>", "The run ID to explain")
+  .action(async (runId: string) => {
+    const { handleScoreExplain } = await import("../../../packages/command-engine/src/handlers/score-explain");
+    handleScoreExplain(JSON.stringify({ runId }));
+  });
+
+program
+  .command("/ck-vote")
+  .description("Process an agent vote (stub)")
+  .argument("<json>", "Vote JSON")
+  .action(async (json: string) => {
+    const { handleVote } = await import("./handlers/vote");
+    console.log(handleVote(json));
+  });
+
+program
+  .command("/ck-consensus-adaptive")
+  .description("Compute adaptive consensus")
+  .argument("<json>", "Consensus input JSON")
+  .action(async (json: string) => {
+    const { handleAdaptiveConsensus } = await import("./handlers/consensus-adaptive");
+    console.log(handleAdaptiveConsensus(json));
+  });
+
+program
+  .command("/ck-agent-profile")
+  .description("View or update agent reliability profiles")
+  .argument("[json]", "Optional stats JSON for update")
+  .action(async (json?: string) => {
+    const { handleAgentProfile } = await import("./handlers/agent-profile");
+    console.log(handleAgentProfile(json));
+  });
+
+program
+  .command("/ck-consensus-sim")
+  .description("Simulate adaptive consensus with verbose output")
+  .argument("<json>", "Consensus input JSON")
+  .action(async (json: string) => {
+    const { handleConsensusSim } = await import("./handlers/consensus-sim");
+    console.log(handleConsensusSim(json));
+  });
+
+import { registerOutcomeCommand } from "./handlers/outcome";
+import { registerLearningReportCommand } from "./handlers/learning-report";
+import { registerAgentEvolutionCommand } from "./handlers/agent-evolution";
+import { registerPolicyDiffCommand } from "./handlers/policy-diff";
+import { registerConsensusSimFileCommand } from "./handlers/consensus-sim";
+
+registerOutcomeCommand(program);
+registerLearningReportCommand(program);
+registerAgentEvolutionCommand(program);
+registerPolicyDiffCommand(program);
+registerConsensusSimFileCommand(program);
 
 program
   .command("/ck-metrics")

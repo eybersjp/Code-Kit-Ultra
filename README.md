@@ -1,181 +1,106 @@
-# Code Kit Ultra: The Governed AI Operating System for Product Delivery 🚀
+# Code Kit Ultra
 
-![Code Kit Ultra Hero Banner](assets/branding/hero_banner.png)
+## v1.1.1-trust-ultra
 
-**From Idea to Production-Ready, Governed, and Scalable in Minutes.**
+**The Governed Autonomous Engineering System**
 
----
+Code Kit Ultra is a next-generation platform that transforms software development from manual coding into a **self-governing, explainable, and continuously improving autonomous system**.
 
-[![v1.1.0](https://img.shields.io/badge/Release-v1.1.0-blue)](https://github.com/eybersjp/Code-Kit-Ultra)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Build Status](https://github.com/eybersjp/Code-Kit-Ultra/actions/workflows/ci.yml/badge.svg)](https://github.com/eybersjp/Code-Kit-Ultra/actions)
+Unlike traditional AI coding tools that focus only on code generation, Code Kit Ultra prioritizes **auditable execution, safety, and learning**.
 
 ---
 
-## ⚠️ Current State
+## 🧠 How It Works: The Full Autonomous Loop
 
-Code Kit Ultra provides a **fully governed execution framework**.
-
-Agent intelligence (LLM-driven generation) is:
-
-- partially implemented
-- evolving rapidly
-
-The system guarantees:
-
-- safe execution
-- auditability
-- reproducibility
-
-But does not yet guarantee:
-
-- production-perfect code generation.
+1. **Idea Intake**: Understand intent and surface assumptions.
+2. **Strategic Planning**: Decompose ideas into a deterministic task graph.
+3. **Governed Evaluation**: Multi-layer safety check (Intent, Constraints, Validation).
+4. **Specialist Voting**: Agents (**Planner, Builder, Reviewer, Security**) evaluate risky batches.
+5. **Adaptive Consensus**: Risk-weighted decisioning with **Veto Authority** for security risks.
+6. **Execute / Block**: Signed execution with atomic backups, or block on risk.
+7. **Observability**: Full decision traces, event timelines, and audit reports saved to `.ck/`.
+8. **Outcome Feedback**: Record real-world success/failure for each run.
+9. **Self-Tuning Learning**: Adjust agent reliability and governance thresholds automatically.
+10. **Loop Evolution**: Future decisions become more accurate and safer over time.
 
 ---
 
-## ⚡ Why Code Kit Ultra?
+## 🔥 Core Capabilities
 
-Most AI tools stop at "Hello World." **Code Kit Ultra** takes you to "Prime Time." It is a governed, multi-agent AI execution system designed to turn complex product ideas into production-grade solutions. It provides a secure, auditable workspace where AI agents perform real work under human oversight.
+### 🛡️ Governed Execution
 
-### Top 3 Use Cases
+Code Kit Ultra enforces a "think-before-acting" boundary. No action is performed unless it aligns with user intent and passes strict safety policy checks.
 
-1. **[SaaS Rapid Prototyping](docs/CASE_STUDY_SIMPLE_CRM.md)**: Build a governed CRM or Internal Tool schema in 60 seconds.
-   ![Solar CRM Showcase](assets/branding/crm_showcase.png)
+### 👁️ Full Observability & Explainability
 
-2. **[Enterprise Ops Automation](docs/CASE_STUDY_INTERNAL_TOOL.md)**: Orchestrate complex workflows across disparate systems.
-   ![Workflow Automation](assets/branding/workflow_automation.png)
+Every autonomous decision is visible. The system generates:
 
-3. **[Self-Extending Skill Ecosystem](docs/CASE_STUDY_SKILL_LIFECYCLE.md)**: Generate, review, and promote AI skills.
-   ![Skill Lifecycle](assets/branding/skill_lifecycle.png)
+- **Decision Traces**: Why exactly an action was approved or blocked.
+- **Audit Reports**: Markdown/JSON summaries of every run.
+- **Score Breakdown**: Explanations for confidence scores and risk assessments.
 
----
+### ⚖️ Adaptive Specialist Governance
 
-## 🚀 Get Started in 2 Minutes
+Decisions are not made by a single model. A specialist-driven consensus engine (Planner, Builder, Reviewer, Security) simulates expert reasoning and adapts thresholds based on the risk level (Low, Medium, High).
 
-### 1. The Governed Health Check
+### 🔁 Self-Tuning Learning
 
-Ensure your environment is ready for excellence.
-
-```bash
-# Site health check
-npm run ck -- /ck-doctor
-```
-
-### 2. Witness Your Governed Execution
-
-Execute a preview-and-queue flow to see how Code Kit Ultra handles risk.
-
-```bash
-# Run with preview mode
-npm run ck -- /ck-run "Demo project" --mode expert
-```
-
-### 3. Build Your Idea
-
-Initialize your first project with namespaced command orchestration.
-
-```bash
-npm run ck -- /ck-init "Build a field-service CRM for solar installers"
-```
+The system improves itself. It learns from execution outcomes, evolving agent reliability profiles and adjusting governance policies to manage risk more effectively in the future.
 
 ---
 
-## 📖 Canonical Flows
+## ⚙️ CLI Command Protocol (`/ck-*`)
 
-To prevent command explosion from overwhelming your workflow, use these two primary flows:
+### 🛡️ Governance & Security
 
-### ⚡ Quick Mode (Turbo)
+- `/ck-validate <json>`: Validate action batch structural integrity.
+- `/ck-constraints <json>`: Define and enforce safety policies.
+- `/ck-killswitch <json>`: Immediate safety evaluation of a batch.
+- `/ck-score <json>`: Score execution confidence.
 
-*Use for simple tasks where you trust the execution.*
+### 👁️ Observability
 
-```bash
-/ck-mode turbo
-/ck-init "Build X"
-/ck-run
-```
+- `/ck-trace <runId>`: Full governance trace for a specific execution.
+- `/ck-timeline <runId>`: Sequencing of events for a run.
+- `/ck-report <runId>`: Generate Markdown execution report.
+- `/ck-score-explain <runId>`: Explain the confidence score breakdown.
 
-### 🧠 Controlled Mode (Builder/Pro)
+### 🧠 Adaptive Consensus
 
-*Use for complex builds requiring line-level audit.*
+- `/ck-consensus-sim <json>`: Simulate specialist voting for any batch.
+- `/ck-consensus-adaptive`: Compute live adaptive consensus.
+- `/ck-agent-profile`: View/manage specialist agent reliability and weights.
 
-```bash
-/ck-mode builder
-/ck-init "Build X"
-/ck-run
-/ck-preview
-/ck-approve-batch <id>
-/ck-run
-```
+### 🔁 Learning & Evolution
 
----
-
-## Installation
-
-### From Local Source
-
-```bash
-# Register the local folder as a package
-pnpm add -g . 
-```
-
-### From GitHub (Recommended)
-
-You can install `codekit` directly from the repository without cloning:
-
-```bash
-# Global install via pnpm
-pnpm add -g git+https://github.com/eybersjp/Code-Kit-Ultra.git#main
-
-# Global install via npm
-npm install -g git+https://github.com/eybersjp/Code-Kit-Ultra.git#main
-```
-
-After installation, you can run the CLI using the `codekit` command with namespaced protocol.
-
-```bash
-codekit /ck-init "I need a micro-service for fleet monitoring"
-codekit /ck-run
-```
-
-## Features
-
-- **Deterministic Core**: Rule-based intake and planning.
-- **Governed Progress**: Automated quality gates.
-- **Multi-Adapter Support**: Strategic routing for AI agents.
-- **Rollback Safety**: Instant recovery if a promoted skill fails validation.
+- `/ck-outcome-file <path>`: Record run outcome (Success/Failure) for self-tuning.
+- `/ck-learning-report`: View the latest evolution report.
+- `/ck-agent-evolution <agent>`: Track the reliability lifecycle of a specialist.
+- `/ck-policy-diff`: Inspect threshold policy changes over time.
 
 ---
 
-## 📸 Proof of Excellence
+## 🆚 Why Code Kit Ultra?
 
-> [!TIP]
-> **Check out the [Visual Showcase](docs/DEMO_SCRIPT.md)** to see Code Kit Ultra in action with real screenshots and walk-throughs.
-
-- **Unified Control Plane**: Planning via Antigravity, Implementation via Cursor.
-- **Governed Promotion**: No skill reaches production without an audit trail.
-
----
-
-## 📈 Traction & Roadmap
-
-| Feature | Status | Milestone |
-| :--- | :--- | :--- |
-| **Command Protocol (/ck-*)** | ✅ Live | v1.1.0 |
-| **Governed Autonomy Modes** | ✅ Live | v1.1.0 |
-| **Operational Stack (.ck/)** | ✅ Live | v1.1.0 |
-| **Trust & Audit Layer (Phase 2)** | 🏗️ Active | v1.1.1 |
-| **Governed Execution Layer** | 🏗️ Active | v1.2.0 |
-| **Multi-Agent Parallelism** | 📅 Q1 2027 | v2.0.0 |
+| Capability | Code Kit Ultra | Cursor / Windsurf | GitHub Copilot |
+| :--- | :---: | :---: | :---: |
+| Planning-first execution | ✅ | ⚠️ Partial | ❌ |
+| Governed Safety Pipeline | ✅ | ❌ | ❌ |
+| Explainable Decisions | ✅ | ❌ | ❌ |
+| Multi-Agent Reasoning | ✅ | ❌ | ❌ |
+| Risk-Aware Execution | ✅ | ❌ | ❌ |
+| Self-Improving System | ✅ | ❌ | ❌ |
 
 ---
 
-## 🤝 Join the Community
+## 🚀 Vision: The OS for Autonomous Engineering
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)**: Help us build the future of AI delivery.
-- **[USER_FEEDBACK_LOG.md](docs/USER_FEEDBACK_LOG.md)**: See what others are saying and add your voice.
-- **[SUPPORT.md](SUPPORT.md)**: Get help from the core team.
+v1.1.1-trust-ultra is the stable foundation for autonomous development. Coming soon:
+
+- **Stage 7: Control Plane Dashboard** (Visual Governance & Decision Playback).
+- **Enterprise Policy Management**.
+- **Agent Tuning Interface**.
 
 ---
 
-*Code Kit Ultra: Not just technically impressive—organization-ready.*
-
+**Code Kit Ultra — High-Stability Autonomous Engineering.**

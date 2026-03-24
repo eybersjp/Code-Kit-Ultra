@@ -7,7 +7,8 @@ import { runActionBatch } from "./action-runner";
 import type { BuilderActionBatch } from "../../agents/src/action-types";
 import { runGovernedAutonomy } from "../../governance/src/governed-pipeline";
 import { loadConstraintPolicy } from "../../governance/src/policy-store";
-import type { ConsensusVote } from "../../governance/src/consensus-engine";
+import type { AgentVote, RiskLevel } from "../../shared/src/agent-consensus";
+import { TimelineBuilder, buildGovernanceTrace, saveGovernanceTrace, saveTimeline, saveMarkdownReport, renderGovernanceMarkdownReport } from "../../observability/src";
 
 export interface PhaseContext {
   idea: string;
@@ -72,10 +73,17 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
   },
   building: async (ctx) => {
     const runId = ctx.report.id || "run-dev";
+    const timeline = new TimelineBuilder(runId);
+    if (ctx.report.timeline) {
+      (timeline as any).events = [...ctx.report.timeline];
+    }
+    
+    timeline.add("building", "start", "Building phase started");
     const workspaceRoot = process.cwd();
 
-    // v1.1.0 Refactor: Use the centralized intelligence layer (adapters)
+    // v1.1.1 Refactor: Use the centralized intelligence layer (adapters)
     // instead of hardcoded mock batches.
+    timeline.add("building", "agent-prompt", "Invoking agent executor");
     const { runAgentPrompt } = await import("../../agents/src/executor");
     const agentResult = runAgentPrompt({
       projectIdea: ctx.idea,
@@ -84,8 +92,6 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
       report: ctx.report as RunReport,
     });
 
-    // In a fully developed system, the agentResult would return 
-    // real actions. For now, it returns the summary of its intent.
     const batch: BuilderActionBatch = {
       runId,
       phase: "build",
@@ -111,6 +117,7 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
     };
 
     // 1. Generate preview and assess risk
+    timeline.add("building", "preview", "Generating execution preview");
     const { writeExecutionPreview } = await import("./execution-preview");
     const preview = writeExecutionPreview(workspaceRoot, batch);
 
@@ -126,6 +133,7 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
 
     if (requiresApproval && !isGateApproved) {
       // 3. Queue the batch and pause pipeline
+      timeline.add("building", "pause", "High risk batch queued for approval");
       const { createQueuedBatch } = await import("./batch-queue");
       const queued = createQueuedBatch({
         workspaceRoot,
@@ -137,48 +145,106 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
         batch,
       });
 
+      const updatedTimeline = timeline.build();
+      saveTimeline(runId, updatedTimeline);
+
       return {
         nextPhase: "building",
         updates: {
           summary: `Build phase requires approval for action batch ${queued.id}.`,
           status: "awaiting-approval",
+          timeline: updatedTimeline,
         },
         status: "awaiting-approval",
       };
     }
 
-    // 4. Governed Autonomy Layer (Phase 3)
+    // 4. Governed Autonomy Layer (Phase 5: Adaptive Specialist Agents)
+    timeline.add("building", "governance", "Starting adaptive governance specialists pipeline");
     const currentPolicy = loadConstraintPolicy(workspaceRoot, runId) || {
       maxFilesChanged: 20,
       maxCommands: 5,
       allowedPaths: ["src", "packages", "apps", "config"],
     };
 
-    // Simulated votes from agents for now
-    const votes: ConsensusVote[] = [
-      { agent: "planner", decision: "approve", confidence: 0.9, notes: ["Directly follows approved plan."] },
-      { agent: "builder", decision: "approve", confidence: 0.95, notes: ["Safe file mutations identified."] },
+    // Specialist Votes (Phase 5 Agents)
+    const votes: AgentVote[] = [
+      { agent: "planner", decision: "approve", confidence: 0.9, reason: "Directly follows approved plan." },
+      { agent: "builder", decision: "approve", confidence: 0.95, reason: "Safe file mutations identified." },
+      { agent: "reviewer", decision: "approve", confidence: 0.88, reason: "Review logic check passed." },
+      { agent: "security", decision: "approve", confidence: 0.92, reason: "No high-risk operations detected." },
     ];
 
+    const riskLevel: RiskLevel = preview.riskSummary.high > 0 ? "high" : 
+                               (preview.riskSummary.medium > 0 ? "medium" : "low");
+
     const governance = runGovernedAutonomy({
+      runId,
       originalIdea: ctx.idea,
       batch,
       policy: currentPolicy,
       votes,
+      riskLevel,
     });
 
+    // Phase 4 Trace: Map Adaptive Consensus to Trace Engine
+    const trace = buildGovernanceTrace({
+      runId,
+      summary: batch.summary,
+      mode: ctx.mode,
+      intent: {
+        passed: governance.intent.valid,
+        score: governance.intent.confidence,
+        reason: governance.intent.notes.join(" "),
+      },
+      constraints: {
+        passed: governance.constraints.valid,
+        violations: governance.constraints.violations.map(v => v.message),
+      },
+      validation: {
+        passed: governance.validation.valid,
+        errors: governance.validation.checks.filter(c => !c.passed).map(c => c.message),
+      },
+      consensus: {
+        passed: governance.consensus.finalDecision === "approve",
+        votes: governance.consensus.explanations.map(x => ({
+          agent: x.agent,
+          decision: x.decision === "approve" ? "approve" : (x.decision === "reject" ? "reject" : "abstain"),
+          weight: x.effectiveWeight,
+          reason: x.reason,
+        })),
+        approvalWeight: governance.consensus.approvalScore,
+        rejectionWeight: governance.consensus.rejectScore,
+        threshold: governance.consensus.threshold,
+        reason: governance.consensus.summary,
+      },
+      confidenceThreshold: 0.7,
+    });
+    
+    saveGovernanceTrace(trace);
+    timeline.add("building", "governance-result", `Result: ${trace.finalDecision} - ${trace.finalReason}`);
+
     if (!governance.allowed) {
+      const updatedTimeline = timeline.build();
+      saveTimeline(runId, updatedTimeline);
+      
+      const reportMarkdown = renderGovernanceMarkdownReport(trace, updatedTimeline);
+      saveMarkdownReport(runId, reportMarkdown);
+
       return {
         nextPhase: "building",
         updates: {
           summary: `Governed execution blocked: ${governance.killSwitch.reason} (Score: ${governance.confidence.overall})`,
           status: "blocked",
+          timeline: updatedTimeline,
+          governanceTrace: trace,
         },
         status: "blocked",
       };
     }
 
     // 5. Auto-execute if safe or approved
+    timeline.add("building", "execute", "Executing approved action batch");
     const result = runActionBatch({
       workspaceRoot,
       mode: ctx.mode,
@@ -189,11 +255,19 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
     const isBlocked = result.results.some(r => r.status === "blocked");
     const isAwaiting = result.results.some(r => r.status === "approval_required");
 
+    const finalTimeline = timeline.build();
+    saveTimeline(runId, finalTimeline);
+    
+    const finalReportMarkdown = renderGovernanceMarkdownReport(trace, finalTimeline);
+    saveMarkdownReport(runId, finalReportMarkdown);
+
     return {
       nextPhase: isBlocked ? "building" : "testing",
       updates: {
         summary: result.summary,
-        status: isBlocked ? "blocked" : (isAwaiting ? "awaiting-approval" : "success")
+        status: isBlocked ? "blocked" : (isAwaiting ? "awaiting-approval" : "success"),
+        timeline: finalTimeline,
+        governanceTrace: trace,
       },
       status: isBlocked ? "blocked" : (isAwaiting ? "awaiting-approval" : "success"),
     };

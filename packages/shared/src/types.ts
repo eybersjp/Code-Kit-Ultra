@@ -2,6 +2,7 @@
  * Core types for the Code-Kit-Ultra system.
  * These types define the shared data model used across all packages.
  */
+import type { TimelineEvent, GovernanceTrace } from "./observability-types";
 
 export type Mode = "turbo" | "builder" | "pro" | "expert";
 
@@ -114,6 +115,8 @@ export interface RunReport {
   status?: "success" | "failure" | "in-progress" | "blocked" | "awaiting-approval";
   createdAt: string;
   updatedAt?: string;
+  timeline?: TimelineEvent[];
+  governanceTrace?: GovernanceTrace;
 }
 
 // Support types for contracts.ts
