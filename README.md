@@ -1,14 +1,18 @@
 # Code Kit Ultra
 
+![Code Kit Ultra Hero Banner](assets/screenshots/hero-banner.png)
+
 ## v1.1.1-trust-ultra
 
-**The Governed Autonomous Engineering System**
+### The Governed Autonomous Engineering System
 
 Code Kit Ultra is a next-generation platform that transforms software development from manual coding into a **self-governing, explainable, and continuously improving autonomous system**.
 
 Unlike traditional AI coding tools that focus only on code generation, Code Kit Ultra prioritizes **auditable execution, safety, and learning**.
 
 ---
+
+![Specialist Consensus UI](assets/screenshots/specialist-consensus.png)
 
 ## 🧠 How It Works: The Full Autonomous Loop
 
@@ -24,6 +28,8 @@ Unlike traditional AI coding tools that focus only on code generation, Code Kit 
 10. **Loop Evolution**: Future decisions become more accurate and safer over time.
 
 ---
+
+![Observability Trace Timeline](assets/screenshots/observability-trace.png)
 
 ## 🔥 Core Capabilities
 
