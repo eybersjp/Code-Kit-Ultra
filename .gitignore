@@ -8,3 +8,5 @@ skills/generated/
 *.zip
 *.tar.gz
 checksums.txt
+
+devdocs/
