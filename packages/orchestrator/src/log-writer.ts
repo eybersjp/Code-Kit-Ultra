@@ -20,3 +20,10 @@ export function writeJsonRecord(workspaceRoot: string, bucket: string, runId: st
   fs.writeFileSync(fullPath, JSON.stringify(payload, null, 2), "utf-8");
   return fullPath;
 }
+export function writeActionLog(workspaceRoot: string, runId: string, filename: string, payload: unknown): string {
+  const dir = path.join(workspaceRoot, ".ck", "logs", runId);
+  ensureDir(dir);
+  const fullPath = path.join(dir, filename);
+  fs.writeFileSync(fullPath, typeof payload === "string" ? payload : JSON.stringify(payload, null, 2), "utf-8");
+  return fullPath;
+}

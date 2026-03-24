@@ -99,7 +99,7 @@ export function deriveIntakeSignals(idea: string, mode: Mode, category: Solution
 }
 
 export function runIntake(input: IntakeInput): ClarificationResult {
-  const mode = input.mode ?? "balanced";
+  const mode = input.mode ?? "builder";
   const normalizedIdea = normalizeIdeaText(input.idea);
   const category = inferSolutionCategory(normalizedIdea);
 
