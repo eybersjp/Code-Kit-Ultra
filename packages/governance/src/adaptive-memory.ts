@@ -1,4 +1,4 @@
-import type { AgentProfile, SpecialistAgent } from "../../shared/src/agent-consensus";
+import type { AgentProfile, SpecialistAgent } from "../../shared/src/governance-types";
 import { getDefaultAgentProfiles } from "../../agents/src/profiles";
 
 export interface AgentOutcomeStat {

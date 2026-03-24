@@ -7,7 +7,7 @@ import { runActionBatch } from "./action-runner";
 import type { BuilderActionBatch } from "../../agents/src/action-types";
 import { runGovernedAutonomy } from "../../governance/src/governed-pipeline";
 import { loadConstraintPolicy } from "../../governance/src/policy-store";
-import type { AgentVote, RiskLevel } from "../../shared/src/agent-consensus";
+import type { AgentVote, RiskLevel } from "../../shared/src/governance-types";
 import { TimelineBuilder, buildGovernanceTrace, saveGovernanceTrace, saveTimeline, saveMarkdownReport, renderGovernanceMarkdownReport } from "../../observability/src";
 
 export interface PhaseContext {

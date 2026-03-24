@@ -4,7 +4,7 @@ import { evaluateConstraints } from "./constraint-engine";
 import { verifyIntent } from "./intent-engine";
 import { validateBatch } from "./validation-engine";
 import { runAdaptiveConsensus } from "./adaptive-consensus";
-import type { RiskLevel, AgentVote } from "../../shared/src/agent-consensus";
+import type { RiskLevel, AgentVote } from "../../shared/src/governance-types";
 import { scoreExecution } from "./confidence-engine";
 import { evaluateKillSwitch } from "./kill-switch";
 
