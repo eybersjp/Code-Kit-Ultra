@@ -1,11 +1,12 @@
 .codekit/
 tmp/
 artifacts/
-# dist/ (allowed for git installs)
+dist/
 node_modules/
 skills/generated/
 .env
 *.zip
 *.tar.gz
 checksums.txt
+
 devdocs/
