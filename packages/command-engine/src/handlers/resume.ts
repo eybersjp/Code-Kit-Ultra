@@ -9,7 +9,7 @@ export async function handleResume(_: any, context: CommandContext): Promise<Com
   const result = await resumeRun(context.runId);
   return {
     ok: true,
-    message: `Resumed run ${context.runId} at phase ${result.currentPhase}.`,
+    message: `Resumed run ${context.runId}. Status: ${result.state.status}.`,
     data: result,
   };
 }

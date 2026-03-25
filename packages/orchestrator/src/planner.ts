@@ -2,7 +2,10 @@ import type {
   ClarificationResult,
   Task,
   TaskStatus,
+  PlanTask,
+  UserInput,
 } from "../../shared/src";
+import path from "node:path";
 
 export interface PlannerInput {
   clarification: ClarificationResult;
@@ -34,7 +37,7 @@ export function buildPlan(input: PlannerInput): PlannerOutput {
       id: "clarify-scope",
       title: "Clarify scope and acceptance criteria",
       description: buildClarificationDescription(clarification, completeness),
-      status: completeness >= 0.8 ? "in-progress" : DEFAULT_STATUS,
+      status: completeness >= 0.8 ? "running" : DEFAULT_STATUS,
       type: "planning",
       dependencies: [],
     }),
@@ -110,6 +113,76 @@ export function buildPlanFromClarification(
   clarification: ClarificationResult,
 ): Task[] {
   return buildPlan({ clarification }).tasks;
+}
+
+export function buildInitialPlan(input: UserInput): PlanTask[] {
+  const slug = input.idea
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48) || "project";
+
+  const generatedRoot = ".codekit/generated";
+
+  return [
+    {
+      id: "p1",
+      phase: "intake",
+      title: "Capture normalized intake",
+      description: "Persist intake details for the control plane and future resume flows.",
+      doneDefinition: "Intake artifact is generated and readable.",
+      taskType: "file-write",
+      adapterId: "fs",
+      payload: {
+        path: path.join(generatedRoot, slug, "00-intake-note.md"),
+        content: `# Intake\n\nIdea: ${input.idea}\nMode: ${input.mode}\nDeliverable: ${input.deliverable ?? "app"}\n`,
+      },
+      retryPolicy: { maxAttempts: 1 },
+      rollbackPayload: { path: path.join(generatedRoot, slug, "00-intake-note.md") },
+    },
+    {
+      id: "p2",
+      phase: "planning",
+      title: "Generate MVP scaffold plan",
+      description: "Create a local implementation outline artifact.",
+      doneDefinition: "Plan scaffold markdown exists.",
+      taskType: "file-write",
+      adapterId: "fs",
+      payload: {
+        path: path.join(generatedRoot, slug, "01-plan.md"),
+        content: `# MVP Plan\n\n- Define user journeys\n- Implement core entities\n- Build UI and APIs\n- Add QA and deployment checks\n`,
+      },
+      retryPolicy: { maxAttempts: 2 },
+      rollbackPayload: { path: path.join(generatedRoot, slug, "01-plan.md") },
+    },
+    {
+      id: "p3",
+      phase: "execution",
+      title: "Prepare workspace command",
+      description: "Record or run a safe command for local setup.",
+      doneDefinition: "A terminal execution log exists.",
+      taskType: "terminal",
+      adapterId: "terminal",
+      payload: {
+        command: "echo",
+        args: ["Phase 8 workspace prepared"],
+        allowExecution: input.allowCommandExecution ?? false,
+      },
+      retryPolicy: { maxAttempts: 1 },
+    },
+    {
+      id: "p4",
+      phase: "governance",
+      title: "Approval checkpoint",
+      description: "Pause before high-risk mutations.",
+      doneDefinition: "Run pauses for approval when policy requires it.",
+      taskType: "approval",
+      adapterId: "terminal", // Using terminal as placeholder for approval-compatible logic
+      payload: { command: "echo", args: ["Checkpoint reached"] },
+      requiresApproval: true,
+      retryPolicy: { maxAttempts: 1 },
+    },
+  ];
 }
 
 function createTask(task: Task): Task {

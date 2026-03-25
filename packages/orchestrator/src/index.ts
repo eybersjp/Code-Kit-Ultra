@@ -12,6 +12,7 @@ export * from "./action-runner";
 export * from "./log-writer";
 export * from "./rollback-metadata";
 export * from "./batch-queue";
-export * from "./execution-preview";
+export * from "./execution-engine";
 export * from "./resume-run";
 export * from "./rollback-engine";
+export * from "./outcome-engine";

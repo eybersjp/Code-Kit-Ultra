@@ -1,14 +1,9 @@
-export type CKMode = "turbo" | "builder" | "pro" | "expert";
+import type { Mode, CommandContext as SharedCommandContext, CommandResult as SharedCommandResult } from "../../shared/src/types";
 
-export interface CommandContext {
-  mode: CKMode;
-  runId?: string;
-  workspaceRoot?: string;
+export type CKMode = Mode;
+
+export interface CommandContext extends SharedCommandContext {
   actor?: string;
 }
 
-export interface CommandResult {
-  ok: boolean;
-  message: string;
-  data?: unknown;
-}
+export type CommandResult = SharedCommandResult;

@@ -1,0 +1,19 @@
+{
+  "mode": "balanced",
+  "restrictions": [
+    {
+      "adapterId": "terminal",
+      "blacklist": ["rm -rf /", "mkfs", "dd", "shutdown", "reboot"],
+      "requiresApproval": true
+    },
+    {
+      "adapterId": "github",
+      "requiresApproval": true
+    },
+    {
+      "adapterId": "file-system",
+      "requiresApproval": false
+    }
+  ],
+  "globalApprovalRequired": false
+}

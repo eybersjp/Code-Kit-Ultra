@@ -86,7 +86,11 @@ function getProjectMemoryPath(options?: RunStoreOptions): string {
 }
 
 function getArtifactsRoot(options?: RunStoreOptions): string {
-  return path.join(getRepoRoot(options), "artifacts", "test-runs");
+  return path.join(getCodekitRoot(options), "runs");
+}
+
+function getRunDirectory(runId: string, options?: RunStoreOptions): string {
+  return path.join(getArtifactsRoot(options), runId);
 }
 
 function ensureDirectory(directoryPath: string): void {
@@ -395,6 +399,91 @@ export function getProjectMemoryPathForDebug(options?: RunStoreOptions): string 
 
 export function getArtifactsRootForDebug(options?: RunStoreOptions): string {
   return getArtifactsRoot(options);
+}
+
+import type {
+  IntakeArtifact,
+  PlanArtifact,
+  GateDecision,
+  AdapterArtifact,
+  ExecutionLogArtifact,
+  RunState,
+  RunBundle,
+  AuditLogArtifact,
+} from "../../shared/src/types";
+
+export function updateIntake(runId: string, intake: IntakeArtifact): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "intake.json"), intake);
+}
+
+export function updatePlan(runId: string, plan: PlanArtifact): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "plan.json"), plan);
+}
+
+export function updateGates(runId: string, gates: GateDecision[]): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "gates.json"), gates);
+}
+
+export function updateAdapters(runId: string, adapters: AdapterArtifact): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "adapters.json"), adapters);
+}
+
+export function updateExecutionLog(runId: string, log: ExecutionLogArtifact): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "execution-log.json"), log);
+}
+
+export function updateRunState(runId: string, state: RunState): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "state.json"), state);
+}
+
+export function updateAuditLog(runId: string, log: AuditLogArtifact): void {
+  const dir = getRunDirectory(runId);
+  ensureDirectory(dir);
+  writeJsonFile(path.join(dir, "audit-log.json"), log);
+}
+
+export function loadRunBundle(runId: string): RunBundle | null {
+  const dir = getRunDirectory(runId);
+  if (!fs.existsSync(dir)) return null;
+
+  const intake = readJsonFile<IntakeArtifact>(path.join(dir, "intake.json"));
+  const plan = readJsonFile<PlanArtifact>(path.join(dir, "plan.json"));
+  const gates = readJsonFile<GateDecision[]>(path.join(dir, "gates.json"));
+  const adapters = readJsonFile<AdapterArtifact>(path.join(dir, "adapters.json"));
+  const log = readJsonFile<ExecutionLogArtifact>(path.join(dir, "execution-log.json"));
+  const state = readJsonFile<RunState>(path.join(dir, "state.json"));
+  const audit = readJsonFile<AuditLogArtifact>(path.join(dir, "audit-log.json"));
+
+  if (!intake || !plan || !state) return null;
+
+  return {
+    intake,
+    plan,
+    gates: gates || [],
+    adapters: adapters || { runId, createdAt: intake.createdAt, executions: [] },
+    executionLog: log || { runId, createdAt: intake.createdAt, steps: [] },
+    state,
+    auditLog: audit || { runId, createdAt: intake.createdAt, updatedAt: intake.createdAt, events: [] },
+    reportMarkdown: "",
+  };
+}
+
+export function listRunIds(options?: RunStoreOptions): string[] {
+  const root = getArtifactsRoot(options);
+  if (!fs.existsSync(root)) return [];
+  return fs.readdirSync(root).filter((f) => fs.statSync(path.join(root, f)).isDirectory());
 }
 
 function isProjectMemoryRunEntry(value: unknown): value is ProjectMemoryRunEntry {

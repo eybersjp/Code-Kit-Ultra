@@ -9,8 +9,8 @@ import { saveProjectMemory } from "../../../packages/memory/src";
 
 function normalizeMode(input: string | undefined): Mode {
   const mode = input?.toLowerCase();
-  if (mode === "turbo" || mode === "builder" || mode === "pro" || mode === "expert") {
-    return mode;
+  if (mode === "turbo" || mode === "builder" || mode === "pro" || mode === "expert" || mode === "safe" || mode === "balanced" || mode === "god") {
+    return mode as Mode;
   }
   return "builder";
 }
@@ -78,8 +78,16 @@ function printModeSet(mode: Mode): void {
     turbo: { AI: "Full", User: "Minimal", Pipeline: "AUTO" },
     builder: { AI: "High", User: "Low", Pipeline: "AUTO/MINIMAL APPROVALS" },
     pro: { AI: "Balanced", User: "Moderate", Pipeline: "CHECKPOINTS" },
-    expert: { AI: "Minimal", User: "Full", Pipeline: "MANUAL" }
+    expert: { AI: "Minimal", User: "Full", Pipeline: "MANUAL" },
+    safe: { AI: "Minimal", User: "High", Pipeline: "GUARDED" },
+    balanced: { AI: "Moderate", User: "Moderate", Pipeline: "HYBRID" },
+    god: { AI: "Maximum", User: "Zero", Pipeline: "AUTONOMIC" },
   }[normalized];
+
+  if (!behaviors) {
+    console.log(chalk.red(`\nError: No behavior mapping found for mode ${normalized}`));
+    return;
+  }
 
   console.log(`\nAI Control:\n${behaviors.AI}`);
   console.log(`\nUser Control:\n${behaviors.User}`);
@@ -586,6 +594,12 @@ registerAgentEvolutionCommand(program);
 registerPolicyDiffCommand(program);
 registerConsensusSimFileCommand(program);
 
+import { registerPhase10Commands } from "./phase10-commands.js";
+registerPhase10Commands(program);
+
+import { registerPhase10_5Commands } from "./phase10_5-commands.js";
+registerPhase10_5Commands(program);
+
 program
   .command("/ck-metrics")
   .description("Display project metrics and stats")
@@ -613,4 +627,48 @@ program
     );
   });
 
-program.parse();
+program
+  .command("serve")
+  .description("Start the Code Kit Control Service")
+  .option("-p, --port <number>", "Port to run on", "3100")
+  .action(async (options: { port: string }) => {
+    const { exec } = await import("node:child_process");
+    console.log(chalk.cyan(`\nStarting Code Kit Control Service on port ${options.port}...`));
+    const child = exec(`npx ts-node apps/control-service/src/index.ts --port ${options.port}`);
+    child.stdout?.pipe(process.stdout);
+    child.stderr?.pipe(process.stderr);
+  });
+
+program
+  .command("/ck-retry-step")
+  .description("Retry a specific step in a run")
+  .argument("<runId>", "The run ID")
+  .argument("[stepId]", "Optional specific step ID to retry")
+  .action(async (runId: string, stepId?: string) => {
+    const { retryTask } = await import("../../../packages/orchestrator/src/index");
+    try {
+      console.log(chalk.cyan(`\nRetrying step ${stepId || "current"} in run ${runId}...`));
+      await retryTask(runId, stepId);
+      console.log(chalk.green("Success: Step retry initiated."));
+    } catch (err: any) {
+      console.error(chalk.red(`Error: ${err.message}`));
+    }
+  });
+
+program
+  .command("/ck-rollback-step")
+  .description("Manually rollback a specific step's side effects")
+  .argument("<runId>", "The run ID")
+  .argument("[stepId]", "Optional specific step ID to rollback")
+  .action(async (runId: string, stepId?: string) => {
+    const { rollbackTask } = await import("../../../packages/orchestrator/src/index");
+    try {
+      console.log(chalk.cyan(`\nRolling back step ${stepId || "last"} in run ${runId}...`));
+      await rollbackTask(runId, stepId);
+      console.log(chalk.green("Success: Step rollback completed."));
+    } catch (err: any) {
+      console.error(chalk.red(`Error: ${err.message}`));
+    }
+  });
+
+program.parse();

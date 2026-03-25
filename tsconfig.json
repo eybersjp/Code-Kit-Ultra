@@ -9,10 +9,5 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": [
-    "apps",
-    "packages",
-    "config",
-    "examples"
-  ]
+  "include": ["packages", "apps", "config", "examples"]
 }

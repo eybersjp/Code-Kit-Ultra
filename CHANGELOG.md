@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.2.0-ide-control-plane
+- **IDE-Native Control Plane**: Full integration with VS Code.
+- **Governed Autonomy**: Human-in-the-loop approval system.
+- **Run Persistent Layer**: Standardized `.codekit/runs` schema.
+- **Adaptive Specialist Evaluation**: Real-time consensus visualization.
+
 ## v1.0.0
 - public release package
 - community and contribution files

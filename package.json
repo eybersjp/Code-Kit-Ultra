@@ -1,46 +1,17 @@
 {
-  "name": "codekit",
-  "version": "1.1.1-trust-ultra",
-  "private": false,
+  "name": "code-kit-ultra-phase10_5-pack",
+  "private": true,
   "type": "module",
-  "bin": {
-    "codekit": "./dist/index.js"
-  },
-  "files": [
-    "dist",
-    "config",
-    "README.md"
-  ],
   "scripts": {
-    "build": "tsup apps/cli/src/index.ts --format esm --clean --minify --shims --dts",
-    "prepack": "npm run build",
-    "dev": "tsx apps/cli/src/index.ts",
-    "ck": "tsx apps/cli/src/index.ts",
     "typecheck": "tsc --noEmit",
-    "test:smoke": "tsx examples/smoke-test.ts",
-    "bootstrap": "bash scripts/bootstrap.sh",
-    "validate-env": "tsx apps/cli/src/index.ts /ck-doctor",
-    "metrics": "tsx apps/cli/src/index.ts /ck-metrics",
-    "preflight": "bash scripts/preflight-check.sh",
-    "package:release": "bash scripts/package-release.sh",
-    "prepublishOnly": "npm run typecheck",
-    "validate:docs": "bash scripts/validate-docs.sh",
-    "build:public-release": "bash scripts/build-public-release.sh",
-    "checksums": "bash scripts/generate-checksums.sh",
-    "doctor": "tsx apps/cli/src/index.ts /ck-doctor",
-    "demo": "bash scripts/demo.sh",
-    "demo-crm": "bash scripts/demo-crm.sh",
-    "demo-internal": "bash scripts/demo-internal-tool.sh"
+    "test:phase10_5": "tsx examples/healing-test.ts"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "tsup": "^8.3.5"
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
   },
   "dependencies": {
-    "chalk": "^5.3.0",
-    "commander": "^12.1.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.3",
-    "zod": "^3.23.8"
+    "commander": "^14.0.3"
   }
 }
