@@ -3,6 +3,10 @@
   "private": true,
   "type": "module",
   "version": "1.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "tsx apps/cli/src/index.ts",
     "ck": "tsx apps/cli/src/index.ts",

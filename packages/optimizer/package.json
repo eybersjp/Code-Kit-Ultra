@@ -1,0 +1,10 @@
+{
+  "name": "@code-kit/optimizer",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "@code-kit/shared": "*"
+  }
+}

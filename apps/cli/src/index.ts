@@ -34,10 +34,42 @@ function recordExecution(adapter: string, taskType: string, ok: boolean) {
 const program = new Command();
 program.name("code-kit").description("Code Kit Ultra CLI").version("1.0.0");
 
-program.command("validate-env").action(() => {
-  ensureDirs();
-  console.log("Environment validation entry point ready.");
-});
+program.command("validate-env")
+  .option("--mode <mode>", "Validation mode (local|saas)", "local")
+  .action((options) => {
+    ensureDirs();
+    const mode = options.mode;
+    console.log(chalk.blue(`Validating environment in ${mode} mode...`));
+
+    const commonKeys = ["CKU_EXECUTION_TOKEN_SECRET", "CKU_ENCRYPTION_KEY"];
+    const saasKeys = [
+      "INSFORGE_PROJECT_URL",
+      "INSFORGE_ANON_KEY",
+      "INSFORGE_SERVICE_ROLE_KEY",
+      "INSFORGE_JWT_ISSUER",
+      "INSFORGE_JWT_AUDIENCE",
+      "INSFORGE_JWKS_URL",
+      "STORAGE_PROVIDER",
+      "LOG_DRAIN_URL"
+    ];
+
+    const required = mode === "saas" ? [...commonKeys, ...saasKeys] : commonKeys;
+    let missing = [];
+
+    for (const key of required) {
+      if (!process.env[key]) {
+        missing.push(key);
+      }
+    }
+
+    if (missing.length > 0) {
+      console.error(chalk.red("Missing required environment variables:"));
+      missing.forEach(k => console.error(chalk.red(`  - ${k}`)));
+      process.exit(1);
+    }
+
+    console.log(chalk.green("Environment validation successful."));
+  });
 
 program.command("metrics").action(() => {
   ensureDirs();

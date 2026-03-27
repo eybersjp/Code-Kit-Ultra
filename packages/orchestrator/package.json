@@ -1,0 +1,11 @@
+{
+  "name": "@code-kit/orchestrator",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "dependencies": {
+    "@code-kit/shared": "*",
+    "@code-kit/outcomes": "*",
+    "chalk": "^5.3.0"
+  }
+}

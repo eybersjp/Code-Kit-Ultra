@@ -1,0 +1,9 @@
+{
+  "name": "@code-kit/outcomes",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.js",
+  "dependencies": {
+    "chalk": "^5.3.0"
+  }
+}
