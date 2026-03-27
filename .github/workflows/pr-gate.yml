@@ -29,13 +29,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: true
 
       - name: Typecheck Gate
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Repo Health Summary
         run: |
@@ -43,4 +45,4 @@ jobs:
           echo "Source Branch: ${{ github.head_ref }}"
           echo "Target Branch: ${{ github.base_ref }}"
           echo "Node.js Version: $(node -v)"
-          echo "TypeScript Version: $(npx tsc -v)"
+          echo "TypeScript Version: $(pnpm exec tsc -v)"

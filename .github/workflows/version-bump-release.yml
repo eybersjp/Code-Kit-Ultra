@@ -28,14 +28,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: '20'
 
-      - name: Install Dependencies
-        run: npm install
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: true
 
       - name: Verify Repository Health
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Configure Git
         run: |
@@ -43,21 +45,21 @@ jobs:
           git config --global user.email "actions@github.com"
 
       - name: Bump Version
-        run: npm run version:bump -- ${{ github.event.inputs.bump_type }}
+        run: pnpm run version:bump -- ${{ github.event.inputs.bump_type }}
 
       - name: Generate Release Notes
-        run: npm run release:notes
+        run: pnpm run release:notes
 
       - name: Update Changelog
         run: |
           SUMMARY="${{ github.event.inputs.release_summary }}"
-          npm run changelog:update -- "" "$SUMMARY"
+          pnpm run changelog:update -- "" "$SUMMARY"
 
       - name: Generate Release Control Center Report
         env:
           MILESTONE_NAME: "Manual Release: v$(node -p \"require('./package.json').version\")"
           RELEASE_SUMMARY: ${{ github.event.inputs.release_summary }}
-        run: npm run release:control-center
+        run: pnpm run release:control-center
 
       - name: Enforce Release Control Gate
         run: |

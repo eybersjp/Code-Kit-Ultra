@@ -1,23 +1,14 @@
 # Release Notes — Code Kit Ultra v1.2.0
 
 **Release Date:** 2026-03-27
-**Previous Tag:** v1.1.1-trust-ultra
+**Previous Tag:** v1.2.0-clean-baseline
 
 ## 📝 Summary
 [Provide a high-level summary of the primary value of this release here]
 
 ## ✨ Key Changes
 
-### 🚀 Features
-- feat(phase10.5): integrate self-healing production pack and update vscode extension
-
-### 📄 Documentation
-- docs: add high-impact visual assets to README
-
-### 🧹 Maintenance
-- chore(release): add conventional commits and changelog classification
-- chore(release): add version bump and release notes automation
-- chore(github): add CI, PR gates, release workflow, and repo governance
+_No changes detected in git history for this range._
 
 ## ✅ Verification Highlights
 - [ ] Full typecheck and verification pass completed.
