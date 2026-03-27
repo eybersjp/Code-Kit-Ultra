@@ -25,11 +25,11 @@ describe("verifyInsForgeToken", () => {
     const mockDecoded = { sub: "user-123", roles: ["admin"] };
 
     // Mock jwks-rsa
-    const mockGetSigningKey = vi.fn((kid, cb) => cb(null, { getPublicKey: () => "public-key" }));
+    const mockGetSigningKey = vi.fn((kid: string, cb: any) => cb(null, { getPublicKey: () => "public-key" }));
     (jwksClient as any).mockReturnValue({ getSigningKey: mockGetSigningKey });
 
     // Mock jsonwebtoken verify
-    (jwt.verify as any).mockImplementation((token, getKey, options, callback) => {
+    (jwt.verify as any).mockImplementation((token: string, getKey: any, options: any, callback: any) => {
       callback(null, mockDecoded);
     });
 
@@ -50,11 +50,11 @@ describe("verifyInsForgeToken", () => {
     const mockToken = "invalid-token";
 
     // Mock jwks-rsa
-    const mockGetSigningKey = vi.fn((kid, cb) => cb(null, { getPublicKey: () => "public-key" }));
+    const mockGetSigningKey = vi.fn((kid: string, cb: any) => cb(null, { getPublicKey: () => "public-key" }));
     (jwksClient as any).mockReturnValue({ getSigningKey: mockGetSigningKey });
 
     // Mock jsonwebtoken verify failure
-    (jwt.verify as any).mockImplementation((token, getKey, options, callback) => {
+    (jwt.verify as any).mockImplementation((token: string, getKey: any, options: any, callback: any) => {
       callback(new Error("invalid signature"), null);
     });
 
@@ -65,11 +65,11 @@ describe("verifyInsForgeToken", () => {
     const mockToken = "expired-token";
 
     // Mock jwks-rsa
-    const mockGetSigningKey = vi.fn((kid, cb) => cb(null, { getPublicKey: () => "public-key" }));
+    const mockGetSigningKey = vi.fn((kid: string, cb: any) => cb(null, { getPublicKey: () => "public-key" }));
     (jwksClient as any).mockReturnValue({ getSigningKey: mockGetSigningKey });
 
     // Mock jsonwebtoken verify expiry
-    (jwt.verify as any).mockImplementation((token, getKey, options, callback) => {
+    (jwt.verify as any).mockImplementation((token: string, getKey: any, options: any, callback: any) => {
       callback(new Error("jwt expired"), null);
     });
 
