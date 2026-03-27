@@ -11,7 +11,7 @@ Code Kit Ultra is a production-grade, self-improving engineering platform that a
 Once published to the NPM registry, install the full suite with a single command:
 
 ```bash
-npm install cku
+npm install ckultra
 ```
 
 **Until the package is officially published**, install directly from the repo:
