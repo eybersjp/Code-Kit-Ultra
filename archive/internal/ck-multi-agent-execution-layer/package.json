@@ -1,9 +1,0 @@
-{
-  "name": "ck-multi-agent-execution-layer",
-  "version": "1.0.0",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "node tests/smoke.mjs"
-  }
-}
