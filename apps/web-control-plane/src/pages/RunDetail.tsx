@@ -35,7 +35,7 @@ export const RunDetail: React.FC = () => {
 
           <div className="glass" style={{ padding: '1.5rem', borderRadius: 'var(--radius-xl)' }}>
              <h3 className="flex items-center" style={{ gap: '0.5rem' }}><Shield size={18} color="var(--accent)" /> Governance Summary</h3>
-             <ul style={{ listSet: 'none', padding: 0, marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+             <ul style={{ listStyleType: 'none', padding: 0, marginTop: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                 <li className="flex justify-between" style={{ padding: '1rem 0', borderBottom: '1px solid var(--border)' }}>
                    <span>Privacy Policy Check</span>
                    <span style={{ color: 'var(--success)' }}>✔ Passed</span>

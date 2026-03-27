@@ -25,7 +25,7 @@ export const GateApprovalCard: React.FC = () => {
          <button className="btn-primary flex items-center" style={{ gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
             <Check size={16} /> Approve
          </button>
-         <button className="btn-secondary flex items-center" style={{ style: { background: 'var(--danger)', color: '#fff' }, gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
+         <button className="btn-secondary flex items-center" style={{ background: 'var(--danger)', color: '#fff', gap: '0.5rem', flex: 1, justifyContent: 'center' }}>
             <X size={16} /> Reject
          </button>
       </div>
