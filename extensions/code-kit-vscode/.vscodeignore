@@ -1,0 +1,14 @@
+.vscode/**
+node_modules/**
+src/**
+.gitignore
+tsconfig*.json
+esbuild.js
+*.vsix
+*.map
+**/*.ts
+!dist/**
+!assets/**
+# Exclude all parent/sibling directories
+../**
+../../**

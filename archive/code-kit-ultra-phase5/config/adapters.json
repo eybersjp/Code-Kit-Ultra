@@ -1,0 +1,76 @@
+{
+  "adapters": {
+    "cursor-real": {
+      "enabled": true,
+      "type": "real",
+      "requiredEnv": [
+        "CURSOR_API_KEY"
+      ],
+      "baseUrl": "https://api.cursor.sh"
+    },
+    "windsurf-real": {
+      "enabled": true,
+      "type": "real",
+      "requiredEnv": [
+        "WINDSURF_API_KEY"
+      ],
+      "baseUrl": "https://api.windsurf.com"
+    },
+    "antigravity-real": {
+      "enabled": true,
+      "type": "real",
+      "requiredEnv": [
+        "ANTIGRAVITY_API_KEY"
+      ],
+      "baseUrl": "https://api.antigravity.im"
+    },
+    "n8n-real": {
+      "enabled": true,
+      "type": "real",
+      "requiredEnv": [
+        "N8N_API_KEY",
+        "N8N_BASE_URL"
+      ],
+      "baseUrl": "https://n8n.local"
+    },
+    "windmill-real": {
+      "enabled": true,
+      "type": "real",
+      "requiredEnv": [
+        "WINDMILL_API_KEY",
+        "WINDMILL_BASE_URL"
+      ],
+      "baseUrl": "https://windmill.local"
+    },
+    "cursor-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "windsurf-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "antigravity-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "n8n-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "windmill-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    },
+    "fallback-stub": {
+      "enabled": true,
+      "type": "stub",
+      "requiredEnv": []
+    }
+  }
+}

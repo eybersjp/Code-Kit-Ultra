@@ -1,0 +1,44 @@
+{
+  "skillId": "skill_quantum_weather_engine_for_orbital_clima",
+  "version": "0.1.0-generated",
+  "kind": "installed",
+  "reviewStatus": "promoted",
+  "purpose": "Generated fallback skill for: Quantum Weather Engine for orbital climate prediction",
+  "trigger": "Use when no installed skill matches the current project intent.",
+  "inputs": [
+    "project idea",
+    "execution mode",
+    "project context"
+  ],
+  "outputs": [
+    "starter plan scaffolding",
+    "baseline task framing",
+    "next-step guidance"
+  ],
+  "dependencies": [
+    "orchestrator",
+    "planner",
+    "gate-manager"
+  ],
+  "procedure": [
+    "Interpret the project idea and identify the core capability gap.",
+    "Create a baseline structure for tasks and artifacts.",
+    "Generate safe next actions aligned to the chosen mode."
+  ],
+  "validation": [
+    "The idea is interpreted into a concrete capability.",
+    "A baseline skill package is created on disk.",
+    "The package includes both SKILL.md and manifest.json."
+  ],
+  "failureModes": [
+    "The idea is too vague to infer a capability.",
+    "The package directory cannot be written.",
+    "The manifest fails validation."
+  ],
+  "reuseGuidance": "Review the generated package and promote it into installed skills if it proves reusable.",
+  "sourceIdea": "Quantum Weather Engine for orbital climate prediction",
+  "generatedAt": "2026-03-21T06:18:19.647Z",
+  "reviewNotes": "Approved by Phase 4 CLI.",
+  "promotedAt": "2026-03-21T06:19:28.537Z",
+  "promotedFrom": "C:\\Users\\SSTECH\\developments\\code-kit-ultra\\code-kit-ultra-phase4\\skills\\generated\\skill_quantum_weather_engine_for_orbital_clima"
+}

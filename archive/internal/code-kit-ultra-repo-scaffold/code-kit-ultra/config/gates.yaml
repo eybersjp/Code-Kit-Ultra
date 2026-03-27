@@ -1,0 +1,10 @@
+gates:
+  - clarity
+  - scope
+  - architecture
+  - build
+  - qa
+  - security
+  - cost
+  - deployment
+  - launch

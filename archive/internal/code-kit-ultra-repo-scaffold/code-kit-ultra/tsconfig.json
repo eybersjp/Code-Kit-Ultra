@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/types" },
+    { "path": "./packages/memory" },
+    { "path": "./packages/skill-engine" },
+    { "path": "./packages/gate-manager" },
+    { "path": "./packages/orchestrator" },
+    { "path": "./adapters/cursor" },
+    { "path": "./adapters/windsurf" },
+    { "path": "./adapters/antigravity" },
+    { "path": "./adapters/n8n" },
+    { "path": "./adapters/windmill" },
+    { "path": "./apps/cli" }
+  ]
+}

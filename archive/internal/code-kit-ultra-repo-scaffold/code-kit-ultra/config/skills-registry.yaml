@@ -1,0 +1,13 @@
+skills:
+  - id: core/rest-api-scaffold
+    name: REST API Scaffold
+    path: skills/core/rest-api-scaffold
+  - id: core/auth-setup
+    name: Auth Setup
+    path: skills/core/auth-setup
+  - id: core/project-memory
+    name: Project Memory Bootstrap
+    path: skills/core/project-memory
+  - id: examples/solar-quote-logic
+    name: Solar Quote Logic
+    path: skills/examples/solar-quote-logic

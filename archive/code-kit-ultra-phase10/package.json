@@ -1,0 +1,37 @@
+{
+  "name": "code-kit-ultra",
+  "private": true,
+  "type": "module",
+  "version": "1.2.0-phase10",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "tsx apps/cli/src/index.ts",
+    "ck": "tsx apps/cli/src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "test:smoke": "tsx examples/smoke-test.ts && npm run test:phase10",
+    "test:phase10": "tsx examples/smoke-test-phase10-wave5.ts",
+    "bootstrap": "bash scripts/bootstrap.sh",
+    "validate-env": "tsx apps/cli/src/index.ts validate-env",
+    "metrics": "tsx apps/cli/src/index.ts metrics",
+    "preflight": "bash scripts/preflight-check.sh",
+    "package:release": "bash scripts/package-release.sh",
+    "validate:docs": "bash scripts/validate-docs.sh",
+    "build:public-release": "bash scripts/build-public-release.sh",
+    "checksums": "bash scripts/generate-checksums.sh",
+    "release:dashboard": "tsx scripts/release/generate-mrd.ts",
+    "release:dashboard:milestone": "MILESTONE_NAME='Phase 10 Milestone' tsx scripts/release/generate-mrd.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "zod": "^3.23.8"
+  }
+}

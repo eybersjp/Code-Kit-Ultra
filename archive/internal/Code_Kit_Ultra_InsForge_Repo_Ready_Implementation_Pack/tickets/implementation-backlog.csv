@@ -1,0 +1,13 @@
+Epic,Ticket ID,Title,Description,Owner,Priority,Phase,Definition of Done
+Auth,CKU-101,Create packages/auth,"Add InsForge JWT verification, session resolution, and execution token issuance package",Platform,P0,Phase 0,Shared auth package compiles and unit tests pass
+Auth,CKU-102,Add bearer auth middleware to control-service,Support InsForge bearer tokens alongside legacy API keys,Backend,P0,Phase 1,Protected routes accept bearer auth and legacy mode remains functional
+Tenancy,CKU-110,Introduce org/workspace/project schema,Create DB tables and repository layer for tenant context,Backend,P0,Phase 2,Tenant tables deployed and seeded
+Control Plane,CKU-120,Add /v1/session endpoint,Return actor and tenant context for authenticated users,Backend,P0,Phase 1,Extension/web can fetch current context
+Extension,CKU-130,Implement Sign in with InsForge,Add interactive login command and session storage,IDE,P0,Phase 3,Extension signs in and calls session endpoint
+Web,CKU-140,Bootstrap web-control-plane app,Create web UI app with session-first shell,Frontend,P1,Phase 4,Web app loads authenticated dashboard
+Policy,CKU-150,Implement product permissions matrix,Map tenant roles to CKU permissions and gate scopes,Platform,P0,Phase 1,Authorization integration tests pass
+Runs,CKU-160,Tenant-scope run creation,Require projectId when creating runs,Backend,P0,Phase 2,Every new run has org/workspace/project fields
+Audit,CKU-170,Backfill audit metadata,Add actor and tenant context to all audit logs,Backend,P0,Phase 2,Audit queries include tenant metadata
+Realtime,CKU-180,Publish canonical run events,Create event publisher abstraction and run timeline feed,Backend,P1,Phase 4,Timeline updates reach extension/web UI
+Automation,CKU-190,Introduce service accounts,Support CI and non-interactive auth path,Backend,P1,Phase 5,Service account runs are fully scoped and audited
+Migration,CKU-199,Deprecate user API keys,Hide legacy apiKey onboarding and document break-glass usage only,Platform,P2,Phase 6,Default user path is session-based

@@ -1,0 +1,6 @@
+.codekit/
+tmp/
+artifacts/
+dist/
+node_modules/
+skills/generated/
