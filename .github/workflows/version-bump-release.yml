@@ -50,17 +50,21 @@ jobs:
 
       - name: Update Changelog
         run: |
-          # Use the summary input if provided
           SUMMARY="${{ github.event.inputs.release_summary }}"
           npm run changelog:update -- "" "$SUMMARY"
 
+      - name: Generate Release Control Center Report
+        env:
+          MILESTONE_NAME: "Manual Release: v$(node -p \"require('./package.json').version\")"
+          RELEASE_SUMMARY: ${{ github.event.inputs.release_summary }}
+        run: npm run release:control-center
+
       - name: Commit Release Metadata
         run: |
-          # Pull the new version from the root package.json for the commit message
           NEW_VERSION=$(node -p "require('./package.json').version")
           
           git add package.json VERSION CHANGELOG.md RELEASE_NOTES_*.md
-          # Also add any package.json in apps/ or packages/ that was changed
+          git add "releases/control-center/**/*"
           git add "**/package.json"
           
           git commit -m "chore(release): v$NEW_VERSION"

@@ -1,0 +1,83 @@
+name: Release Control Center
+
+on:
+  workflow_dispatch:
+    inputs:
+      milestone_name:
+        description: 'Title of the milestone (e.g., Phase 10 Production Baseline)'
+        required: true
+        default: 'Phase 10 Production Baseline'
+      release_summary:
+        description: 'High-level summary of the release changes'
+        required: false
+        default: 'Unified baseline synchronization for Code Kit Ultra.'
+      verification_status:
+        description: 'Manual verification override (PASS, FAIL, PARTIAL)'
+        required: true
+        default: 'PASS'
+      blockers:
+        description: 'Comma-separated list of active blockers'
+        required: false
+      risks:
+        description: 'Comma-separated list of active risks'
+        required: false
+        default: 'First production-governed release.'
+
+jobs:
+  control-center:
+    name: Generate Release Control Report
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Typecheck (Background Gate)
+        run: npm run typecheck
+
+      - name: Run Release Control Center
+        env:
+          MILESTONE_NAME: ${{ github.event.inputs.milestone_name }}
+          RELEASE_SUMMARY: ${{ github.event.inputs.release_summary }}
+          VERIFICATION_STATUS: ${{ github.event.inputs.verification_status }}
+          BLOCKERS: ${{ github.event.inputs.blockers }}
+          RISKS: ${{ github.event.inputs.risks }}
+        run: npm run release:control-center
+
+      - name: Upload Release Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-control-center-reports
+          path: releases/control-center/
+
+      - name: Surface Release Decision
+        run: |
+          # Pull the latest report file (most recent by date/version)
+          LATEST_REPORT=$(ls -t releases/control-center/reports/*.md | head -n 1)
+          echo "### 🚀 Release Control Result" >> $GITHUB_STEP_SUMMARY
+          cat $LATEST_REPORT >> $GITHUB_STEP_SUMMARY
+
+      - name: Final Decision Check
+        run: |
+          # Use grep to check for NO-GO in the decision section of the report
+          LATEST_REPORT=$(ls -t releases/control-center/reports/*.md | head -n 1)
+          if grep -q "Final Decision: \*\*NO-GO\*\*" "$LATEST_REPORT"; then
+            echo "❌ Release Control Center rejected this release (NO-GO)."
+            exit 1
+          fi
+          if grep -q "Final Decision: \*\*GO WITH RISKS\*\*" "$LATEST_REPORT"; then
+            echo "⚠️ Release Control Center approved with risks."
+          fi

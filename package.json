@@ -22,7 +22,10 @@
     "changelog:update": "tsx scripts/release/update-changelog.ts",
     "lint:commits": "tsx scripts/release/lint-commits.ts",
     "release:prepare": "npm run release:notes && npm run changelog:update",
-    "package:release": "scripts/package-release.sh"
+    "package:release": "scripts/package-release.sh",
+    "release:control-center": "tsx scripts/release/control-center.ts",
+    "release:control": "npm run release:control-center",
+    "release:control:milestone": "MILESTONE_NAME='Phase 10 Milestone' tsx scripts/release/control-center.ts"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
