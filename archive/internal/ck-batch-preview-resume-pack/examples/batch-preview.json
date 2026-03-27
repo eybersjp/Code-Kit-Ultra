@@ -1,0 +1,29 @@
+{
+  "runId": "run_demo5678",
+  "phase": "build",
+  "generatedBy": "builder",
+  "summary": "Preview starter scaffold actions",
+  "actions": [
+    {
+      "type": "create_dir",
+      "path": "src/ui",
+      "reason": "Create UI folder"
+    },
+    {
+      "type": "write_file",
+      "path": "src/ui/App.tsx",
+      "content": "export function App(){ return null }\n",
+      "reason": "Create app shell"
+    },
+    {
+      "type": "run_command",
+      "command": "npm install",
+      "cwd": ".",
+      "reason": "Install dependencies"
+    }
+  ],
+  "recommendations": [
+    "Preview before execute",
+    "Approve batch if medium/high risk exists"
+  ]
+}

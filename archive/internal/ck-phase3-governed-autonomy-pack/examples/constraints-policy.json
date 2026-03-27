@@ -1,0 +1,20 @@
+{
+  "allowedPaths": [
+    "src/",
+    "packages/"
+  ],
+  "blockedPaths": [
+    ".ck/",
+    "dist/"
+  ],
+  "blockedActionTypes": [
+    "deploy"
+  ],
+  "blockedCommandPatterns": [
+    "publish",
+    "git\\s+push"
+  ],
+  "maxFilesChanged": 10,
+  "maxCommands": 2,
+  "maxActions": 12
+}

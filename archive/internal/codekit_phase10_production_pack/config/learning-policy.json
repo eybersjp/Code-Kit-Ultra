@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "defaults": {
+    "minReliabilityThreshold": 0.72,
+    "maxStoredPatterns": 500,
+    "maxRecentOutcomes": 2000
+  },
+  "adaptiveRules": {
+    "increaseRiskWhenFailureRateAbove": 0.2,
+    "decreaseRiskWhenSuccessRateAbove": 0.93,
+    "promoteFixSuggestionWhenPatternConfidenceAbove": 0.75
+  }
+}

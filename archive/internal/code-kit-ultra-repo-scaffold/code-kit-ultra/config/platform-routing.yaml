@@ -1,0 +1,11 @@
+routes:
+  planning:
+    preferred: [cursor, antigravity]
+  autonomous_coding:
+    preferred: [windsurf, cursor]
+  reusable_skill_execution:
+    preferred: [antigravity]
+  workflow_automation:
+    preferred: [n8n, windmill]
+  docs_and_specs:
+    preferred: [cursor]

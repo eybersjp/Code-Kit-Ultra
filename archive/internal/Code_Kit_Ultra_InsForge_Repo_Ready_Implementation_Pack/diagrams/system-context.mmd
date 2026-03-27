@@ -1,0 +1,18 @@
+flowchart LR
+  A[VS Code Extension] --> C[Control Service]
+  B[Web Control Plane] --> C
+  D[CLI] --> C
+  C --> E[Orchestrator]
+  C --> F[Policy Service]
+  C --> G[Audit Service]
+  E --> H[Execution Service]
+  E --> I[Learning Service]
+  H --> J[Adapters]
+  C --> K[InsForge Auth]
+  C --> L[InsForge Postgres]
+  C --> M[InsForge Storage]
+  C --> N[InsForge Realtime]
+  I --> L
+  G --> L
+  E --> L
+  H --> L

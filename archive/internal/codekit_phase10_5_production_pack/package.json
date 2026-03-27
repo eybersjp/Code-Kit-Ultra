@@ -1,0 +1,14 @@
+{
+  "name": "code-kit-ultra-phase10_5-pack",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test:phase10_5": "tsx examples/healing-test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.8.0"
+  }
+}

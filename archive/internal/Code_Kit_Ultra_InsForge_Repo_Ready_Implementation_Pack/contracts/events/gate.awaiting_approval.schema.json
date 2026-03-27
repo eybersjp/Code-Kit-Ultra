@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "gate.awaiting_approval",
+  "type": "object",
+  "required": ["eventId", "eventType", "occurredAt", "correlationId", "orgId", "workspaceId", "projectId", "runId", "payload"],
+  "properties": {
+    "eventId": { "type": "string" },
+    "eventType": { "const": "gate.awaiting_approval" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "correlationId": { "type": "string" },
+    "orgId": { "type": "string" },
+    "workspaceId": { "type": "string" },
+    "projectId": { "type": "string" },
+    "runId": { "type": "string" },
+    "payload": {
+      "type": "object",
+      "required": ["gateId", "gateType", "riskLevel"],
+      "properties": {
+        "gateId": { "type": "string" },
+        "gateType": { "type": "string" },
+        "riskLevel": { "type": "string" },
+        "reason": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,7 @@
+ticket_id,title,priority,owner,definition_of_done
+SaaS-001,Provision staging environment,P0,Platform,Staging stack deployed with secrets and health checks
+SaaS-002,Add production release workflow,P0,Platform,Tagged release path with manual approval gate
+SaaS-003,Implement structured log drain,P1,Platform,Logs centralized with correlation fields
+SaaS-004,Add alerting for auth and audit failures,P1,Platform,Pager or webhook alerts live
+SaaS-005,Scale execution workers,P1,Platform,Autoscaling or manual scaling documented and tested
+SaaS-006,Document rollback procedures,P0,Platform,Runbooks approved and tested
