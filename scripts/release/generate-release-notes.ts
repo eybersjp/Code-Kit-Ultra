@@ -2,9 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { git, getLatestTag, getRootVersion } from './utils.js';
 
-const targetVersion = process.argv[2] || getRootVersion();
-const prevTag = process.argv[3] || getLatestTag();
+const args = process.argv.slice(2).filter(a => a !== '--dry-run');
+const targetVersion = args[0] || getRootVersion();
+const prevTag = args[1] || getLatestTag();
 const date = new Date().toISOString().split('T')[0];
+const isDryRun = process.argv.includes('--dry-run');
 
 const ROOT_DIR = path.resolve(import.meta.dirname, '../../');
 
@@ -13,11 +15,13 @@ interface ReleaseData {
   date: string;
   prevTag: string;
   commits: string[];
+  breaking: string[];
   categories: Record<string, string[]>;
 }
 
 function run() {
-  console.log(`\n🔍 Generating Release Notes for v${targetVersion}...`);
+  console.log(`\n🔍 Generating Classified Release Notes for v${targetVersion}...`);
+  if (isDryRun) console.log('⚠️  DRY RUN MODE ENABLED');
   console.log(`   Comparing against: ${prevTag || 'initial commit'}`);
 
   const range = prevTag ? `${prevTag}..HEAD` : 'HEAD';
@@ -33,33 +37,65 @@ function run() {
     date,
     prevTag,
     commits: logs ? logs.split('\n') : [],
+    breaking: [],
     categories: {
-      '🚀 Added': [],
-      '🛠️ Changed': [],
-      '🐞 Fixed': [],
-      '🔐 Security': [],
-      '📝 Documentation': [],
-      '📦 Misc': [],
+      '🚀 Features': [],
+      '🐞 Bug Fixes': [],
+      '⚡ Performance': [],
+      '🛠️ Refactors': [],
+      '📄 Documentation': [],
+      '🧪 Testing': [],
+      '⚙️ Build / CI': [],
+      '🧹 Maintenance': [],
+      '🌀 Reverts': [],
+      '📦 Other Changes': [],
     },
   };
 
   // 1. Categorize Commits
   for (const log of data.commits) {
+    const hash = log.substring(0, log.indexOf(' '));
     const msg = log.substring(log.indexOf(' ') + 1).trim();
-    const lower = msg.toLowerCase();
+    
+    // Breaking change detection
+    if (msg.includes('!') && msg.indexOf(':') > msg.indexOf('!')) {
+      data.breaking.push(msg);
+    }
 
-    if (lower.startsWith('feat') || lower.startsWith('add')) data.categories['🚀 Added'].push(msg);
-    else if (lower.startsWith('fix') || lower.startsWith('patch')) data.categories['🐞 Fixed'].push(msg);
-    else if (lower.startsWith('sec') || lower.startsWith('auth')) data.categories['🔐 Security'].push(msg);
-    else if (lower.startsWith('docs')) data.categories['📝 Documentation'].push(msg);
-    else if (lower.startsWith('refactor') || lower.startsWith('perf') || lower.startsWith('chore')) data.categories['🛠️ Changed'].push(msg);
-    else data.categories['📦 Misc'].push(msg);
+    // Conventional Commit Regex: type(scope)?: summary
+    const match = msg.match(/^([a-z]+)(\(.+\))?!?: (.+)$/i);
+    
+    if (match) {
+      const type = match[1].toLowerCase();
+      const content = msg; // Keep full msg for now or match[3]
+
+      if (type === 'feat') data.categories['🚀 Features'].push(content);
+      else if (type === 'fix' || type === 'security') data.categories['🐞 Bug Fixes'].push(content);
+      else if (type === 'perf') data.categories['⚡ Performance'].push(content);
+      else if (type === 'refactor') data.categories['🛠️ Refactors'].push(content);
+      else if (type === 'docs') data.categories['📄 Documentation'].push(content);
+      else if (type === 'test') data.categories['🧪 Testing'].push(content);
+      else if (type === 'build' || type === 'ci') data.categories['⚙️ Build / CI'].push(content);
+      else if (type === 'chore') data.categories['🧹 Maintenance'].push(content);
+      else if (type === 'revert') data.categories['🌀 Reverts'].push(content);
+      else data.categories['📦 Other Changes'].push(content);
+    } else {
+      data.categories['📦 Other Changes'].push(msg);
+    }
   }
 
   // 2. Build Markdown
   let markdown = `# Release Notes — Code Kit Ultra v${data.version}\n\n`;
   markdown += `**Release Date:** ${data.date}\n`;
   markdown += `**Previous Tag:** ${data.prevTag || 'None'}\n\n`;
+
+  if (data.breaking.length > 0) {
+    markdown += `## ⚠️ BREAKING CHANGES\n\n`;
+    data.breaking.forEach(item => {
+      markdown += `- **${item}**\n`;
+    });
+    markdown += `\n`;
+  }
 
   markdown += `## 📝 Summary\n`;
   markdown += `[Provide a high-level summary of the primary value of this release here]\n\n`;
@@ -69,6 +105,8 @@ function run() {
   let totalChanges = 0;
   for (const [category, items] of Object.entries(data.categories)) {
     if (items.length > 0) {
+      // Hide low-priority categories from the main "Key Changes" if they are too noisy?
+      // For now, show all but keep Maintenance at the bottom.
       markdown += `### ${category}\n`;
       items.forEach(item => {
         markdown += `- ${item}\n`;
@@ -88,17 +126,21 @@ function run() {
   markdown += `- [ ] VS Code Extension verified against target IDE version.\n\n`;
 
   markdown += `## ⚠️ Risks & Notes\n`;
-  markdown += `- [ ] No breaking architectural changes detected.\n`;
-  markdown += `- [ ] Deprecation status: Legacy API keys are still supported but nudged toward sessions.\n\n`;
+  markdown += `- [ ] No undocumented breaking architectural changes detected.\n\n`;
 
-  markdown += `---\n*Generated by Code Kit Ultra Release Utility*\n`;
+  markdown += `---\n*Generated by Code Kit Ultra Release Utility (Classified)*\n`;
 
   // 3. Write and Output
   const fileName = `RELEASE_NOTES_v${data.version}.md`;
   const filePath = path.join(ROOT_DIR, fileName);
-  fs.writeFileSync(filePath, markdown);
+  
+  if (isDryRun) {
+    console.log(`⚠️ DRY RUN: File ${fileName} would be created.`);
+  } else {
+    fs.writeFileSync(filePath, markdown);
+    console.log(`✅ Success! Classified release notes written to: ${fileName}`);
+  }
 
-  console.log(`✅ Success! Release notes written to: ${fileName}`);
   console.log('\n--- PREVIEW ---\n');
   console.log(markdown);
   console.log('--- END PREVIEW ---\n');

@@ -1,6 +1,11 @@
 ## Overview
 <!-- Provide a brief description of the changes in this PR. -->
 
+> [!IMPORTANT]
+> **PR Title Recommendation**: Use the format `type(scope): summary` (e.g., `feat(orchestrator): add routing`). 
+> PR titles are used to automatically group release notes. 
+> See [Conventional Commits Policy](docs/github/ConventionalCommits.md).
+
 ## Changes
 - [ ] List significant changes here.
 

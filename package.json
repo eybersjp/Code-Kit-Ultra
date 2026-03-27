@@ -20,6 +20,7 @@
     "version:bump": "tsx scripts/release/bump-version.ts",
     "release:notes": "tsx scripts/release/generate-release-notes.ts",
     "changelog:update": "tsx scripts/release/update-changelog.ts",
+    "lint:commits": "tsx scripts/release/lint-commits.ts",
     "release:prepare": "npm run release:notes && npm run changelog:update",
     "package:release": "scripts/package-release.sh"
   },

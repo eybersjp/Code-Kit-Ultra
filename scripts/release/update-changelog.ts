@@ -7,6 +7,7 @@ const CHANGELOG_PATH = path.join(ROOT_DIR, 'CHANGELOG.md');
 
 const targetVersion = process.argv[2] || getRootVersion();
 const date = new Date().toISOString().split('T')[0];
+const isDryRun = process.argv.includes('--dry-run');
 
 /**
  * Updates the CHANGELOG.md file with new release content.
@@ -24,6 +25,13 @@ function updateChangelog(newBody?: string) {
   const versionHeader = `## [${targetVersion}] - ${date}`;
   const versionRegex = new RegExp(`## \\[${targetVersion.replace(/\./g, '\\.')}\\].*`, 'g');
 
+  // If no body provided, we should probably generate a default classified skeleton
+  const defaultBody = 
+    `### 🚀 Features\n- New version ${targetVersion}\n\n` +
+    `### 🐞 Bug Fixes\n- Maintenance updates\n`;
+
+  const finalBody = newBody || defaultBody;
+
   // Check if version already exists
   if (versionRegex.test(changelog)) {
     console.warn(`⚠️ Version ${targetVersion} already exists in CHANGELOG.md. Overwriting entry...`);
@@ -39,26 +47,31 @@ function updateChangelog(newBody?: string) {
       const before = changelog.substring(0, startIndex);
       const after = changelog.substring(endIndex);
       
-      changelog = before + versionHeader + '\n\n' + (newBody || '### Changed\n- Internal updates\n') + '\n' + after.trimStart();
+      changelog = before + versionHeader + '\n\n' + finalBody + '\n' + after.trimStart();
     }
   } else {
     // New entry: Prepend after the main header
     const mainHeaderIdx = changelog.indexOf('\n## '); 
     if (mainHeaderIdx === -1) {
       // No existing versions, just append
-      changelog += `\n${versionHeader}\n\n${newBody || '### Added\n- Initial release\n'}`;
+      changelog += `\n${versionHeader}\n\n${finalBody}`;
     } else {
       const before = changelog.substring(0, mainHeaderIdx).trimEnd();
       const after = changelog.substring(mainHeaderIdx).trimStart();
-      changelog = before + `\n\n${versionHeader}\n\n${newBody || '### Changed\n- Maintenance updates\n'}\n` + after;
+      changelog = before + `\n\n${versionHeader}\n\n${finalBody}\n` + after;
     }
   }
 
-  fs.writeFileSync(CHANGELOG_PATH, changelog.trim() + '\n');
-  console.log(`✅ Updated CHANGELOG.md for v${targetVersion}`);
+  if (isDryRun) {
+    console.log(`⚠️ DRY RUN: CHANGELOG.md would be updated for version ${targetVersion}.`);
+    console.log('\n--- CHANGELOG PREVIEW ---');
+    console.log(changelog.substring(0, 1000) + '...');
+  } else {
+    fs.writeFileSync(CHANGELOG_PATH, changelog.trim() + '\n');
+    console.log(`✅ Updated CHANGELOG.md for v${targetVersion}`);
+  }
 }
 
 // Logic to read from stdin or a provided file can be added here
-// For now, it defaults to a placeholder if no body is provided.
-const providedBody = process.argv[3]; 
+const providedBody = process.argv.slice(3).filter(a => !a.startsWith('--')).join(' '); 
 updateChangelog(providedBody);

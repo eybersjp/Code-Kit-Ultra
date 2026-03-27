@@ -1,0 +1,37 @@
+name: Lint Commit Messages
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Lint commit messages (Push)
+        if: github.event_name == 'push'
+        run: npx tsx scripts/release/lint-commits.ts "HEAD~5..HEAD"
+
+      - name: Lint commit messages (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          npx tsx scripts/release/lint-commits.ts "origin/${{ github.base_ref }}..HEAD"
+
+      - name: Validate PR Title (PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          npx tsx scripts/release/lint-pr-title.ts "${{ github.event.pull_request.title }}"

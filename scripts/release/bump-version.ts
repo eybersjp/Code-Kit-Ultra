@@ -6,7 +6,9 @@ const ROOT_DIR = path.resolve(import.meta.dirname, '../../');
 const ROOT_PKG_PATH = path.join(ROOT_DIR, 'package.json');
 const VERSION_FILE_PATH = path.join(ROOT_DIR, 'VERSION');
 
-const type = process.argv[2]; // major, minor, patch, or explicit version
+const args = process.argv.slice(2).filter(a => a !== '--dry-run');
+const type = args[0]; // major, minor, patch, or explicit version
+const isDryRun = process.argv.includes('--dry-run');
 
 /**
  * Validates SemVer format
@@ -48,7 +50,7 @@ function increment(current: string, type: string): string {
 
 async function run() {
   if (!type) {
-    console.error('Usage: tsx bump-version.ts <major|minor|patch|version>');
+    console.error('Usage: tsx bump-version.ts <major|minor|patch|version> [--dry-run]');
     process.exit(1);
   }
 
@@ -89,26 +91,34 @@ async function run() {
 
   console.log('--------------------------------------------------');
   console.log(`🚀 Bumping version: ${currentVersion} -> ${targetVersion}`);
+  if (isDryRun) console.log('⚠️  DRY RUN MODE ENABLED');
   console.log('--------------------------------------------------');
 
   const updatedFiles: string[] = [];
 
-  for (const file of filesToUpdate) {
-    const relativePath = path.relative(ROOT_DIR, file);
-    
-    if (file.endsWith('package.json')) {
-      const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
-      pkg.version = targetVersion;
-      fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
-      updatedFiles.push(relativePath);
-    } else if (file.endsWith('VERSION')) {
-      fs.writeFileSync(file, targetVersion + '\n');
-      updatedFiles.push(relativePath);
+  if (isDryRun) {
+    console.log('⚠️ DRY RUN: No files were modified.');
+    for (const file of filesToUpdate) {
+      updatedFiles.push(path.relative(ROOT_DIR, file));
     }
+  } else {
+    for (const file of filesToUpdate) {
+      const relativePath = path.relative(ROOT_DIR, file);
+      
+      if (file.endsWith('package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(file, 'utf8'));
+        pkg.version = targetVersion;
+        fs.writeFileSync(file, JSON.stringify(pkg, null, 2) + '\n');
+        updatedFiles.push(relativePath);
+      } else if (file.endsWith('VERSION')) {
+        fs.writeFileSync(file, targetVersion + '\n');
+        updatedFiles.push(relativePath);
+      }
+    }
+    console.log('✅ Version bump complete.');
   }
 
-  console.log('✅ Version bump complete.');
-  console.log('\nModified Files:');
+  console.log('\nModified Files (Affected):');
   updatedFiles.forEach(f => console.log(` - ${f}`));
   console.log('--------------------------------------------------');
 }
