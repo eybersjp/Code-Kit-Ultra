@@ -27,14 +27,19 @@ jobs:
 
       - name: Lint commit messages (Push)
         if: github.event_name == 'push'
-        run: npx tsx scripts/release/lint-commits.ts "HEAD~5..HEAD"
+        run: |
+          if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
+            pnpm exec tsx scripts/release/lint-commits.ts "HEAD~1..HEAD"
+          else
+            pnpm exec tsx scripts/release/lint-commits.ts "${{ github.event.before }}..${{ github.event.after }}"
+          fi
 
       - name: Lint commit messages (PR)
         if: github.event_name == 'pull_request'
         run: |
-          npx tsx scripts/release/lint-commits.ts "origin/${{ github.base_ref }}..HEAD"
+          pnpm exec tsx scripts/release/lint-commits.ts "origin/${{ github.base_ref }}..HEAD"
 
       - name: Validate PR Title (PR)
         if: github.event_name == 'pull_request'
         run: |
-          npx tsx scripts/release/lint-pr-title.ts "${{ github.event.pull_request.title }}"
+          pnpm exec tsx scripts/release/lint-pr-title.ts "${{ github.event.pull_request.title }}"
