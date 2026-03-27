@@ -1,6 +1,6 @@
 {
   "name": "ckultra",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Code Kit Ultra — Governed Autonomous Engineering Platform",
   "type": "module",
   "main": "index.js",
