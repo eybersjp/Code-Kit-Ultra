@@ -20,7 +20,7 @@ export async function verifyInsForgeToken(token: string): Promise<Record<string,
     jwksRequestsPerMinute: 10,
   });
 
-  const getKey: jwt.GetPublicKeyOrSecret = (header, callback) => {
+  const getKey: jwt.GetPublicKeyOrSecret = (header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) => {
     client.getSigningKey(header.kid, (err, key) => {
       if (err) {
         return callback(err);
@@ -39,7 +39,7 @@ export async function verifyInsForgeToken(token: string): Promise<Record<string,
         audience,
         algorithms: ["RS256"],
       },
-      (err, decoded) => {
+      (err: Error | null, decoded: string | jwt.JwtPayload | undefined) => {
         if (err) {
           return reject(new Error(`InsForge token verification failed: ${err.message}`));
         }
