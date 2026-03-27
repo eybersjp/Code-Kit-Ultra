@@ -4,11 +4,20 @@
   "description": "IDE-Native Control Plane for Governed Autonomous Engineering.",
   "version": "1.2.0",
   "publisher": "eybersjp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eybersjp/Code-Kit-Ultra"
+  },
   "engines": {
     "vscode": "^1.80.0"
   },
   "categories": [
     "Other"
+  ],
+  "files": [
+    "dist",
+    "package.json",
+    "assets"
   ],
   "activationEvents": [
     "onStartupFinished"
