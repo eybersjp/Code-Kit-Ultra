@@ -1,4 +1,6 @@
 .codekit/
+codekit/
+*.vsix
 .ck/
 .gemini/
 .agent/

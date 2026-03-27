@@ -29,7 +29,8 @@
     "release:control-center": "tsx scripts/release/control-center.ts",
     "release:control": "npm run release:control-center",
     "release:control:milestone": "MILESTONE_NAME='Phase 10 Milestone' tsx scripts/release/control-center.ts",
-    "release:validate": "tsx scripts/release/validate-release.ts"
+    "release:validate": "tsx scripts/release/validate-release.ts",
+    "cku": "npx tsx ./codekit/apps/cli/src/index.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
