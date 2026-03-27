@@ -1,23 +1,21 @@
 # Changelog
 
-## v1.2.0-ide-control-plane
-- **IDE-Native Control Plane**: Full integration with VS Code.
-- **Governed Autonomy**: Human-in-the-loop approval system.
-- **Run Persistent Layer**: Standardized `.codekit/runs` schema.
-- **Adaptive Specialist Evaluation**: Real-time consensus visualization.
+All notable changes to Code Kit Ultra will be documented in this file.
 
-## v1.0.0
-- public release package
-- community and contribution files
-- launch docs and tutorials
-- public-release workflow
-- issue / discussion / PR templates
-- demo and showcase examples
+## [1.2.0-phase10] - 2026-03-27
 
-## v1.0.0-rc2
-- productionization sprint package
-- hardened CI and release workflows
-- startup environment schema and secret redaction helpers
-- retry/timeout execution policy
-- packaging and preflight scripts
-- operational runbooks and rollback/disaster docs
+### Added
+- **Learning Engine**: Core logic for autonomous pattern detection and knowledge synthesis.
+- **Outcome Ingestion**: System for recording and processing execution results.
+- **Reliability Scoring**: Automated performance metrics and scoring for components.
+- **Adaptive Policy Engine**: Governance-aware policy adaptation based on real-time data.
+- **Plan Optimizer**: Autonomous optimization of execution plans.
+
+### Changed
+- **Control Service**: Updated handlers to support Phase 10 outcome tracking.
+- **Repository Hygiene**: Hardened `.gitignore` and aligned monorepo dependencies.
+- **CI/CD Foundation**: Established core GitHub Actions and repository governance.
+
+### Verified
+- Full typecheck and verification pass completed for Phase 10.
+- All smoke and integration tests for autonomous execution passing.

@@ -1,0 +1,16 @@
+# Auto-detect text files and normalize EOL
+* text=auto eol=lf
+
+# Explicitly mark files that should always use LF
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

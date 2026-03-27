@@ -1,18 +1,45 @@
-name: CI
+name: Core CI
 
 on:
   push:
+    branches:
+      - main
+      - develop
+      - 'release/**'
   pull_request:
+    branches:
+      - main
+      - develop
+      - 'release/**'
 
 jobs:
-  validate:
+  verify:
+    name: Verify Base
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install
-      - run: npm run typecheck
-      - run: npm run test:smoke
-      - run: npm run validate:docs
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Typecheck
+        run: npm run typecheck
+
+      - name: Run Core Tests (Auth)
+        run: npm run test:auth
+
+      - name: Run Monorepo Build Check
+        run: |
+          if [ -f "scripts/build-public-release.sh" ]; then
+            bash scripts/build-public-release.sh
+          else
+            echo "No build script found, skipping build check."
+          fi

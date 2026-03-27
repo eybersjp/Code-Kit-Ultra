@@ -1,21 +1,29 @@
 ---
-name: Bug report
-about: Report a reproducible bug
+name: Bug Report
+about: Create a report to help us improve.
+title: "[BUG] "
+labels: bug
+assignees: ''
+
 ---
 
-## Summary
-What happened?
+## Behavior
+**Expected**:
+**Actual**:
 
-## Steps to reproduce
+## Reproduction Steps
 1.
 2.
 3.
 
-## Expected behavior
+## Affected Area
+<!-- e.g., control-service, extension, packages/auth -->
 
-## Actual behavior
+## Logs / Error Output
+```text
+(Paste relevant logs or error snippets here)
+```
 
-## Environment
-- profile:
-- adapter path:
-- dry-run or real:
+## Severity
+<!-- Select one: S1 (Blocker) | S2 (Major) | S3 (Minor) -->
+**Severity**:

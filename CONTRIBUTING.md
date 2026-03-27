@@ -1,31 +1,21 @@
 # Contributing to Code Kit Ultra
 
-Thank you for contributing.
+Welcome! We are excited to have you contribute to this autonomous engineering platform.
 
-## Before opening a PR
-1. Run `npm install`
-2. Run `npm run preflight`
-3. Run `npm run test:smoke`
-4. Update docs and changelog when behavior changes
+## Development Workflow
 
-## Contribution areas
-- adapters
-- orchestration logic
-- routing policy
-- docs
-- templates
-- examples
-- observability
-- governance and promotion lifecycle
+1. **Fork/Branch**: Create a `feature/*` or `hotfix/*` branch from `develop`.
+2. **Implementation**: Ensure your code follows the `.editorconfig` style rules.
+3. **Verification**:
+   - Run `npm run typecheck` to verify types.
+   - Run relevant tests (e.g., `npm run test:auth`).
+4. **Pull Request**:
+   - Fill out the PR template completely.
+   - Ensure CI status checks pass.
+   - Request a review from the maintainers.
 
-## PR expectations
-- keep PRs focused
-- include rationale, not just code
-- update release-facing docs if user-visible behavior changes
-- do not commit secrets or generated private credentials
+## Commits
+Use descriptive, milestone-quality commit messages. Follow the `type(scope): subject` convention (e.g., `feat(auth): add session recovery`).
 
-## Quality bar
-- type-safe changes
-- smoke test remains green
-- docs remain aligned
-- safe defaults preserved
+## Code of Conduct
+Please be respectful and professional in all interactions.

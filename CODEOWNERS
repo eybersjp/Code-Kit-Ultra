@@ -1,0 +1,9 @@
+# Code Kit Ultra CODEOWNERS
+
+# Root ownership
+*       @eybersjp
+
+# Package-specific ownership (if applicable)
+/apps/     @eybersjp
+/packages/ @eybersjp
+/docs/     @eybersjp
