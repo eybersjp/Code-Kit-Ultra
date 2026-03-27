@@ -59,6 +59,19 @@ jobs:
           RELEASE_SUMMARY: ${{ github.event.inputs.release_summary }}
         run: npm run release:control-center
 
+      - name: Enforce Release Control Gate
+        run: |
+          LATEST_JSON=$(ls -t releases/control-center/manifests/*.json | head -n 1)
+          DECISION=$(node -p "require('./$LATEST_JSON').governance.decision")
+          echo "Release Decision: $DECISION"
+          if [ "$DECISION" = "NO-GO" ]; then
+            echo "❌ Release Rejected by Control Center (NO-GO). Failing workflow."
+            exit 1
+          fi
+          if [ "$DECISION" = "GO WITH RISKS" ]; then
+            echo "::warning title=RCC Decision::Approved with Risks. Check the report for details."
+          fi
+
       - name: Commit Release Metadata
         run: |
           NEW_VERSION=$(node -p "require('./package.json').version")
