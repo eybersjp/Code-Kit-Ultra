@@ -9,6 +9,7 @@
     "extensions/*"
   ],
   "scripts": {
+    "ck": "tsx apps/cli/src/index.ts",
     "typecheck": "tsc --noEmit",
     "test:phase10_5": "tsx examples/healing-test.ts",
     "test:auth": "vitest run packages/auth",
