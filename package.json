@@ -1,17 +1,41 @@
 {
-  "name": "code-kit-ultra-phase10_5-pack",
+  "name": "code-kit-ultra",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "extensions/*"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test:phase10_5": "tsx examples/healing-test.ts"
+    "test:phase10_5": "tsx examples/healing-test.ts",
+    "test:auth": "vitest run packages/auth",
+    "test:session": "vitest run packages/auth/src/resolve-session.ts",
+    "test:rbac": "vitest run packages/auth/src/rbac.ts",
+    "db:migrate": "echo 'Migration logic placeholder'",
+    "db:seed": "echo 'Seed logic placeholder'",
+    "dev:web": "npm run dev -w apps/web-control-plane",
+    "version:bump": "tsx scripts/release/bump-version.ts",
+    "release:notes": "tsx scripts/release/generate-release-notes.ts",
+    "changelog:update": "tsx scripts/release/update-changelog.ts",
+    "release:prepare": "npm run release:notes && npm run changelog:update",
+    "package:release": "scripts/package-release.sh"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
+    "@types/supertest": "^7.2.0",
+    "@vitest/ui": "^4.1.1",
+    "supertest": "^7.2.2",
     "tsx": "^4.19.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vitest": "^2.1.9"
   },
   "dependencies": {
-    "commander": "^14.0.3"
+    "axios": "^1.7.7",
+    "commander": "^14.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "jwks-rsa": "^3.1.0"
   }
 }
