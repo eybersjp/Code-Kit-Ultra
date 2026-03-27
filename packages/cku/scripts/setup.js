@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 import os from 'node:os';
 
@@ -32,7 +33,7 @@ if (!fs.existsSync(ckuHome)) {
 console.log(`📦 Nesting code under: ${ckuHome}`);
 
 // Copy contents from the package into the target codekit folder
-const installerDir = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+const installerDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const sourceCodekit = path.join(installerDir, 'codekit');
 
 try {

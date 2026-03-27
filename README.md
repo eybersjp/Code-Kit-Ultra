@@ -1,29 +1,64 @@
-# Code Kit Ultra — Phase 10.5 Production Pack
+# 🚀 Code Kit Ultra (CKU) — Phase 10.5
 
-This pack adds a governed self-healing systems layer on top of the existing
-Phase 10 learning-enabled baseline.
+**Governed Autonomous Engineering & Self-Healing Systems.**
 
-## Included
+Code Kit Ultra is a production-grade, self-improving engineering platform that automates the entire software lifecycle with high-integrity governance gates.
 
-- failure classifier
-- healing strategy registry
-- healing engine
-- revalidation flow
-- healing log store
-- control-service healing endpoints
-- CLI healing commands
-- example healing test
-- docs and rollout guidance
+---
 
-## Unified Identity & Governance
+## ⚡ Quick Start: Zero-Config Install
 
-**Root Identity Plane**: [InsForge](https://docs.insforge.com)
-**Authorization Layer**: Code Kit Ultra Policy Engine (RBAC)
+Get the full suite, including the **IDE-Native Control Plane**, nested monorepo, and CLI automation with a single command:
 
-Code Kit Ultra v1.2.0+ enforces session-first authentication for all human operators. Legacy API keys are deprecated for production usage.
+```bash
+npm install cku
+```
 
-- See [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md) for the new operator flow.
+**What happens during install?**
 
-## Lifecycle
+1. 📂 **Nesting**: The CKU core is automatically isolated in a `./codekit` directory.
+2. 💻 **IDE Setup**: Detects your IDE (VS Code) and automatically installs the **Code Kit Ultra Control Plane** extension.
+3. 🔧 **Integration**: Injects `cku` scripts into your `package.json` for immediate usage.
 
-Simulate → Assess Risk → Approve → Execute → Verify → Diagnose → Heal → Re-Verify → Learn (InsForge Identity-Attributed)
+---
+
+## 🛠️ Commands
+
+Now you can run namespaced commands anywhere:
+
+```bash
+# Initialize a new project idea
+npm run cku /ck-init "Build a multi-tenant SaaS dashboard"
+
+# Run the autonomous pipeline with governance review
+npm run cku /ck-run
+
+# Approve a policy gate manually
+npm run cku /ck-approve gate_governance_consensus
+
+# Check system health
+npm run cku /ck-doctor
+```
+
+---
+
+## 🏗️ Architecture & Included Modules
+
+- **Failure Classifier**: Real-time diagnosis of execution anomalies.
+- **Healing Engine**: Autonomous strategy selection and recovery.
+- **Governed Autonomy**: Consensus-based gate decisions for high-risk actions.
+- **Root Identity Plane**: [InsForge](https://docs.insforge.com) (Unified Identity & Attributed Governance).
+
+---
+
+## 🔐 Security & Identity
+
+CKU v1.2.0+ enforces **Session-First Authentication**. Human operators must sign in via InsForge to execute governed actions.
+- See [docs/AUTHENTICATION.md](./docs/AUTHENTICATION.md) for the operator flow.
+
+---
+
+## 📄 License & Governance
+
+Simulate → Assess Risk → Approve → Execute → Verify → Diagnose → Heal → Re-Verify → Learn.
+*Powered by Code Kit Ultra Autonomic Intelligence.*
