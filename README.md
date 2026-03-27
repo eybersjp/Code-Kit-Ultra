@@ -8,17 +8,30 @@ Code Kit Ultra is a production-grade, self-improving engineering platform that a
 
 ## ⚡ Quick Start: Zero-Config Install
 
-Get the full suite, including the **IDE-Native Control Plane**, nested monorepo, and CLI automation with a single command:
+Once published to the NPM registry, install the full suite with a single command:
 
 ```bash
 npm install cku
 ```
 
+**Until the package is officially published**, install directly from the repo:
+
+```bash
+npm install github:eybersjp/Code-Kit-Ultra#main --prefix ./
+```
+
+Or clone and link locally:
+
+```bash
+git clone https://github.com/eybersjp/Code-Kit-Ultra.git
+npm install ./Code-Kit-Ultra/packages/cku
+```
+
 **What happens during install?**
 
 1. 📂 **Nesting**: The CKU core is automatically isolated in a `./codekit` directory.
-2. 💻 **IDE Setup**: Detects your IDE (VS Code) and automatically installs the **Code Kit Ultra Control Plane** extension.
-3. 🔧 **Integration**: Injects `cku` scripts into your `package.json` for immediate usage.
+2. 💻 **IDE Setup**: Detects VS Code and automatically installs the **Code Kit Ultra Control Plane** extension.
+3. 🔧 **Integration**: Injects a `cku` script into your `package.json` for immediate usage.
 
 ---
 

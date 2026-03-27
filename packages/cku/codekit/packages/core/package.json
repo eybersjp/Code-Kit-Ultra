@@ -8,6 +8,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@cku/shared": "workspace:*"
+    "@cku/shared": "latest"
   }
 }
+

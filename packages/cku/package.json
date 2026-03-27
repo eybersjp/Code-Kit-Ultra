@@ -1,7 +1,8 @@
 {
   "name": "cku",
   "version": "1.2.0",
-  "description": "Code Kit Ultra: Governed Autonomous Engineering",
+  "description": "Code Kit Ultra — Governed Autonomous Engineering Platform",
+  "type": "module",
   "main": "index.js",
   "bin": {
     "cku": "bin/cku.js"
@@ -9,8 +10,13 @@
   "scripts": {
     "postinstall": "node scripts/setup.js"
   },
+  "keywords": ["ai", "autonomous", "engineering", "cli", "devtools", "governance"],
+  "license": "MIT",
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^14.0.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
