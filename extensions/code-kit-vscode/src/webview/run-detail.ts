@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
-import axios from "axios";
+import { ckuApi } from "../api/client.js";
 
+/**
+ * Wave 6: Run Detail Panel for VS Code Extension.
+ * Updated to use centralized ckuApi instead of ad-hoc axios instance.
+ */
 export class RunDetailPanel {
   public static currentPanel: RunDetailPanel | undefined;
   private readonly _panel: vscode.WebviewPanel;
@@ -36,9 +40,10 @@ export class RunDetailPanel {
     this._panel.title = `Run Detail: ${runId}`;
     
     try {
+      // Wave 6: Use centralized API client instead of hardcoded URLs
       const [runResp, timelineResp] = await Promise.all([
-        axios.get(`http://localhost:4000/runs/${runId}`),
-        axios.get(`http://localhost:4000/runs/${runId}/timeline`)
+        ckuApi.get(`/runs/${runId}`),
+        ckuApi.get(`/runs/${runId}/timeline`)
       ]);
 
       webview.html = this._getHtmlForWebview(runResp.data, timelineResp.data);
@@ -71,17 +76,17 @@ export class RunDetailPanel {
     <body>
         <div class="header">
             <h1>Run: ${run.runId}</h1>
-            <p style="font-size: 1.1rem; color: #ddd;">${run.input.idea}</p>
+            <p style="font-size: 1.1rem; color: #ddd;">${run.input?.idea || 'No Idea'}</p>
             <div style="margin-top: 10px;">
-                <span class="badge" style="background: #333; color: #eee; margin-right: 5px;">Mode: ${run.input.mode}</span>
-                <span class="badge" style="background: #333; color: #eee;">Priority: ${run.input.priority}</span>
+                <span class="badge" style="background: #333; color: #eee; margin-right: 5px;">Mode: ${run.input?.mode || 'N/A'}</span>
+                <span class="badge" style="background: #333; color: #eee;">Priority: ${run.input?.priority || 'low'}</span>
             </div>
         </div>
 
         <div class="grid">
             <div>
                 <h2>Specialist Gates</h2>
-                ${run.gates.map((g: any) => `
+                ${(run.gates || []).map((g: any) => `
                     <div class="card">
                         <div style="display: flex; justify-content: space-between; align-items: start;">
                             <h3>${g.gate}</h3>
@@ -93,7 +98,7 @@ export class RunDetailPanel {
             </div>
             <div>
                 <h2>Execution Plan</h2>
-                ${run.plan.map((p: any) => `
+                ${(run.plan || []).map((p: any) => `
                     <div class="timeline-item done">
                         <div class="tag">${p.phase} | ${p.taskType}</div>
                         <strong>${p.title}</strong>
@@ -113,7 +118,7 @@ export class RunDetailPanel {
                     <th style="padding: 8px;">Status</th>
                     <th style="padding: 8px;">Output</th>
                 </tr>
-                ${run.adapterExecutions.map((e: any) => `
+                ${(run.adapterExecutions || []).map((e: any) => `
                     <tr style="border-bottom: 1px solid #333;">
                         <td style="padding: 8px;">${e.taskId}</td>
                         <td style="padding: 8px; color: #ce9178;">${e.adapter}</td>

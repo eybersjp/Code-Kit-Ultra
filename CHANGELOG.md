@@ -2,6 +2,14 @@
 
 All notable changes to Code Kit Ultra will be documented in this file.
 
+## [1.2.0] - 2026-03-27
+
+### 🚀 Features
+- New version 1.2.0
+
+### 🐞 Bug Fixes
+- Maintenance updates
+
 ## [1.2.0-phase10] - 2026-03-27
 
 ### Added

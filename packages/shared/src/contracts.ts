@@ -25,3 +25,24 @@ export interface SkillPackage {
   skillMarkdown: string;
   generatedPath: string;
 }
+
+export interface AuthProvider {
+  resolveSession(token: string): Promise<import("./types").ResolvedSession>;
+  verifyToken(token: string): Promise<Record<string, unknown>>;
+}
+
+export interface TokenVerifier {
+  verify(token: string): Promise<Record<string, unknown>>;
+}
+
+export interface ExecutionTokenIssuer {
+  issue(scope: import("./types").ExecutionScope): Promise<string>;
+}
+
+export interface PermissionResolver {
+  hasPermission(session: import("./types").ResolvedSession, permission: string): Promise<boolean>;
+}
+
+export interface TenantResolver {
+  resolve(claims: Record<string, unknown>): Promise<import("./types").TenantContext>;
+}

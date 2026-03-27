@@ -7,8 +7,39 @@ export type CKMode = Mode;
 
 export type RunStatus = "planned" | "running" | "paused" | "completed" | "failed" | "cancelled";
 export type StepStatus = "pending" | "running" | "success" | "failed" | "paused" | "skipped" | "rolled-back";
-export type Role = "admin" | "operator" | "reviewer" | "viewer";
+export type Role = "admin" | "operator" | "reviewer" | "viewer" | "service_account";
 export type ExecutionRisk = "low" | "medium" | "high";
+
+export type ActorType = "user" | "service_account" | "legacy_api_key";
+
+export interface TenantContext {
+  orgId: string;
+  workspaceId: string;
+  projectId?: string;
+}
+
+export interface AuthenticatedActor {
+  actorId: string;
+  actorType: ActorType;
+  actorName?: string;
+  authMode?: string;
+  roles: Role[];
+}
+
+export interface ResolvedSession {
+  actor: AuthenticatedActor;
+  tenant: TenantContext;
+  claims: Record<string, unknown>;
+  issuedAt: number;
+  expiresAt: number;
+}
+
+export interface ExecutionScope {
+  runId: string;
+  tenant: TenantContext;
+  actor: AuthenticatedActor;
+  correlationId: string;
+}
 
 export interface AuthUser {
   id: string;
@@ -197,6 +228,14 @@ export interface RunState {
   pauseReason?: string;
   approvalRequired: boolean;
   approved: boolean;
+
+  // Multi-tenant & Actor context
+  orgId?: string;
+  workspaceId?: string;
+  projectId?: string;
+  actorId?: string;
+  actorType?: ActorType;
+  correlationId?: string;
 }
 
 export interface RunBundle {
@@ -240,6 +279,20 @@ export interface AuditEvent {
   details?: Record<string, unknown>;
   prevHash: string;
   hash: string;
+
+  // Context metadata
+  orgId?: string;
+  workspaceId?: string;
+  projectId?: string;
+  actorId?: string;
+  actorType?: ActorType;
+  authMode?: string;
+  correlationId?: string;
+
+  // Resource details
+  resourceType?: string;
+  resourceId?: string;
+  result?: "success" | "failure" | "pending";
 }
 
 export interface AuditLogArtifact {

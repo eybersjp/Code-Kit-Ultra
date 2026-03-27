@@ -16,3 +16,4 @@ export * from "./execution-engine";
 export * from "./resume-run";
 export * from "./rollback-engine";
 export * from "./outcome-engine";
+export * from "./healing-integration";

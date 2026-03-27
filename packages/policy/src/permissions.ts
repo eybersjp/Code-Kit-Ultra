@@ -1,0 +1,16 @@
+export type Permission =
+  | "run:create"
+  | "run:view"
+  | "run:cancel"
+  | "gate:view"
+  | "gate:approve"
+  | "gate:reject"
+  | "execution:view"
+  | "execution:high_risk"
+  | "execution:rollback"
+  | "healing:invoke"
+  | "policy:view"
+  | "policy:manage"
+  | "audit:view"
+  | "service_account:manage"
+  | "service_account:view";

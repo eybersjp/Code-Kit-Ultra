@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Mode, RunReport } from "../../shared/src";
+import { StorageProvider, getStorageProvider, ArtifactMetadata } from "../../storage/src/index.js";
 
 /**
  * A lightweight memory entry for one recorded run.
@@ -15,6 +16,18 @@ export interface ProjectMemoryRunEntry {
   mode?: Mode;
   approvedGates?: string[];
   currentPhase?: string;
+
+  // Wave 4: Multi-tenant & Actor context
+  orgId?: string;
+  workspaceId?: string;
+  projectId?: string;
+  actorId?: string;
+  actorType?: string;
+  correlationId?: string;
+  authMode?: string;
+
+  // Wave 9: Remote storage metadata
+  artifacts?: Record<string, ArtifactMetadata>;
 }
 
 /**
@@ -63,6 +76,7 @@ export interface RunStoreOptions {
   maxRecentIdeas?: number;
   maxRecentArtifacts?: number;
   maxStoredRuns?: number;
+  storageProvider?: StorageProvider;
 }
 
 const DEFAULT_MAX_RECENT_IDEAS = 20;
@@ -91,6 +105,21 @@ function getArtifactsRoot(options?: RunStoreOptions): string {
 
 function getRunDirectory(runId: string, options?: RunStoreOptions): string {
   return path.join(getArtifactsRoot(options), runId);
+}
+
+let defaultProvider: StorageProvider | null = null;
+
+function getProvider(options?: RunStoreOptions): StorageProvider {
+  if (options?.storageProvider) return options.storageProvider;
+  if (!defaultProvider) {
+    defaultProvider = getStorageProvider({
+      type: (process.env.CKU_STORAGE_TYPE || "local") as any,
+      localBaseDir: getArtifactsRoot(options),
+      insforgeBucket: process.env.INSFORGE_STORAGE_BUCKET,
+      insforgeApiKey: process.env.INSFORGE_STORAGE_API_KEY
+    });
+  }
+  return defaultProvider!;
 }
 
 function ensureDirectory(directoryPath: string): void {
@@ -360,6 +389,16 @@ export function recordRun(
     mode,
     approvedGates: report.approvedGates,
     currentPhase: report.currentPhase,
+
+    // Wave 4: Extract tenant context from report status or metadata if present
+    // Note: We maintain local JSON fallback while allowing for DB-aware columns
+    orgId: (report as any).orgId,
+    workspaceId: (report as any).workspaceId,
+    projectId: (report as any).projectId,
+    actorId: (report as any).actorId,
+    actorType: (report as any).actorType,
+    correlationId: (report as any).correlationId,
+    authMode: (report as any).authMode,
   };
 
   const maxRecentIdeas = options?.maxRecentIdeas ?? DEFAULT_MAX_RECENT_IDEAS;
@@ -412,46 +451,75 @@ import type {
   AuditLogArtifact,
 } from "../../shared/src/types";
 
-export function updateIntake(runId: string, intake: IntakeArtifact): void {
-  const dir = getRunDirectory(runId);
+export async function updateIntake(runId: string, intake: IntakeArtifact, options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "intake.json"), intake);
+  const json = JSON.stringify(intake, null, 2);
+  const filePath = path.join(dir, "intake.json");
+  fs.writeFileSync(filePath, json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/intake.json`, json, { contentType: "application/json" });
 }
 
-export function updatePlan(runId: string, plan: PlanArtifact): void {
-  const dir = getRunDirectory(runId);
+export async function updatePlan(runId: string, plan: PlanArtifact, options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "plan.json"), plan);
+  const json = JSON.stringify(plan, null, 2);
+  fs.writeFileSync(path.join(dir, "plan.json"), json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/plan.json`, json, { contentType: "application/json" });
 }
 
-export function updateGates(runId: string, gates: GateDecision[]): void {
-  const dir = getRunDirectory(runId);
+export async function updateGates(runId: string, gates: GateDecision[], options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "gates.json"), gates);
+  const json = JSON.stringify(gates, null, 2);
+  fs.writeFileSync(path.join(dir, "gates.json"), json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/gates.json`, json, { contentType: "application/json" });
 }
 
-export function updateAdapters(runId: string, adapters: AdapterArtifact): void {
-  const dir = getRunDirectory(runId);
+export async function updateAdapters(runId: string, adapters: AdapterArtifact, options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "adapters.json"), adapters);
+  const json = JSON.stringify(adapters, null, 2);
+  fs.writeFileSync(path.join(dir, "adapters.json"), json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/adapters.json`, json, { contentType: "application/json" });
 }
 
-export function updateExecutionLog(runId: string, log: ExecutionLogArtifact): void {
-  const dir = getRunDirectory(runId);
+export async function updateExecutionLog(runId: string, log: ExecutionLogArtifact, options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "execution-log.json"), log);
+  const json = JSON.stringify(log, null, 2);
+  fs.writeFileSync(path.join(dir, "execution-log.json"), json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/execution-log.json`, json, { contentType: "application/json" });
 }
 
-export function updateRunState(runId: string, state: RunState): void {
-  const dir = getRunDirectory(runId);
+export async function updateRunState(runId: string, state: RunState, options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "state.json"), state);
+  const json = JSON.stringify(state, null, 2);
+  fs.writeFileSync(path.join(dir, "state.json"), json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/state.json`, json, { contentType: "application/json" });
 }
 
-export function updateAuditLog(runId: string, log: AuditLogArtifact): void {
-  const dir = getRunDirectory(runId);
+export async function updateAuditLog(runId: string, log: AuditLogArtifact, options?: RunStoreOptions): Promise<ArtifactMetadata> {
+  const dir = getRunDirectory(runId, options);
   ensureDirectory(dir);
-  writeJsonFile(path.join(dir, "audit-log.json"), log);
+  const json = JSON.stringify(log, null, 2);
+  fs.writeFileSync(path.join(dir, "audit-log.json"), json);
+
+  const provider = getProvider(options);
+  return provider.put(`${runId}/audit-log.json`, json, { contentType: "application/json" });
 }
 
 export function loadRunBundle(runId: string): RunBundle | null {
@@ -500,6 +568,13 @@ function isProjectMemoryRunEntry(value: unknown): value is ProjectMemoryRunEntry
     (typeof entry.summary === "string" || typeof entry.summary === "undefined") &&
     (typeof entry.idea === "string" || typeof entry.idea === "undefined") &&
     (typeof entry.mode === "string" || typeof entry.mode === "undefined") &&
-    (typeof entry.currentPhase === "string" || typeof entry.currentPhase === "undefined")
+    (typeof entry.currentPhase === "string" || typeof entry.currentPhase === "undefined") &&
+    (typeof entry.orgId === "string" || typeof entry.orgId === "undefined") &&
+    (typeof entry.workspaceId === "string" || typeof entry.workspaceId === "undefined") &&
+    (typeof entry.projectId === "string" || typeof entry.projectId === "undefined") &&
+    (typeof entry.actorId === "string" || typeof entry.actorId === "undefined") &&
+    (typeof entry.actorType === "string" || typeof entry.actorType === "undefined") &&
+    (typeof entry.correlationId === "string" || typeof entry.correlationId === "undefined") &&
+    (typeof entry.authMode === "string" || typeof entry.authMode === "undefined")
   );
 }

@@ -1,3 +1,4 @@
+import type { ExecutionScope } from "../../shared/src/types";
 import type { HealingAttempt } from "../../shared/src/phase10_5-types";
 import { attemptHealing } from "../../healing/src/healing-engine";
 
@@ -8,6 +9,7 @@ export interface FailedStepContext {
   errorMessage: string;
   payload?: Record<string, unknown>;
   workingDirectory?: string;
+  scope?: ExecutionScope;
 }
 
 export async function healFailedStep(context: FailedStepContext): Promise<HealingAttempt> {
@@ -19,5 +21,6 @@ export async function healFailedStep(context: FailedStepContext): Promise<Healin
     errorMessage: context.errorMessage,
     payload: context.payload,
     workingDirectory: context.workingDirectory,
-  });
+    scope: context.scope,
+  } as any);
 }

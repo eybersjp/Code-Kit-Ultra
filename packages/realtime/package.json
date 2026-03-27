@@ -1,0 +1,11 @@
+{
+  "name": "@cku/realtime",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "types": "src/index.d.ts",
+  "dependencies": {
+    "@cku/shared": "workspace:*"
+  }
+}

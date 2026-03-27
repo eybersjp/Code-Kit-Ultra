@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import axios from "axios";
+import { ckuApi } from "../api/client.js";
 
 export class RunsProvider implements vscode.TreeDataProvider<RunItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<RunItem | undefined | null | void> = new vscode.EventEmitter<RunItem | undefined | null | void>();
@@ -17,7 +17,8 @@ export class RunsProvider implements vscode.TreeDataProvider<RunItem> {
     if (element) return [];
 
     try {
-      const resp = await axios.get("http://localhost:4000/runs");
+      // Wave 6: Use centralized API client
+      const resp = await ckuApi.get("/runs");
       return resp.data.map((run: any) => new RunItem(
         run.label || run.runId,
         run.status,
@@ -44,11 +45,11 @@ class RunItem extends vscode.TreeItem {
     this.description = this.status;
     this.contextValue = "run";
     
-    if (status === "execute") {
+    if (status === "execute" || status === "completed" || status === "success") {
       this.iconPath = new vscode.ThemeIcon("pass-filled", new vscode.ThemeColor("charts.green"));
-    } else if (status === "blocked") {
+    } else if (status === "blocked" || status === "failed") {
       this.iconPath = new vscode.ThemeIcon("error", new vscode.ThemeColor("charts.red"));
-    } else if (status === "paused") {
+    } else if (status === "paused" || status === "awaiting-approval") {
       this.iconPath = new vscode.ThemeIcon("debug-pause", new vscode.ThemeColor("charts.yellow"));
     } else {
       this.iconPath = new vscode.ThemeIcon("circle-outline");

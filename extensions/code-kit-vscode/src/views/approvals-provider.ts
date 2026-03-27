@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import axios from "axios";
+import { ckuApi } from "../api/client.js";
 
 export class ApprovalsProvider implements vscode.TreeDataProvider<ApprovalItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<ApprovalItem | undefined | null | void> = new vscode.EventEmitter<ApprovalItem | undefined | null | void>();
@@ -17,7 +17,8 @@ export class ApprovalsProvider implements vscode.TreeDataProvider<ApprovalItem> 
     if (element) return [];
 
     try {
-      const resp = await axios.get("http://localhost:4000/approvals");
+      // Wave 6: Use centralized API client
+      const resp = await ckuApi.get("/approvals");
       return resp.data.map((appr: any) => new ApprovalItem(
         appr.input?.idea || "Pending Approval",
         appr.gates?.find((g: any) => g.status === "needs-review")?.gate || "Review Required",

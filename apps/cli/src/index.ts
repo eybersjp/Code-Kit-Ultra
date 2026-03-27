@@ -5,7 +5,34 @@ import { loadProjectMemory } from "../../../packages/memory/src";
 import { runVerticalSlice } from "../../../packages/orchestrator/src";
 import { getModePolicy } from "../../../packages/orchestrator/src/mode-controller";
 import type { GateDecision, Mode, SelectedSkill, Task } from "../../../packages/shared/src";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import axios from "axios";
 import { saveProjectMemory } from "../../../packages/memory/src";
+
+const CONFIG_DIR = path.join(os.homedir(), ".ck");
+const SESSION_PATH = path.join(CONFIG_DIR, "session.json");
+const CONTROL_SERVICE_URL = process.env.CKU_CONTROL_SERVICE_URL || "http://localhost:3100";
+
+const api = axios.create({ baseURL: CONTROL_SERVICE_URL });
+
+function getSession() {
+  try {
+    if (fs.existsSync(SESSION_PATH)) {
+      return JSON.parse(fs.readFileSync(SESSION_PATH, "utf-8"));
+    }
+  } catch {}
+  return null;
+}
+
+api.interceptors.request.use((config: any) => {
+  const session = getSession();
+  if (session?.token) {
+    config.headers.Authorization = `Bearer ${session.token}`;
+  }
+  return config;
+});
 
 function normalizeMode(input: string | undefined): Mode {
   const mode = input?.toLowerCase();
@@ -599,6 +626,108 @@ registerPhase10Commands(program);
 
 import { registerPhase10_5Commands } from "./phase10_5-commands.js";
 registerPhase10_5Commands(program);
+
+// --- Auth Subsystem ---
+const auth = program.command("auth").description("Session-aware authentication commands");
+
+auth
+  .command("status")
+  .description("Show current authentication status")
+  .action(() => {
+    const session = getSession();
+    if (!session) {
+      console.log(chalk.yellow("Not logged in."));
+      return;
+    }
+
+    console.log(chalk.cyan("\nAuthentication Status:"));
+    console.log(chalk.green("Actor:"), session.actor?.actorName || session.actor?.actorId);
+    console.log(chalk.green("Type:"), session.actor?.actorType);
+    console.log(chalk.green("Org:"), session.tenant?.orgId);
+    console.log(chalk.green("Workspace:"), session.tenant?.workspaceId || "N/A");
+    console.log(chalk.green("Project:"), session.tenant?.projectId || "N/A");
+    console.log("");
+  });
+
+auth
+  .command("login")
+  .description("Login with an InsForge or Service Account token")
+  .argument("<token>", "JWT bearer token")
+  .action(async (token: string) => {
+    try {
+      if (!fs.existsSync(CONFIG_DIR)) fs.mkdirSync(CONFIG_DIR);
+
+      // Verify the token by calling /v1/session
+      const response = await api.get("/v1/session", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const sessionData = {
+        token,
+        ...response.data
+      };
+
+      fs.writeFileSync(SESSION_PATH, JSON.stringify(sessionData, null, 2));
+      console.log(chalk.green("\nSuccessfully logged in."));
+      console.log(chalk.dim(`Session: ${sessionData.actor?.actorName || sessionData.actor?.actorId} (${sessionData.actor?.actorType})\n`));
+    } catch (err: any) {
+      console.error(chalk.red(`\nLogin failed: ${err.response?.data?.error || err.message}`));
+    }
+  });
+
+auth
+  .command("logout")
+  .description("Clear the local session")
+  .action(() => {
+    if (fs.existsSync(SESSION_PATH)) {
+      fs.unlinkSync(SESSION_PATH);
+      console.log(chalk.cyan("Logged out. Local session cleared."));
+    } else {
+      console.log("Already logged out.");
+    }
+  });
+
+// --- Run Management ---
+const runCmd = program.command("run").description("Remote run management");
+
+runCmd
+  .command("create")
+  .description("Create a new execution run on the control plane")
+  .option("-p, --project <id>", "Target project ID")
+  .argument("<idea>", "Project idea")
+  .action(async (idea: string, options: { project?: string }) => {
+    try {
+      const response = await api.post("/runs", {
+        idea,
+        projectId: options.project
+      });
+      console.log(chalk.green(`\nRun created: ${response.data.id}`));
+      console.log(chalk.dim(`Status: ${response.data.status}\n`));
+    } catch (err: any) {
+      console.error(chalk.red(`\nFailed to create run: ${err.response?.data?.error || err.message}`));
+    }
+  });
+
+const runsCmd = program.command("runs").description("List and manage Multiple runs");
+
+runsCmd
+  .command("list")
+  .description("List all execution runs")
+  .action(async () => {
+    try {
+      const response = await api.get("/runs");
+      const runs = response.data as any[];
+      console.log(chalk.cyan("\nExecution Runs:"));
+      if (!runs.length) console.log("  No runs found.");
+      runs.forEach(r => {
+        const statusColor = r.status === "success" ? chalk.green : r.status === "failed" ? chalk.red : chalk.yellow;
+        console.log(`- ${chalk.bold(r.id)} | ${statusColor(r.status.padEnd(10))} | ${r.idea.substring(0, 40)}...`);
+      });
+      console.log("");
+    } catch (err: any) {
+      console.error(chalk.red(`\nFailed to list runs: ${err.response?.data?.error || err.message}`));
+    }
+  });
 
 program
   .command("/ck-metrics")

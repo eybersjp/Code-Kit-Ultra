@@ -2,7 +2,7 @@ import { createProviderAdapters, findAdapter } from "../../adapters/src/index";
 import { loadRunBundle, updateAdapters, updateExecutionLog, updateRunState } from "../../memory/src/run-store";
 import type { AdapterExecutionSummary, PlanTask, RunBundle, StepExecutionLog, StepStatus } from "../../shared/src/types";
 import { evaluatePolicy } from "../../core/src/policy-engine";
-import { appendAuditEvent } from "../../core/src/audit-logger";
+import { writeAuditEvent } from "../../audit/src/index";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -49,9 +49,15 @@ async function executeTask(
   const adapters = createProviderAdapters();
 
   // 1. Audit Start
-  appendAuditEvent({
+  writeAuditEvent({
     runId: bundle.state.runId,
-    actor,
+    actorName: actor,
+    actorId: bundle.state.actorId,
+    actorType: bundle.state.actorType,
+    orgId: bundle.state.orgId,
+    workspaceId: bundle.state.workspaceId,
+    projectId: bundle.state.projectId,
+    correlationId: bundle.state.correlationId,
     role: actor === "system" ? "system" : "operator",
     action: "TASK_EXECUTION_ATTEMPT",
     stepId: task.id,
@@ -62,9 +68,15 @@ async function executeTask(
   const policyResult = evaluatePolicy(task);
   if (!policyResult.allowed) {
     const error = policyResult.reason || "Blocked by policy";
-    appendAuditEvent({
+    writeAuditEvent({
       runId: bundle.state.runId,
-      actor: "system",
+      actorName: "system",
+      actorId: bundle.state.actorId,
+      actorType: bundle.state.actorType,
+      orgId: bundle.state.orgId,
+      workspaceId: bundle.state.workspaceId,
+      projectId: bundle.state.projectId,
+      correlationId: bundle.state.correlationId,
       role: "system",
       action: "POLICY_BLOCK",
       stepId: task.id,
@@ -96,9 +108,15 @@ async function executeTask(
   const adapter = findAdapter(adapters, task.adapterId);
   if (!adapter) {
     const error = `Adapter not found: ${task.adapterId}`;
-    appendAuditEvent({
+    writeAuditEvent({
       runId: bundle.state.runId,
-      actor: "system",
+      actorName: "system",
+      actorId: bundle.state.actorId,
+      actorType: bundle.state.actorType,
+      orgId: bundle.state.orgId,
+      workspaceId: bundle.state.workspaceId,
+      projectId: bundle.state.projectId,
+      correlationId: bundle.state.correlationId,
       role: "system",
       action: "ADAPTER_NOT_FOUND",
       stepId: task.id,
@@ -152,9 +170,15 @@ async function executeTask(
       risk: estimatedRisk,
       simulationSummary: simulation?.summary,
     });
-    appendAuditEvent({
+    writeAuditEvent({
       runId: bundle.state.runId,
-      actor: "system",
+      actorName: "system",
+      actorId: bundle.state.actorId,
+      actorType: bundle.state.actorType,
+      orgId: bundle.state.orgId,
+      workspaceId: bundle.state.workspaceId,
+      projectId: bundle.state.projectId,
+      correlationId: bundle.state.correlationId,
       role: "system",
       action: "APPROVAL_REQUIRED",
       stepId: task.id,
@@ -168,9 +192,15 @@ async function executeTask(
   if (!validated) {
     const fixSuggestion = adapter.suggestFix ? await adapter.suggestFix(new Error("Validation failed"), task.payload) : undefined;
     const error = `Validation failed for adapter ${task.adapterId}`;
-    appendAuditEvent({
+    writeAuditEvent({
       runId: bundle.state.runId,
-      actor: "system",
+      actorName: "system",
+      actorId: bundle.state.actorId,
+      actorType: bundle.state.actorType,
+      orgId: bundle.state.orgId,
+      workspaceId: bundle.state.workspaceId,
+      projectId: bundle.state.projectId,
+      correlationId: bundle.state.correlationId,
       role: "system",
       action: "VALIDATION_FAILED",
       stepId: task.id,
@@ -208,9 +238,15 @@ async function executeTask(
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const startedAt = nowIso();
     try {
-      appendAuditEvent({
+      writeAuditEvent({
         runId: bundle.state.runId,
-        actor: "system",
+        actorName: "system",
+        actorId: bundle.state.actorId,
+        actorType: bundle.state.actorType,
+        orgId: bundle.state.orgId,
+        workspaceId: bundle.state.workspaceId,
+        projectId: bundle.state.projectId,
+        correlationId: bundle.state.correlationId,
         role: "system",
         action: "STEP_EXECUTION_STARTED",
         stepId: task.id,
@@ -227,9 +263,15 @@ async function executeTask(
       const output = String(result.output ?? "Execution succeeded.");
       success = true;
 
-      appendAuditEvent({
+      writeAuditEvent({
         runId: bundle.state.runId,
-        actor: "system",
+        actorName: "system",
+        actorId: bundle.state.actorId,
+        actorType: bundle.state.actorType,
+        orgId: bundle.state.orgId,
+        workspaceId: bundle.state.workspaceId,
+        projectId: bundle.state.projectId,
+        correlationId: bundle.state.correlationId,
         role: "system",
         action: "STEP_EXECUTION_SUCCEEDED",
         stepId: task.id,
@@ -268,9 +310,15 @@ async function executeTask(
       const message = error instanceof Error ? error.message : String(error);
       const fixSuggestion = adapter.suggestFix ? await adapter.suggestFix(error, task.payload) : undefined;
 
-      appendAuditEvent({
+      writeAuditEvent({
         runId: bundle.state.runId,
-        actor: "system",
+        actorName: "system",
+        actorId: bundle.state.actorId,
+        actorType: bundle.state.actorType,
+        orgId: bundle.state.orgId,
+        workspaceId: bundle.state.workspaceId,
+        projectId: bundle.state.projectId,
+        correlationId: bundle.state.correlationId,
         role: "system",
         action: "STEP_EXECUTION_FAILED",
         stepId: task.id,
@@ -297,19 +345,41 @@ async function executeTask(
       if (attempt === maxAttempts) {
         // Healing Attempt Phase 10.5
         try {
-          const { healFailedStep } = require("./healing-integration");
+          const { healFailedStep } = await import("./healing-integration.js");
+          
           const healingAttempt = await healFailedStep({
              runId: bundle.state.runId,
              stepId: task.id,
              adapterId: task.adapterId,
              errorMessage: String(error),
-             payload: task.payload
+             payload: task.payload,
+             scope: {
+               runId: bundle.state.runId,
+               tenant: {
+                 orgId: bundle.state.orgId || "unknown",
+                 workspaceId: bundle.state.workspaceId || "unknown",
+                 projectId: bundle.state.projectId || "unknown",
+               },
+               actor: {
+                 actorId: bundle.state.actorId || "unknown",
+                 actorType: (bundle.state.actorType as any) || "user",
+                 actorName: actor,
+                 roles: [],
+               },
+               correlationId: bundle.state.correlationId || "unknown",
+             },
           });
 
           if (healingAttempt.status === "verified") {
-            appendAuditEvent({
+            writeAuditEvent({
               runId: bundle.state.runId,
-              actor: "system",
+              actorName: "system",
+              actorId: bundle.state.actorId,
+              actorType: bundle.state.actorType,
+              orgId: bundle.state.orgId,
+              workspaceId: bundle.state.workspaceId,
+              projectId: bundle.state.projectId,
+              correlationId: bundle.state.correlationId,
               role: "system",
               action: "HEALING_APPLIED_AND_VERIFIED",
               stepId: task.id,
@@ -325,9 +395,15 @@ async function executeTask(
             });
             return { completed: false, paused: true };
           } else {
-             appendAuditEvent({
+             writeAuditEvent({
               runId: bundle.state.runId,
-              actor: "system",
+              actorName: "system",
+              actorId: bundle.state.actorId,
+              actorType: bundle.state.actorType,
+              orgId: bundle.state.orgId,
+              workspaceId: bundle.state.workspaceId,
+              projectId: bundle.state.projectId,
+              correlationId: bundle.state.correlationId,
               role: "system",
               action: "HEALING_ATTEMPTED_BUT_ESCALATED",
               stepId: task.id,
@@ -335,9 +411,15 @@ async function executeTask(
             });
           }
         } catch (healError) {
-          appendAuditEvent({
+          writeAuditEvent({
             runId: bundle.state.runId,
-            actor: "system",
+            actorName: "system",
+            actorId: bundle.state.actorId,
+            actorType: bundle.state.actorType,
+            orgId: bundle.state.orgId,
+            workspaceId: bundle.state.workspaceId,
+            projectId: bundle.state.projectId,
+            correlationId: bundle.state.correlationId,
             role: "system",
             action: "HEALING_ENGINE_ERROR",
             stepId: task.id,
@@ -347,7 +429,20 @@ async function executeTask(
 
         if (task.rollbackPayload && adapter.rollback) {
           await adapter.rollback(task.rollbackPayload);
-          appendAuditEvent({ runId: bundle.state.runId, actor: "system", role: "system", action: "ROLLBACK_COMPLETED", stepId: task.id, details: { automatic: true } });
+          writeAuditEvent({ 
+            runId: bundle.state.runId, 
+            actorName: "system", 
+            actorId: bundle.state.actorId,
+            actorType: bundle.state.actorType,
+            orgId: bundle.state.orgId,
+            workspaceId: bundle.state.workspaceId,
+            projectId: bundle.state.projectId,
+            correlationId: bundle.state.correlationId,
+            role: "system", 
+            action: "ROLLBACK_COMPLETED", 
+            stepId: task.id, 
+            details: { automatic: true } 
+          });
           pushStepLog(bundle, {
             stepId: task.id,
             title: `${task.title} rollback`,
@@ -387,8 +482,8 @@ export async function executeRunBundle(bundle: RunBundle, actor: string = "syste
     pauseReason: undefined,
   });
 
-  const { loadLearningStore } = require("../../learning/src/store");
-  const { optimizeTasks } = require("../../learning/src/execution-optimizer");
+  const { loadLearningStore } = await import("../../learning/src/store.js");
+  const { optimizeTasks } = await import("../../learning/src/execution-optimizer.js");
   const store = loadLearningStore();
   const { tasks, suggestions } = optimizeTasks(bundle.plan.tasks, store);
   
@@ -402,9 +497,15 @@ export async function executeRunBundle(bundle: RunBundle, actor: string = "syste
   });
 
   if (suggestions.length > 0) {
-    appendAuditEvent({
+    writeAuditEvent({
       runId: bundle.state.runId,
-      actor: "system",
+      actorName: "system",
+      actorId: bundle.state.actorId,
+      actorType: bundle.state.actorType,
+      orgId: bundle.state.orgId,
+      workspaceId: bundle.state.workspaceId,
+      projectId: bundle.state.projectId,
+      correlationId: bundle.state.correlationId,
       role: "system",
       action: "OPTIMIZER_SUGGESTIONS_APPLIED",
       details: { suggestions },
@@ -416,7 +517,7 @@ export async function executeRunBundle(bundle: RunBundle, actor: string = "syste
     const result = await executeTask(bundle, task, index, actor);
     if (!result.completed) {
       if (bundle.state.status === "failed") {
-        const { recordRunOutcome } = require("./outcome-engine");
+        const { recordRunOutcome } = await import("./outcome-engine.js");
         const m = computeMetrics(bundle, false);
         recordRunOutcome({ runId: bundle.state.runId, success: false, ...m, dominantFailureType: "step-failed" });
       }
@@ -424,14 +525,25 @@ export async function executeRunBundle(bundle: RunBundle, actor: string = "syste
     }
   }
 
-  appendAuditEvent({ runId: bundle.state.runId, actor: "system", role: "system", action: "RUN_COMPLETED" });
+  writeAuditEvent({ 
+    runId: bundle.state.runId, 
+    actorName: "system", 
+    actorId: bundle.state.actorId,
+    actorType: bundle.state.actorType,
+    orgId: bundle.state.orgId,
+    workspaceId: bundle.state.workspaceId,
+    projectId: bundle.state.projectId,
+    correlationId: bundle.state.correlationId,
+    role: "system", 
+    action: "RUN_COMPLETED" 
+  });
   markState(bundle, "completed", {
     currentStepIndex: bundle.plan.tasks.length,
     approvalRequired: false,
     pauseReason: undefined,
   });
 
-  const { recordRunOutcome } = require("./outcome-engine");
+  const { recordRunOutcome } = await import("./outcome-engine.js");
   const metrics = computeMetrics(bundle, true);
   recordRunOutcome({ runId: bundle.state.runId, success: true, ...metrics });
 
@@ -451,7 +563,20 @@ export async function retryTask(runId: string, targetStepId?: string, actor: str
   bundle.state.pauseReason = undefined;
   bundle.state.updatedAt = nowIso();
   updateRunState(bundle.state.runId, bundle.state);
-  appendAuditEvent({ runId, actor, role: "system", action: "STEP_RETRY_REQUESTED", stepId, details: { currentStepIndex: index } });
+  writeAuditEvent({ 
+    runId, 
+    actorName: actor, 
+    actorId: bundle.state.actorId,
+    actorType: bundle.state.actorType,
+    orgId: bundle.state.orgId,
+    workspaceId: bundle.state.workspaceId,
+    projectId: bundle.state.projectId,
+    correlationId: bundle.state.correlationId,
+    role: "system", 
+    action: "STEP_RETRY_REQUESTED", 
+    stepId, 
+    details: { currentStepIndex: index } 
+  });
   
   await executeTask(bundle, bundle.plan.tasks[index], index, actor);
   const updated = loadRunBundle(runId);
@@ -471,9 +596,15 @@ export async function rollbackTask(runId: string, targetStepId?: string, actor: 
   if (!adapter?.rollback || !task.rollbackPayload) throw new Error(`Rollback not available for step: ${task.id}`);
 
   await adapter.rollback(task.rollbackPayload);
-  appendAuditEvent({ 
+  writeAuditEvent({ 
     runId: bundle.state.runId, 
-    actor, 
+    actorName: actor, 
+    actorId: bundle.state.actorId,
+    actorType: bundle.state.actorType,
+    orgId: bundle.state.orgId,
+    workspaceId: bundle.state.workspaceId,
+    projectId: bundle.state.projectId,
+    correlationId: bundle.state.correlationId,
     role: actor === "system" ? "system" : "operator", 
     action: "TASK_ROLLBACK_MANUAL", 
     stepId: task.id, 

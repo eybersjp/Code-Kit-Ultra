@@ -18,10 +18,19 @@
     "configuration": {
       "title": "Code Kit Ultra",
       "properties": {
-        "codeKitUltra.apiKey": {
+        "codeKitUltra.authMode": {
+          "type": "string",
+          "enum": [
+            "bearer-session",
+            "legacy-api-key"
+          ],
+          "default": "bearer-session",
+          "description": "Authentication mode. bearer-session (InsForge) is canonical for human operators. legacy-api-key is deprecated and limited to local dev/machine-only usage."
+        },
+        "codeKitUltra.legacyApiKey": {
           "type": "string",
           "default": "",
-          "description": "API Key for Control Service authentication"
+          "description": "[DEPRECATED] Legacy static API key. Use InsForge Sign In instead for human operators. Machines should use Service Account JWTs."
         },
         "codeKitUltra.controlServiceUrl": {
           "type": "string",
@@ -32,6 +41,11 @@
           "type": "string",
           "default": "",
           "description": "Absolute path to the Code Kit Ultra repository (used for auto-start)"
+        },
+        "codeKitUltra.projectId": {
+          "type": "string",
+          "default": "",
+          "description": "Default Project ID for new runs."
         }
       }
     },
@@ -65,6 +79,31 @@
       ]
     },
     "commands": [
+      {
+        "command": "code-kit.signIn",
+        "title": "CK: Sign In",
+        "category": "Code Kit"
+      },
+      {
+        "command": "code-kit.signOut",
+        "title": "CK: Sign Out",
+        "category": "Code Kit"
+      },
+      {
+        "command": "code-kit.selectProject",
+        "title": "CK: Select Project",
+        "category": "Code Kit"
+      },
+      {
+        "command": "code-kit.openRuns",
+        "title": "CK: Open Runs",
+        "category": "Code Kit"
+      },
+      {
+        "command": "code-kit.openGates",
+        "title": "CK: Open Gates",
+        "category": "Code Kit"
+      },
       {
         "command": "code-kit.openControlPanel",
         "title": "CK: Open Control Plane",

@@ -13,6 +13,12 @@ import { executeRunBundle } from "./execution-engine";
 import { buildInitialPlan } from "./planner";
 import { updateIntake, updatePlan, updateRunState, loadRunBundle } from "../../memory/src/run-store";
 import type { RunBundle, PlanArtifact, IntakeArtifact, RunState } from "../../shared/src/types";
+import { 
+  emitExecutionStarted, 
+  emitExecutionCompleted, 
+  emitExecutionFailed, 
+  emitGateAwaitingApproval 
+} from "./events.js";
 
 export interface PhaseContext {
   idea: string;
@@ -69,23 +75,33 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
     const status = gateResult.overallStatus === "pass" ? "success" : 
                    gateResult.overallStatus === "blocked" ? "blocked" : "awaiting-approval";
 
+    if (status === "awaiting-approval") {
+      const runId = ctx.report.id || "unknown";
+      const bundle = loadRunBundle(runId);
+      if (bundle) {
+        await emitGateAwaitingApproval(bundle.state, gateResult.overallStatus);
+      }
+    }
+
     return {
-      nextPhase: status === "success" ? "building" : "gating", // Stay in gating if blocked/review
-      updates: { gates: gateResult.decisions, overallGateStatus: gateResult.overallStatus, status: status === "success" ? "success" : (status === "blocked" ? "blocked" : "awaiting-approval") },
+      nextPhase: status === "success" ? "building" : "gating",
+      updates: { 
+        gates: gateResult.decisions, 
+        overallGateStatus: gateResult.overallStatus, 
+        status: status === "success" ? "success" : (status === "blocked" ? "blocked" : "awaiting-approval") 
+      },
       status: status as any,
     };
   },
   building: async (ctx) => {
     const runId = ctx.report.id || `run-${Date.now()}`;
     
-    // Phase 8: Transition to RunBundle for real execution
     let bundle = loadRunBundle(runId);
     
     if (!bundle) {
       if (!ctx.report.input) {
         throw new Error("Cannot initialize RunBundle: ctx.report.input is undefined.");
       }
-      // Initialize full Phase 8 Bundle if not present
       const tasks = buildInitialPlan(ctx.report.input);
       const intake: IntakeArtifact = {
         runId,
@@ -123,18 +139,27 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
         reportMarkdown: "",
       };
       
-      // Persist the bundle
-      updateIntake(runId, intake);
-      updatePlan(runId, plan);
-      updateRunState(runId, state);
+      await updateIntake(runId, intake);
+      await updatePlan(runId, plan);
+      await updateRunState(runId, state);
     }
 
-    // Delegate to the new execution engine
+    // Wave 5: Emit Start Execution
+    await emitExecutionStarted(bundle.state);
+
     const updatedBundle = await executeRunBundle(bundle as RunBundle);
     
     const isPaused = updatedBundle.state.status === "paused";
     const isFailed = updatedBundle.state.status === "failed";
     const isCompleted = updatedBundle.state.status === "completed";
+
+    if (isCompleted) {
+       await emitExecutionCompleted(updatedBundle.state);
+    } else if (isFailed) {
+       await emitExecutionFailed(updatedBundle.state, updatedBundle.state.pauseReason);
+    } else if (isPaused) {
+       await emitGateAwaitingApproval(updatedBundle.state, updatedBundle.state.pauseReason);
+    }
 
     return {
       nextPhase: isCompleted ? "testing" : "building",
@@ -147,7 +172,6 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
     };
   },
   testing: async (ctx) => {
-    // Placeholder for actual test logic
     return {
       nextPhase: "reviewing",
       updates: { summary: "Testing phase completed (SIMULATED)." },
@@ -155,7 +179,6 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
     };
   },
   reviewing: async (ctx) => {
-     // Placeholder for actual review logic
     return {
       nextPhase: "deployment",
       updates: { summary: "Review phase completed (SIMULATED)." },
@@ -163,7 +186,6 @@ export const PHASE_HANDLERS: Record<Phase, PhaseHandler> = {
     };
   },
   deployment: async (ctx) => {
-    // Placeholder for actual deployment logic
     return {
       nextPhase: null,
       updates: { status: "success", summary: "Deployment completed (SIMULATED). Pipeline finished." },
