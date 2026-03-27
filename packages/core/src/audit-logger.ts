@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { AuditEvent, AuditLogArtifact, Role } from "../../shared/src/types";
+import type { AuditEvent, AuditLogArtifact, Role } from "@cku/shared/src/types";
 
 function ensureDir(runId: string): string {
   const dir = path.resolve(`.codekit/runs/${runId}`);

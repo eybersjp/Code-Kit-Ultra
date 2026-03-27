@@ -1,0 +1,13 @@
+{
+  "name": "@cku/core",
+  "version": "1.0.3",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@cku/shared": "workspace:*"
+  }
+}
