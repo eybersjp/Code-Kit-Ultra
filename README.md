@@ -14,19 +14,6 @@ Once published to the NPM registry, install the full suite with a single command
 npm install ckultra
 ```
 
-**Until the package is officially published**, install directly from the repo:
-
-```bash
-npm install github:eybersjp/Code-Kit-Ultra#main --prefix ./
-```
-
-Or clone and link locally:
-
-```bash
-git clone https://github.com/eybersjp/Code-Kit-Ultra.git
-npm install ./Code-Kit-Ultra/packages/cku
-```
-
 **What happens during install?**
 
 1. 📂 **Nesting**: The CKU core is automatically isolated in a `./codekit` directory.
