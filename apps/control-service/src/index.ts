@@ -12,6 +12,7 @@ import { closePool } from "./db/pool.js";
 import { seedDatabase } from "./db/seed.js";
 import healthRoutes from "./routes/health.js";
 import { logger } from "./lib/logger.js";
+import { initializeRevocationStore, closeRevocationStore } from "../../../packages/auth/src/session-revocation.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -29,6 +30,8 @@ import { listRunsHandler } from "./handlers/list-runs.js";
 import { approveGateHandler } from "./handlers/approve-gate.js";
 import { rejectGateHandler } from "./handlers/reject-gate.js";
 import { rollbackStepHandler } from "./handlers/rollback/index.js";
+import { rotateServiceAccountSecretHandler } from "./handlers/rotate-service-account-secret.js";
+import { deleteSessionHandler } from "./handlers/delete-session.js";
 import {
   getHealingForRunHandler,
   getHealingAttemptHandler,
@@ -37,17 +40,23 @@ import {
 } from "./handlers/healing/index.js";
 
 import { ServiceAccountRoutes } from "./routes/service-accounts.js";
+import { verifyRevocation } from "./middleware/verify-revocation.js";
 
 // --- Health endpoints (no auth required, not under /v1/)
 app.use(healthRoutes);
 
-// --- Session endpoint
-app.get("/v1/session", authenticate, getSession);
+// Revocation check middleware (after authentication)
+app.use(authenticate, verifyRevocation);
+
+// --- Session endpoints
+app.get("/v1/session", getSession);
+app.delete("/v1/sessions/me", deleteSessionHandler);
 
 // --- Service Accounts ---
-app.get("/v1/service-accounts", authenticate, requireAnyPermission(["service_account:view", "service_account:manage"]), ServiceAccountRoutes.list);
-app.post("/v1/service-accounts", authenticate, requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.create);
-app.delete("/v1/service-accounts/:id", authenticate, requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.delete);
+app.get("/v1/service-accounts", requireAnyPermission(["service_account:view", "service_account:manage"]), ServiceAccountRoutes.list);
+app.post("/v1/service-accounts", requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.create);
+app.delete("/v1/service-accounts/:id", requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.delete);
+app.post("/v1/service-accounts/:id/rotate", requireAnyPermission(["service_account:manage"]), rotateServiceAccountSecretHandler);
 
 // --- Runs (now under /v1/) ---
 app.post("/v1/runs", authenticate, requireAnyPermission(["run:create"]), createRunHandler);
@@ -140,6 +149,10 @@ async function startServer() {
     logger.info('Running database migrations...');
     await runMigrations();
 
+    // Initialize revocation store (Redis)
+    logger.info('Initializing session revocation store...');
+    await initializeRevocationStore();
+
     // Seed database if environment variable is set (development only)
     if (process.env.SEED_DATABASE === 'true') {
       logger.info('Seeding database with development fixtures...');
@@ -164,6 +177,14 @@ async function startServer() {
       // Stop accepting new requests
       server.close(async () => {
         logger.info('HTTP server closed');
+
+        // Close revocation store
+        try {
+          await closeRevocationStore();
+          logger.info('Revocation store closed');
+        } catch (err) {
+          logger.error({ err }, 'Error closing revocation store');
+        }
 
         // Close database pool
         try {
