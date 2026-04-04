@@ -7,9 +7,14 @@ import { resolveApiKeyUser } from "../../../packages/core/src/auth";
 import { Role } from "../../../packages/shared/src/types";
 import { getLearningReport, getReliability, getAdaptivePolicies } from "./services/learning-service.js";
 import { getHealingForRun, getHealingAttempt, getHealingStrategiesService, getHealingStatsService } from "./services/healing-service.js";
+import { runMigrations } from "./db/migrate.js";
+import { closePool } from "./db/pool.js";
+import { seedDatabase } from "./db/seed.js";
+import healthRoutes from "./routes/health.js";
+import { logger } from "./lib/logger.js";
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 8080;
 
 app.use(cors());
 app.use(express.json());
@@ -24,16 +29,19 @@ import { listRunsHandler } from "./handlers/list-runs.js";
 import { approveGateHandler } from "./handlers/approve-gate.js";
 import { rejectGateHandler } from "./handlers/reject-gate.js";
 import { rollbackStepHandler } from "./handlers/rollback/index.js";
-import { 
-  getHealingForRunHandler, 
-  getHealingAttemptHandler, 
-  getHealingStrategiesHandler, 
-  getHealingStatsHandler 
+import {
+  getHealingForRunHandler,
+  getHealingAttemptHandler,
+  getHealingStrategiesHandler,
+  getHealingStatsHandler
 } from "./handlers/healing/index.js";
 
 import { ServiceAccountRoutes } from "./routes/service-accounts.js";
 
-// Session endpoint
+// --- Health endpoints (no auth required, not under /v1/)
+app.use(healthRoutes);
+
+// --- Session endpoint
 app.get("/v1/session", authenticate, getSession);
 
 // --- Service Accounts ---
@@ -41,18 +49,12 @@ app.get("/v1/service-accounts", authenticate, requireAnyPermission(["service_acc
 app.post("/v1/service-accounts", authenticate, requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.create);
 app.delete("/v1/service-accounts/:id", authenticate, requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.delete);
 
+// --- Runs (now under /v1/) ---
+app.post("/v1/runs", authenticate, requireAnyPermission(["run:create"]), createRunHandler);
+app.get("/v1/runs", authenticate, requireAnyPermission(["run:view"]), listRunsHandler);
+app.get("/v1/runs/:id", authenticate, requireAnyPermission(["run:view"]), getRunHandler);
 
-// --- Health ---
-app.get("/health", (req, res) => {
-  res.json({ status: "ok", version: "1.2.0-enterprise-hardened" });
-});
-
-// --- Runs ---
-app.post("/runs", authenticate, requireAnyPermission(["run:create"]), createRunHandler);
-app.get("/runs", authenticate, requireAnyPermission(["run:view"]), listRunsHandler);
-app.get("/runs/:id", authenticate, requireAnyPermission(["run:view"]), getRunHandler);
-
-app.get("/runs/:id/timeline", authenticate, requireAnyPermission(["run:view"]), async (req, res) => {
+app.get("/v1/runs/:id/timeline", authenticate, requireAnyPermission(["run:view"]), async (req, res) => {
   try {
     const timeline = RunReader.getTimeline(req.params.id as string);
     res.json(timeline);
@@ -62,7 +64,7 @@ app.get("/runs/:id/timeline", authenticate, requireAnyPermission(["run:view"]), 
 });
 
 // --- Approvals ---
-app.get("/approvals", authenticate, requireAnyPermission(["gate:view"]), async (req, res) => {
+app.get("/v1/gates", authenticate, requireAnyPermission(["gate:view"]), async (req, res) => {
   try {
     const approvals = ApprovalService.getApprovals();
     res.json(approvals);
@@ -71,10 +73,10 @@ app.get("/approvals", authenticate, requireAnyPermission(["gate:view"]), async (
   }
 });
 
-app.post("/approvals/:id/approve", authenticate, requireAnyPermission(["gate:approve"]), approveGateHandler);
-app.post("/approvals/:id/reject", authenticate, requireAnyPermission(["gate:reject"]), rejectGateHandler);
+app.post("/v1/gates/:id/approve", authenticate, requireAnyPermission(["gate:approve"]), approveGateHandler);
+app.post("/v1/gates/:id/reject", authenticate, requireAnyPermission(["gate:reject"]), rejectGateHandler);
 
-app.post("/runs/:id/resume", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), async (req, res) => {
+app.post("/v1/runs/:id/resume", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), async (req, res) => {
   try {
     const actorName = (req as any).auth?.actor?.actorName || "Unknown Actor";
     await ApprovalService.resume(req.params.id as string, actorName);
@@ -84,7 +86,7 @@ app.post("/runs/:id/resume", authenticate, requireAnyPermission(["run:create", "
   }
 });
 
-app.post("/runs/:id/retry-step", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), async (req, res) => {
+app.post("/v1/runs/:id/retry-step", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), async (req, res) => {
   try {
     const actorName = (req as any).auth?.actor?.actorName || "Unknown Actor";
     await ApprovalService.retry(req.params.id as string, req.body.stepId as string, actorName);
@@ -94,10 +96,10 @@ app.post("/runs/:id/retry-step", authenticate, requireAnyPermission(["run:create
   }
 });
 
-app.post("/runs/:id/rollback-step", authenticate, requireAnyPermission(["execution:rollback"]), rollbackStepHandler);
+app.post("/v1/runs/:id/rollback-step", authenticate, requireAnyPermission(["execution:rollback"]), rollbackStepHandler);
 
 // --- Learning ---
-app.get("/learning/report", authenticate, requireAnyPermission(["policy:view", "execution:view"]), (req, res) => {
+app.get("/v1/learning/report", authenticate, requireAnyPermission(["policy:view", "execution:view"]), (req, res) => {
   try {
     res.json(getLearningReport());
   } catch (err: any) {
@@ -105,7 +107,7 @@ app.get("/learning/report", authenticate, requireAnyPermission(["policy:view", "
   }
 });
 
-app.get("/learning/reliability", authenticate, requireAnyPermission(["policy:view", "execution:view"]), (req, res) => {
+app.get("/v1/learning/reliability", authenticate, requireAnyPermission(["policy:view", "execution:view"]), (req, res) => {
   try {
     res.json(getReliability());
   } catch (err: any) {
@@ -113,7 +115,7 @@ app.get("/learning/reliability", authenticate, requireAnyPermission(["policy:vie
   }
 });
 
-app.get("/learning/policies", authenticate, requireAnyPermission(["policy:view"]), (req, res) => {
+app.get("/v1/learning/policies", authenticate, requireAnyPermission(["policy:view"]), (req, res) => {
   try {
     res.json(getAdaptivePolicies());
   } catch (err: any) {
@@ -122,17 +124,73 @@ app.get("/learning/policies", authenticate, requireAnyPermission(["policy:view"]
 });
 
 // --- Healing ---
-app.get("/runs/:runId/healing", authenticate, requireAnyPermission(["run:view"]), getHealingForRunHandler);
-app.get("/runs/:runId/healing/:attemptId", authenticate, requireAnyPermission(["run:view"]), getHealingAttemptHandler);
-app.get("/healing/strategies", authenticate, requireAnyPermission(["healing:invoke", "run:view"]), getHealingStrategiesHandler);
-app.get("/healing/stats", authenticate, requireAnyPermission(["run:view"]), getHealingStatsHandler);
+app.get("/v1/runs/:runId/healing", authenticate, requireAnyPermission(["run:view"]), getHealingForRunHandler);
+app.get("/v1/runs/:runId/healing/:attemptId", authenticate, requireAnyPermission(["run:view"]), getHealingAttemptHandler);
+app.get("/v1/healing/strategies", authenticate, requireAnyPermission(["healing:invoke", "run:view"]), getHealingStrategiesHandler);
+app.get("/v1/healing/stats", authenticate, requireAnyPermission(["run:view"]), getHealingStatsHandler);
 
 // Export the app for testing
 export { app };
 
+async function startServer() {
+  try {
+    logger.info('Starting Code Kit Ultra Control Service');
+
+    // Run database migrations
+    logger.info('Running database migrations...');
+    await runMigrations();
+
+    // Seed database if environment variable is set (development only)
+    if (process.env.SEED_DATABASE === 'true') {
+      logger.info('Seeding database with development fixtures...');
+      await seedDatabase();
+    }
+
+    // Start the server
+    const server = app.listen(PORT, () => {
+      logger.info(
+        { port: PORT, version: '1.3.0' },
+        '🚀 Code Kit Ultra Control Service started'
+      );
+      logger.info('API available at /v1/ prefix');
+      logger.info('Health endpoint: GET /health');
+      logger.info('Readiness endpoint: GET /ready');
+    });
+
+    // Handle graceful shutdown
+    const gracefulShutdown = async (signal: string) => {
+      logger.info({ signal }, 'Shutdown signal received');
+
+      // Stop accepting new requests
+      server.close(async () => {
+        logger.info('HTTP server closed');
+
+        // Close database pool
+        try {
+          await closePool();
+          logger.info('Database pool closed');
+        } catch (err) {
+          logger.error({ err }, 'Error closing database pool');
+        }
+
+        process.exit(0);
+      });
+
+      // Timeout for graceful shutdown
+      setTimeout(() => {
+        logger.error('Graceful shutdown timeout, forcing exit');
+        process.exit(1);
+      }, 5000);
+    };
+
+    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+  } catch (err) {
+    logger.error({ err }, 'Failed to start server');
+    process.exit(1);
+  }
+}
+
 if (process.env.NODE_ENV !== "test" && import.meta.url === `file://${process.argv[1]}`) {
-  app.listen(PORT, () => {
-    console.log(chalk.green(`\n🚀 Code Kit Hardened Control Service running at http://localhost:${PORT}`));
-    console.log(chalk.dim(`RBAC and Audit logging enabled\n`));
-  });
+  startServer();
 }

@@ -1,0 +1,39 @@
+import pg from 'pg';
+import { logger } from '../lib/logger.js';
+
+const { Pool } = pg;
+
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  min: 2,
+  max: 10,
+});
+
+// Handle pool errors
+pool.on('error', (err) => {
+  logger.error({ err }, 'Unexpected error on idle client');
+});
+
+export function getPool() {
+  return pool;
+}
+
+export async function testConnection() {
+  try {
+    const client = await pool.connect();
+    await client.query('SELECT 1');
+    client.release();
+    return true;
+  } catch (err) {
+    logger.error({ err }, 'Failed to connect to database');
+    return false;
+  }
+}
+
+export async function closePool() {
+  await pool.end();
+}
