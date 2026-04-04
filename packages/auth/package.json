@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "type": "module",
   "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
   "dependencies": {
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.1.0"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "@vitest/coverage-v8": "^1.6.0"
   }
 }

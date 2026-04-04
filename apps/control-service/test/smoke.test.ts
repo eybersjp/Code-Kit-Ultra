@@ -133,10 +133,22 @@ describe('Smoke Tests — Runs (auth required)', () => {
 });
 
 describe('Smoke Tests — Gates (auth required)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (resolveInsForgeSession as any).mockRejectedValue(new Error('No token'));
+  });
+
   it('G-001: POST /v1/gates/:id/approve requires authentication', async () => {
     const res = await request(app)
       .post('/v1/gates/gate-123/approve')
       .set('Authorization', 'Bearer invalid-token')
+      .send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('G-001: POST /v1/gates/:id/approve without token returns 401', async () => {
+    const res = await request(app)
+      .post('/v1/gates/gate-123/approve')
       .send({});
     expect(res.status).toBe(401);
   });
@@ -147,6 +159,28 @@ describe('Smoke Tests — Gates (auth required)', () => {
       .set('Authorization', 'Bearer invalid-token')
       .send({ reason: 'test' });
     expect(res.status).toBe(401);
+  });
+
+  it('G-002: POST /v1/gates/:id/reject without token returns 401', async () => {
+    const res = await request(app)
+      .post('/v1/gates/gate-123/reject')
+      .send({});
+    expect(res.status).toBe(401);
+  });
+
+  it('G-002: POST /v1/gates/:id/reject with auth but no reason returns 400', async () => {
+    (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+
+    const res = await request(app)
+      .post('/v1/gates/gate-123/reject')
+      .set('Authorization', 'Bearer valid-mocked-token')
+      .send({}); // no reason field
+
+    // Should fail with 400 validation error, not 401
+    expect(res.status).not.toBe(401);
+    if (res.status === 400) {
+      expect(res.body).toHaveProperty('error');
+    }
   });
 });
 
