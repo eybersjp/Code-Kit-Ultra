@@ -11,7 +11,7 @@
 ### Phase 1 (v1.1.0) — Foundation & Alignment ✅ Complete
 
 | Objective | Metric | Status |
-|-----------|--------|--------|
+|-----------|--------|---------|
 | Namespaced command protocol | `/ck-*` commands functional | ✅ |
 | Autonomous mode system | 7 modes implemented | ✅ |
 | Operational package structure | 20+ packages, clean separation | ✅ |
@@ -20,7 +20,7 @@
 ### Phase 2 (v1.2.0) — Governed Execution ✅ Complete
 
 | Objective | Metric | Status |
-|-----------|--------|--------|
+|-----------|--------|---------|
 | Action runner | File ops, command execution, risk assessment | ✅ |
 | Queue/Approve/Execute flow | Batch approval, resume, re-execute | ✅ |
 | Resumable runs | State-aware runs surviving restart | ✅ |
@@ -33,7 +33,7 @@
 ### Phase 3 (v1.3.0) — Trust & Safety Layer 🔲 In Progress
 
 | Objective | Metric | Status |
-|-----------|--------|--------|
+|-----------|--------|---------|
 | API versioning (`/v1/`) | All routes under `/v1/`, clients updated | 🔲 Open — SPEC_API_VERSIONING.md |
 | Gate taxonomy aligned to spec | All 9 governance gates implemented | 🔲 Open — SPEC_GATE_TAXONOMY.md |
 | PostgreSQL runtime persistence | All state persisted to DB | 🔲 Open — SPEC_POSTGRES_PERSISTENCE.md |
@@ -58,7 +58,7 @@
 ## Success Metrics (Phase 3 Exit Criteria)
 
 | Metric | Target |
-|--------|--------|
+|--------|---------|
 | Successful run rate | ≥ 90% of runs reach planned or completed status |
 | Gate approval turnaround | p50 < 5 minutes, p95 < 30 minutes |
 | Rollback rate | ≤ 5% of runs require rollback |

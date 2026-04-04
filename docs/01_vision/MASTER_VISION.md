@@ -91,7 +91,7 @@ Every run passes through governance gates. Gate categories:
 ## Execution Modes
 
 | Mode | Use Case | Risk Posture |
-|------|----------|-------------|
+|------|----------|--------------|
 | safe | Audited, maximum oversight | Maximum pause, no command execution, dry-run always |
 | balanced | Default production use | Moderate pause, command execution allowed |
 | god | Trusted automation | Minimal pause, full auto-proceed |
