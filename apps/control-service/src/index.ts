@@ -13,12 +13,22 @@ import { seedDatabase } from "./db/seed.js";
 import healthRoutes from "./routes/health.js";
 import { logger } from "./lib/logger.js";
 import { initializeRevocationStore, closeRevocationStore } from "../../../packages/auth/src/session-revocation.js";
+import { metricsMiddleware, metricsHandler } from "./middleware/metrics.js";
+import { securityHeaders, httpsRedirect } from "./middleware/security-headers.js";
+import { globalRateLimiter, tokenCreationRateLimiter } from "./middleware/rate-limit.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use(cors());
+app.use(httpsRedirect);
+app.use(securityHeaders);
+app.use(cors({
+  origin: process.env.CKU_ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  credentials: true,
+}));
 app.use(express.json());
+app.use(metricsMiddleware);
+app.use(globalRateLimiter);
 
 import { authenticate } from "./middleware/authenticate.js";
 import { requireAnyPermission } from "./middleware/authorize.js";
@@ -42,8 +52,9 @@ import {
 import { ServiceAccountRoutes } from "./routes/service-accounts.js";
 import { verifyRevocation } from "./middleware/verify-revocation.js";
 
-// --- Health endpoints (no auth required, not under /v1/)
+// --- Health & Metrics (no auth required)
 app.use(healthRoutes);
+app.get('/metrics', metricsHandler);
 
 // Revocation check middleware (after authentication)
 app.use(authenticate, verifyRevocation);
@@ -56,7 +67,7 @@ app.delete("/v1/sessions/me", deleteSessionHandler);
 app.get("/v1/service-accounts", requireAnyPermission(["service_account:view", "service_account:manage"]), ServiceAccountRoutes.list);
 app.post("/v1/service-accounts", requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.create);
 app.delete("/v1/service-accounts/:id", requireAnyPermission(["service_account:manage"]), ServiceAccountRoutes.delete);
-app.post("/v1/service-accounts/:id/rotate", requireAnyPermission(["service_account:manage"]), rotateServiceAccountSecretHandler);
+app.post("/v1/service-accounts/:id/rotate", tokenCreationRateLimiter, requireAnyPermission(["service_account:manage"]), rotateServiceAccountSecretHandler);
 
 // --- Runs (now under /v1/) ---
 app.post("/v1/runs", authenticate, requireAnyPermission(["run:create"]), createRunHandler);

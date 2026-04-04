@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cku-control-service
+  namespace: cku
+  labels:
+    app: cku-control-service
+spec:
+  type: ClusterIP
+  selector:
+    app: cku-control-service
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
