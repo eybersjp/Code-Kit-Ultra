@@ -1,0 +1,16 @@
+# Decision Log
+
+> Every architectural or strategic decision must be logged here with reasoning. This document is the institutional memory of the project.
+
+| Date | Decision | Reasoning | Alternatives Considered |
+|------|----------|-----------|------------------------|
+| 2026-04-03 | Keep React + Vite, do NOT migrate to Next.js | Spec implies Next.js but the current Vite implementation achieves full functional parity. Migration cost (5+ days) outweighs benefit; no server-side rendering or API routes within Next.js are required. Update spec to reflect Vite. | Next.js App Router migration; SvelteKit |
+| 2026-04-03 | Keep 7 modes (turbo, builder, pro, expert + spec's 3) | Extra 4 modes serve real operator needs: turbo for speed, builder for structure, pro for controlled dry-run, expert for manual iteration. These should be documented in spec rather than removed. | Remove extra modes to match spec exactly |
+| 2026-04-03 | Maintain dual adapter system (AI adapters + ProviderAdapters) | Spec defines PlatformAdapter for execution. Repo adds AI model adapters for routing. These serve distinct purposes and both add value. Naming should be disambiguated: AI adapters → `AIRoutingAdapter`; execution adapters → `ProviderAdapter`. | Merge into a single adapter concept; remove AI adapters |
+| 2026-04-03 | Implement spec's 9 governance gates alongside existing 5 | Current 5 gates (objective-clarity, plan-readiness, etc.) are outcome-quality signals. Spec's 9 gates (scope, architecture, security, cost, deployment etc.) are compliance checkpoints. Both serve different purposes; keep all 14. | Replace current gates with spec's 9; keep only spec's 9 |
+| 2026-04-03 | Use Drizzle ORM for PostgreSQL wiring | Type-safe, schema-first, lightweight. Better DX than raw pg queries. Works with existing SQL schema in /db/. Avoids the overhead of Prisma while providing migration management. | Raw pg queries; Prisma ORM; Knex.js |
+| 2026-04-03 | Use Pino for structured logging | Fastest Node.js logger, JSON output by default, low overhead, supports correlationId via pino-http. Industry standard for Node.js services. | Winston; Bunyan; custom logger |
+| 2026-04-03 | Use Server-Sent Events (SSE) for realtime stream endpoint | Simpler than WebSockets for server-to-client push. No separate protocol. Native browser support via EventSource. Works over HTTP/1.1 and HTTP/2. Adequate for event volume expected. | WebSockets; long-polling; WebRTC data channels |
+| 2026-04-03 | Use OpenTelemetry for distributed tracing | Vendor-neutral; works with Jaeger, Zipkin, Cloud Trace. Future-proof. Auto-instrumentation available for Express and pg. | Datadog APM (vendor lock-in); custom tracing |
+| 2026-04-03 | Raise startup error if CKU_SERVICE_ACCOUNT_SECRET not set | Fallback to hardcoded secret "internal-sa-secret-change-me" is in git history and creates a critical security vulnerability. Services must fail loud rather than silently insecure. | Keep fallback but document the risk |
+| 2026-04-03 | Remove "default" org bypass in tenant isolation check | The exemption `auth.tenant.orgId !== "default"` allows any default-org token to access any tenant's data. This is a critical cross-tenant exposure. There is no safe use case for this bypass in production. | Keep bypass for backward compat; gate behind env var |
