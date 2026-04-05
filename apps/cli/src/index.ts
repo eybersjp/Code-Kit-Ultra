@@ -13,7 +13,7 @@ import { saveProjectMemory } from "../../../packages/memory/src";
 
 const CONFIG_DIR = path.join(os.homedir(), ".ck");
 const SESSION_PATH = path.join(CONFIG_DIR, "session.json");
-const CONTROL_SERVICE_URL = process.env.CKU_CONTROL_SERVICE_URL || "http://localhost:3100";
+const CONTROL_SERVICE_URL = process.env.CKU_CONTROL_SERVICE_URL || process.env.CKU_API_URL || "http://localhost:8080";
 
 const api = axios.create({ baseURL: CONTROL_SERVICE_URL });
 
