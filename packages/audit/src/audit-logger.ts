@@ -1,15 +1,18 @@
 import crypto from 'crypto';
 import { getPool } from '../../shared/src/db.js';
 import { logger } from '../../shared/src/logger.js';
+import { insforgeClient } from '../../insforge/src/client.js';
 
 export interface AuditEvent {
   id: string;
   orgId: string;
   actor: string;
+  actorType?: string;
+  correlationId?: string;
   action: string;
   resourceType: string;
   resourceId: string;
-  result: 'success' | 'failure';
+  result: 'success' | 'failure' | 'blocked' | 'approved' | 'rejected';
   payload: Record<string, any>;
   hash: string;
   previousHash: string;
@@ -95,6 +98,22 @@ export class AuditLogger {
           { eventId: id, action: event.action, hash },
           'Audit event recorded'
         );
+
+        // Dual-emit to InsForge for authoritative audit anchoring (non-blocking)
+        insforgeClient.emitAuditEvent({
+          correlationId: event.correlationId ?? id,
+          orgId: event.orgId,
+          actorId: event.actor,
+          actorType: event.actorType ?? 'user',
+          action: event.action,
+          resourceType: event.resourceType,
+          resourceId: event.resourceId,
+          result: event.result as 'success' | 'failure' | 'blocked' | 'approved' | 'rejected',
+          environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+          payload: event.payload,
+        }).catch((err: unknown) => {
+          logger.warn({ err }, 'InsForge audit emit failed (non-fatal)');
+        });
       } catch (err) {
         await client.query('ROLLBACK');
         throw err;
