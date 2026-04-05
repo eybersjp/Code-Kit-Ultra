@@ -1,81 +1,85 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { GateStore } from '../../../../packages/governance/src/gate-store.js';
-import { AuditLogger } from '../../../../packages/audit/src/audit-logger.js';
 import { logger } from '../lib/logger.js';
+import {
+  extractAuthContext,
+  extractGateId,
+  sendBadRequest,
+  sendNotFound,
+  sendConflict,
+  sendInternalError,
+} from '../lib/handler-utils.js';
+import { AuditEventBuilder, AuditActions } from '../lib/audit-builder.js';
+import {
+  validators,
+  ValidationError,
+} from '../lib/validators.js';
 
 /**
  * POST /v1/gates/:id/reject
- * Reject a gate that is in needs-review status
+ * Reject a gate that is in needs-review status.
+ * Requires a reason for the rejection.
  */
 export async function rejectGateHandler(req: Request, res: Response) {
   try {
-    const gateId = req.params['id'] as string;
+    const context = extractAuthContext(req);
+    const gateId = extractGateId(req);
     const reason = req.body?.reason as string | undefined;
-    const reviewerId = String((req as any).auth?.actor?.actorId || 'unknown');
-    const orgId = String((req as any).auth?.org?.id || 'unknown');
-    const runId = String((req as any).body?.runId || 'unknown');
+    const runId = req.body?.runId as string | undefined;
 
-    if (!reason) {
-      return res.status(400).json({
-        error: 'MISSING_REASON',
-        message: 'Rejection reason is required',
-      });
+    // Validate required fields
+    try {
+      validators.required(reason, 'reason');
+      validators.minLength(reason || '', 5, 'reason');
+    } catch (err: any) {
+      if (err instanceof ValidationError) {
+        return sendBadRequest(res, err.message);
+      }
+      throw err;
     }
 
     // Get current gate decision
     const gateDecision = await GateStore.getGateDecision(gateId, runId);
 
     if (!gateDecision) {
-      return res.status(404).json({
-        error: 'GATE_NOT_FOUND',
-        message: 'Gate decision not found',
-      });
+      return sendNotFound(res, 'Gate decision not found', 'gate');
     }
 
     if (gateDecision.status !== 'needs-review') {
-      return res.status(409).json({
-        error: 'INVALID_STATE',
-        message: `Cannot reject gate in ${gateDecision.status} state`,
-        currentStatus: gateDecision.status,
-      });
+      return sendConflict(res,
+        `Cannot reject gate in ${gateDecision.status} state`,
+        { currentStatus: gateDecision.status }
+      );
     }
 
     // Reject the gate
-    await GateStore.rejectGate(gateId, reviewerId, reason);
+    await GateStore.rejectGate(gateId, context.actor.id, reason);
 
-    // Emit audit event
-    await AuditLogger.emit({
-      orgId,
-      actor: reviewerId,
-      action: 'gate.rejected',
-      resourceType: 'gate',
-      resourceId: gateId,
-      result: 'success',
-      payload: {
-        runId,
+    // Log rejection in audit trail
+    await new AuditEventBuilder(AuditActions.GATE_REJECTED, context)
+      .withGateId(gateId)
+      .withRunId(runId || 'unknown')
+      .withResult('success')
+      .withDetails({
         reason,
         previousStatus: gateDecision.status,
-      },
-    });
+      })
+      .emit();
 
     logger.info(
-      { gateId, runId, reviewerId, reason },
+      { gateId, runId, actor: context.actor.id, reason },
       'Gate rejected'
     );
 
-    return res.status(200).json({
+    res.status(200).json({
       status: 'rejected',
       gateId,
       runId,
-      rejectedBy: reviewerId,
+      rejectedBy: context.actor.name,
       reason,
       timestamp: new Date().toISOString(),
     });
-  } catch (err) {
-    logger.error({ err }, 'Failed to reject gate');
-    return res.status(500).json({
-      error: 'INTERNAL_ERROR',
-      message: 'Failed to reject gate',
-    });
+  } catch (err: any) {
+    return sendInternalError(res, err, 'reject_gate');
   }
 }

@@ -125,7 +125,7 @@
 |---|----------|------|
 | 1 | Multi-stage Dockerfile builds and runs `control-service` | 🔲 |
 | 2 | Docker Compose brings up control-service + postgres + redis | 🔲 |
-| 3 | `docker compose up` produces a healthy service at `:8080` | 🔲 |
+| 3 | `docker compose up` produces a healthy service at `:7474` | 🔲 |
 | 4 | K8s Deployment manifest exists for `cku-control-service` | 🔲 |
 | 5 | K8s ConfigMap + Secret manifests exist | 🔲 |
 | 6 | K8s HPA manifest exists | 🔲 |

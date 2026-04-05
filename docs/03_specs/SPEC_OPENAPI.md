@@ -44,7 +44,7 @@ info:
     url: https://github.com/eybersjp/Code-Kit-Ultra
 
 servers:
-  - url: http://localhost:8080/v1
+  - url: http://localhost:7474/v1
     description: Local development
   - url: https://api.codekit.io/v1
     description: Production

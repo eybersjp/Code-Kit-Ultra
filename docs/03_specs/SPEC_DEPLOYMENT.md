@@ -71,7 +71,7 @@ COPY db ./db
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD wget -qO- http://localhost:8080/health || exit 1
+  CMD wget -qO- http://localhost:7474/health || exit 1
 
 CMD ["node", "apps/control-service/dist/index.js"]
 ```
@@ -86,7 +86,7 @@ services:
   control-service:
     build: .
     ports:
-      - "8080:8080"
+      - "8080:7474"
     environment:
       NODE_ENV: development
       DATABASE_URL: postgres://cku:cku@postgres:5432/cku_dev
@@ -270,10 +270,10 @@ Add to `.github/workflows/ci.yml` under a new `build` job:
 
 ## Port Alignment
 
-Spec defines port 8080. Current repo uses 4000. Update:
+Spec defines port 7474. Current repo uses 4000. Update:
 - `apps/control-service/src/index.ts` — `const PORT = process.env.CONTROL_SERVICE_PORT ?? 8080`
-- `apps/web-control-plane/vite.config.ts` — proxy target to `http://localhost:8080`
-- `extensions/code-kit-vscode/src/api/client.ts` — default baseURL to `http://localhost:8080/v1`
+- `apps/web-control-plane/vite.config.ts` — proxy target to `http://localhost:7474`
+- `extensions/code-kit-vscode/src/api/client.ts` — default baseURL to `http://localhost:7474/v1`
 
 ---
 
@@ -296,7 +296,7 @@ Spec defines port 8080. Current repo uses 4000. Update:
 
 - [ ] `docker build -t cku-control-service .` completes without error
 - [ ] `docker-compose up` starts control-service, postgres, and redis
-- [ ] Control-service connects to postgres and responds at `http://localhost:8080/health`
+- [ ] Control-service connects to postgres and responds at `http://localhost:7474/health`
 - [ ] Kubernetes manifests apply cleanly to a local cluster (minikube or kind)
 - [ ] GitHub Actions job builds and pushes image on merge to main
 - [ ] `CONTROL_SERVICE_PORT` defaults to 8080

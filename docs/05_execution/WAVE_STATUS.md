@@ -54,7 +54,7 @@ Wave 11:    Production Hardening (planned)
 
 ### Features
 
-- ✅ Express control service (port 8080)
+- ✅ Express control service (port 7474)
 - ✅ All 60+ CLI commands wired to API
 - ✅ POST /runs, GET /runs/{id}, PATCH /runs/{id} (unversioned)
 - ✅ POST /gates/{id}/approve (unversioned)

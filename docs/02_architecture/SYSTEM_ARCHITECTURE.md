@@ -73,7 +73,7 @@ Code Kit Ultra is an **orchestration, governance, execution, and learning plane*
 ```
 apps/
   cli/                        # CLI entry point
-  control-service/            # Express REST API (port 8080)
+  control-service/            # Express REST API (port 7474)
     src/
       index.ts                # App init, route mount, DB init
       middleware/
@@ -89,7 +89,7 @@ apps/
         gates.ts              # Gate decision CRUD
         service-accounts.ts   # SA CRUD
         audit.ts              # Audit event writes
-  web-control-plane/          # React + Vite (port 3000, proxy to 8080)
+  web-control-plane/          # React + Vite (port 7473, proxy to 8080)
 
 extensions/
   code-kit-vscode/            # VS Code extension
@@ -223,7 +223,7 @@ config/
 Production (GCP):
   ┌─────────────────┐     ┌───────────────────┐
   │  Cloud Load      │────▶│  cku-control-      │ × 2 replicas
-  │  Balancer (HTTPS)│     │  service (port 8080│
+  │  Balancer (HTTPS)│     │  service (port 7474│
   └─────────────────┘     └────────┬──────────┘
                                    │
                     ┌──────────────┼──────────────┐
@@ -236,7 +236,7 @@ Production (GCP):
                                          └────────────┘
 
 Local Development (Docker Compose):
-  control-service:8080 → postgres:5432
+  control-service:7474 → postgres:5432
                        → redis:6379
-  web-control-plane:3000 → (proxied to :8080)
+  web-control-plane:7473 → (proxied to :7474)
 ```

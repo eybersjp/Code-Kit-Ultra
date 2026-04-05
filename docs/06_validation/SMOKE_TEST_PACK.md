@@ -40,7 +40,7 @@ deployment proceeds until the failure is resolved.
 The smoke suite expects the following environment variables to be set:
 
 ```
-BASE_URL=http://localhost:3000        # Override for staging/prod
+BASE_URL=http://localhost:7473        # Override for staging/prod
 SMOKE_CLIENT_ID=smoke-test-client
 SMOKE_CLIENT_SECRET=<test secret>
 DATABASE_URL=postgresql://localhost:5432/cku_smoke
@@ -212,7 +212,7 @@ jobs:
       - run: pnpm build
       - run: pnpm test:smoke
         env:
-          BASE_URL: http://localhost:3000
+          BASE_URL: http://localhost:7473
           SMOKE_CLIENT_ID: ${{ secrets.SMOKE_CLIENT_ID }}
           SMOKE_CLIENT_SECRET: ${{ secrets.SMOKE_CLIENT_SECRET }}
 
@@ -237,7 +237,7 @@ All smoke tests live in `tests/smoke/`. They use Vitest with the native `fetch` 
 ```typescript
 import { describe, it, expect } from "vitest";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:7473";
 
 describe("Startup checks", () => {
   it("S-002: GET /health returns 200", async () => {
@@ -270,7 +270,7 @@ describe("Startup checks", () => {
 import { describe, it, expect } from "vitest";
 import { decodeProtectedHeader, decodeJwt } from "jose";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:7473";
 const CLIENT_ID = process.env.SMOKE_CLIENT_ID ?? "smoke-test-client";
 const CLIENT_SECRET = process.env.SMOKE_CLIENT_SECRET ?? "";
 
@@ -342,7 +342,7 @@ describe("Auth smoke tests", () => {
 ```typescript
 import { describe, it, expect, beforeAll } from "vitest";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:7473";
 let authToken: string;
 let runId: string;
 
@@ -420,7 +420,7 @@ describe("Run lifecycle smoke", () => {
 ```typescript
 import { describe, it, expect } from "vitest";
 
-const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL ?? "http://localhost:7473";
 
 async function getToken(): Promise<string> {
   const res = await fetch(`${BASE_URL}/auth/token`, {

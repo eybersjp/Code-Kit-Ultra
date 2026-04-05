@@ -119,16 +119,16 @@ If rolling back to v1.2.0, `DATABASE_URL` can remain set (v1.2.0 ignores it).
 
 ```bash
 # Health check
-curl -s http://localhost:8080/health | jq .
+curl -s http://localhost:7474/health | jq .
 
 # Expected: {"status":"ok","version":"1.2.0-enterprise-hardened",...}
 
 # Test authentication
-curl -s http://localhost:8080/v1/session \
+curl -s http://localhost:7474/v1/session \
   -H "Authorization: Bearer $TEST_TOKEN" | jq .
 
 # Test run creation
-curl -s -X POST http://localhost:8080/runs \
+curl -s -X POST http://localhost:7474/runs \
   -H "Authorization: Bearer $TEST_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"idea":"test run","mode":"balanced"}' | jq .
