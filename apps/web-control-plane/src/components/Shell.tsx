@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Play, ShieldAlert, ListFilter, Settings, LogOut, ChevronRight, Activity, Calendar, User, Search } from 'lucide-react';
+import { LayoutDashboard, Play, ShieldAlert, ListFilter, Settings, LogOut, ChevronRight, Activity, Calendar, User, Search, TrendingUp, Shield, FileText } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { OrgSwitcher, ProjectSwitcher } from '../components/Switcher';
 import { HealthBadge } from '../components/Governance';
@@ -12,6 +12,9 @@ export const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     { name: 'Runs', icon: Play, path: '/runs' },
     { name: 'Gates', icon: ShieldAlert, path: '/gates' },
     { name: 'Audit', icon: ListFilter, path: '/audit' },
+    { name: 'Analytics', icon: TrendingUp, path: '/analytics' },
+    { name: 'Policies', icon: Shield, path: '/policies' },
+    { name: 'Audit Browser', icon: FileText, path: '/audit-browser' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
