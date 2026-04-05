@@ -90,7 +90,7 @@ const GovernanceRules: React.FC = () => {
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
               <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>coverage</td>
               <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>percentage</td>
-              <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>coverage >= 80%</td>
+              <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>{'coverage >= 80%'}</td>
             </tr>
             <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
               <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>branch</td>

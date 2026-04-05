@@ -89,9 +89,7 @@ const DocsLayout: React.FC = () => {
             background: 'transparent',
             border: 'none',
             color: 'var(--text-primary)',
-            cursor: 'pointer',
-            display: 'none',
-            '@media (max-width: 768px)': { display: 'block' }
+            cursor: 'pointer'
           }}
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
