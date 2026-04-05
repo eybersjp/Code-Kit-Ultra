@@ -1,0 +1,43 @@
+{
+  "id": "mode-controller",
+  "version": "1.0.0",
+  "role": "tooling",
+  "description": "Mode selection and risk calibration agent responsible for evaluating the current request and session context to recommend the appropriate execution mode (safe/balanced/god), adjusting thresholds, and routing escalations when mode selection is ambiguous.",
+  "capabilities": [
+    "mode-selection",
+    "risk-calibration",
+    "threshold-adjustment",
+    "escalation-routing"
+  ],
+  "context_blocks_required": [
+    "session",
+    "tenant",
+    "policy",
+    "mode"
+  ],
+  "policy_binding": {
+    "requires_policy_injection": true,
+    "max_risk_level": "high",
+    "approval_sensitive": true
+  },
+  "insforge_binding": {
+    "requires_tenant_context": true,
+    "requires_actor_identity": true,
+    "requires_session_binding": true,
+    "requires_permission_check": true,
+    "audit": {
+      "log_inputs": true,
+      "log_outputs": true,
+      "log_decisions": true,
+      "log_gate_results": true
+    }
+  },
+  "output_schema": "output-schema.json",
+  "partials": [
+    "insforge/tenant-session",
+    "policy/default-policy",
+    "execution/run-summary"
+  ],
+  "created_at": "2026-04-05T00:00:00Z",
+  "updated_at": "2026-04-05T00:00:00Z"
+}

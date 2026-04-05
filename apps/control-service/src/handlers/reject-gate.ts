@@ -1,69 +1,81 @@
-import type { Request, Response } from "express";
-import { ApprovalService } from "../services/approval-service.js";
-import { writeAuditEvent } from "../../../../packages/audit/src/index";
-import { loadRunBundle, updateRunState } from "../../../../packages/memory/src/run-store";
-import { emitGateRejected } from "../events/dispatcher.js";
+import { Request, Response } from 'express';
+import { GateStore } from '../../../../packages/governance/src/gate-store.js';
+import { AuditLogger } from '../../../../packages/audit/src/audit-logger.js';
+import { logger } from '../lib/logger.js';
 
+/**
+ * POST /v1/gates/:id/reject
+ * Reject a gate that is in needs-review status
+ */
 export async function rejectGateHandler(req: Request, res: Response) {
   try {
-    const auth = (req as any).auth;
-    const actorName = auth.actor.actorName || "Unknown Actor";
-    
-    const runId = req.params.id as string;
-    const bundle = loadRunBundle(runId);
-    if (!bundle) return res.status(404).json({ error: "Run not found" });
+    const gateId = req.params['id'] as string;
+    const reason = req.body?.reason as string | undefined;
+    const reviewerId = String((req as any).auth?.actor?.actorId || 'unknown');
+    const orgId = String((req as any).auth?.org?.id || 'unknown');
+    const runId = String((req as any).body?.runId || 'unknown');
 
-    if (bundle.state.orgId && bundle.state.orgId !== auth.tenant.orgId) {
-       writeAuditEvent({
-         action: "GATE_REJECT_DENIED",
-         actorName,
-         actorId: auth.actor.actorId,
-         actorType: auth.actor.actorType,
-         orgId: auth.tenant.orgId,
-         workspaceId: auth.tenant.workspaceId,
-         projectId: auth.tenant.projectId,
-         runId: runId,
-         result: "failure",
-       });
-       return res.status(403).json({ error: "Run belongs to a different organization." });
+    if (!reason) {
+      return res.status(400).json({
+        error: 'MISSING_REASON',
+        message: 'Rejection reason is required',
+      });
     }
-    
-    await ApprovalService.reject(runId, actorName);
-    
-    bundle.state.updatedAt = new Date().toISOString();
-    updateRunState(bundle.state.runId, bundle.state);
 
-    writeAuditEvent({
-      action: "GATE_REJECTED",
-      actorName,
-      actorId: auth.actor.actorId,
-      actorType: auth.actor.actorType,
-      orgId: auth.tenant.orgId,
-      workspaceId: auth.tenant.workspaceId,
-      projectId: auth.tenant.projectId,
-      runId: runId,
-      correlationId: bundle.state.correlationId,
-      result: "success",
-    });
+    // Get current gate decision
+    const gateDecision = await GateStore.getGateDecision(gateId, runId);
 
-    // Wave 5: Emit canonical event
-    await emitGateRejected({
-      runId,
-      tenant: auth.tenant,
-      actor: {
-        id: auth.actor.actorId,
-        type: auth.actor.actorType,
-        authMode: auth.actor.authMode || "bearer-session"
-      },
-      correlationId: bundle.state.correlationId,
+    if (!gateDecision) {
+      return res.status(404).json({
+        error: 'GATE_NOT_FOUND',
+        message: 'Gate decision not found',
+      });
+    }
+
+    if (gateDecision.status !== 'needs-review') {
+      return res.status(409).json({
+        error: 'INVALID_STATE',
+        message: `Cannot reject gate in ${gateDecision.status} state`,
+        currentStatus: gateDecision.status,
+      });
+    }
+
+    // Reject the gate
+    await GateStore.rejectGate(gateId, reviewerId, reason);
+
+    // Emit audit event
+    await AuditLogger.emit({
+      orgId,
+      actor: reviewerId,
+      action: 'gate.rejected',
+      resourceType: 'gate',
+      resourceId: gateId,
+      result: 'success',
       payload: {
-        actorName,
-        status: "rejected"
-      }
+        runId,
+        reason,
+        previousStatus: gateDecision.status,
+      },
     });
 
-    res.json({ status: "rejected", rejectedBy: actorName });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    logger.info(
+      { gateId, runId, reviewerId, reason },
+      'Gate rejected'
+    );
+
+    return res.status(200).json({
+      status: 'rejected',
+      gateId,
+      runId,
+      rejectedBy: reviewerId,
+      reason,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    logger.error({ err }, 'Failed to reject gate');
+    return res.status(500).json({
+      error: 'INTERNAL_ERROR',
+      message: 'Failed to reject gate',
+    });
   }
 }

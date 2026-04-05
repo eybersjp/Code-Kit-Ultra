@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gate-manager/v1.0.0/output",
+  "title": "Gate Manager Output Schema",
+  "description": "Structured output produced by the Gate Manager after evaluating a proposed execution plan against all governance gates.",
+  "type": "object",
+  "required": [
+    "gate_results",
+    "overall_status",
+    "blocking_gates",
+    "review_required_gates",
+    "recommendation"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "gate_results": {
+      "type": "array",
+      "description": "Individual evaluation result for each governance gate that was assessed.",
+      "items": {
+        "type": "object",
+        "required": ["gate_name", "status", "reason", "evidence"],
+        "additionalProperties": false,
+        "properties": {
+          "gate_name": {
+            "type": "string",
+            "description": "The name of the governance gate (e.g., 'scope-check', 'security-check', 'cost-check')."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pass", "needs-review", "blocked"],
+            "description": "The outcome of this gate evaluation. 'pass' means the plan satisfies this gate. 'needs-review' means a human must assess before proceeding. 'blocked' means execution cannot proceed until this gate condition is resolved."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Explanation of why this gate produced its status. Should reference specific policy rules, thresholds, or observed conditions."
+          },
+          "evidence": {
+            "type": "array",
+            "description": "Specific evidence items that support the gate decision. Each item is a concrete observation, measurement, or policy reference.",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 0
+          },
+          "remediation": {
+            "type": "string",
+            "description": "Optional: what must happen to resolve a needs-review or blocked status."
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "overall_status": {
+      "type": "string",
+      "enum": ["pass", "needs-review", "blocked"],
+      "description": "Aggregate status across all gate evaluations. 'blocked' if any gate is blocked. 'needs-review' if no gates are blocked but at least one needs review. 'pass' only if all gates pass."
+    },
+    "blocking_gates": {
+      "type": "array",
+      "description": "Names of all gates whose status is 'blocked'. Execution must not proceed until all blocking gates are resolved.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0
+    },
+    "review_required_gates": {
+      "type": "array",
+      "description": "Names of all gates whose status is 'needs-review'. These require explicit human or policy approval before execution continues.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0
+    },
+    "recommendation": {
+      "type": "object",
+      "description": "The Gate Manager's recommendation for how to proceed given the gate evaluation results.",
+      "required": ["action", "rationale"],
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "type": "string",
+          "enum": ["proceed", "escalate-for-review", "halt"],
+          "description": "The recommended action. 'proceed' if all gates pass. 'escalate-for-review' if any gate needs review. 'halt' if any gate is blocked."
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Explanation of the recommendation, including what must happen before execution can proceed if the action is not 'proceed'."
+        },
+        "escalation_target": {
+          "type": "string",
+          "description": "Optional: the role or system to which this should be escalated if action is 'escalate-for-review'."
+        }
+      }
+    }
+  }
+}
