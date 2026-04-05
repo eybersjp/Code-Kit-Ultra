@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { GateStore } from '../../../packages/governance/src/gate-store.js';
-import { AuditLogger } from '../../../packages/audit/src/audit-logger.js';
+import { GateStore } from '../../../../packages/governance/src/gate-store.js';
+import { AuditLogger } from '../../../../packages/audit/src/audit-logger.js';
 import { logger } from '../lib/logger.js';
 
 /**
@@ -9,11 +9,11 @@ import { logger } from '../lib/logger.js';
  */
 export async function rejectGateHandler(req: Request, res: Response) {
   try {
-    const { id: gateId } = req.params;
-    const { reason } = req.body;
-    const reviewerId = (req as any).auth?.actor?.actorId || 'unknown';
-    const orgId = (req as any).auth?.org?.id || 'unknown';
-    const runId = (req as any).body?.runId || 'unknown';
+    const gateId = req.params['id'] as string;
+    const reason = req.body?.reason as string | undefined;
+    const reviewerId = String((req as any).auth?.actor?.actorId || 'unknown');
+    const orgId = String((req as any).auth?.org?.id || 'unknown');
+    const runId = String((req as any).body?.runId || 'unknown');
 
     if (!reason) {
       return res.status(400).json({

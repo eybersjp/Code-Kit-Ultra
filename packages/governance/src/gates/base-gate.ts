@@ -1,4 +1,4 @@
-import { RunState } from '../../shared/src/types.js';
+import type { RunState } from '../../../shared/src/types.js';
 
 export interface GateEvaluationContext {
   run: RunState;

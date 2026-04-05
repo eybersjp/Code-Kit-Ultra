@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
-import { ServiceAccountStore } from '../../../packages/auth/src/service-account-store.js';
-import { AuditLogger } from '../../../packages/audit/src/audit-logger.js';
+import { ServiceAccountStore } from '../../../../packages/auth/src/service-account-store.js';
+import { AuditLogger } from '../../../../packages/audit/src/audit-logger.js';
 import { logger } from '../lib/logger.js';
 
 /**
@@ -11,9 +11,9 @@ import { logger } from '../lib/logger.js';
  */
 export async function rotateServiceAccountSecretHandler(req: Request, res: Response) {
   try {
-    const { id: saId } = req.params;
-    const actorId = (req as any).auth?.actor?.actorId || 'unknown';
-    const orgId = (req as any).auth?.org?.id || 'unknown';
+    const saId = req.params['id'] as string;
+    const actorId = String((req as any).auth?.actor?.actorId || 'unknown');
+    const orgId = String((req as any).auth?.org?.id || 'unknown');
 
     // Verify the service account exists and belongs to this org
     const sa = await ServiceAccountStore.getServiceAccount(saId, orgId);

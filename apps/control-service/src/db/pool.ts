@@ -1,5 +1,6 @@
 import pg from 'pg';
 import { logger } from '../lib/logger.js';
+import { setPool } from '../../../../packages/shared/src/db.js';
 
 const { Pool } = pg;
 
@@ -17,6 +18,9 @@ const pool = new Pool({
 pool.on('error', (err) => {
   logger.error({ err }, 'Unexpected error on idle client');
 });
+
+// Register with shared pool registry so packages can use getPool()
+setPool(pool);
 
 export function getPool() {
   return pool;

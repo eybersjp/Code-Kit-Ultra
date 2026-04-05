@@ -9,7 +9,7 @@ import { LaunchGate } from './gates/launch-gate.js';
 import { RiskThresholdGate } from './gates/risk-threshold-gate.js';
 import { GateEvaluator, GateEvaluationContext, GateResult } from './gates/base-gate.js';
 import { GateStore } from './gate-store.js';
-import { logger } from '../apps/control-service/src/lib/logger.js';
+import { logger } from '../../shared/src/logger.js';
 
 export class GateManager {
   private gates: Map<string, GateEvaluator> = new Map();
@@ -96,7 +96,7 @@ export class GateManager {
     const results: GateResult[] = [];
 
     logger.info(
-      { runId: context.run.id, mode: context.mode, gateCount: sequence.length },
+      { runId: context.run.runId, mode: context.mode, gateCount: sequence.length },
       'Starting gate evaluation'
     );
 
@@ -111,23 +111,23 @@ export class GateManager {
         // Record in database
         await GateStore.recordGateDecision(
           gateName,
-          context.run.id,
+          context.run.runId,
           result,
           result.passed ? 'pass' : result.severity === 'blocked' ? 'blocked' : 'needs-review'
         );
 
         logger.info(
-          { gateName, result: result.severity, runId: context.run.id },
+          { gateName, result: result.severity, runId: context.run.runId },
           'Gate evaluated'
         );
 
         // Short-circuit on first block (in non-turbo, non-god modes)
         if (result.severity === 'blocked' && context.mode !== 'turbo' && context.mode !== 'god') {
-          logger.info({ gateName, runId: context.run.id }, 'Gate blocked execution');
+          logger.info({ gateName, runId: context.run.runId }, 'Gate blocked execution');
           break;
         }
       } catch (err) {
-        logger.error({ err, gateName, runId: context.run.id }, 'Gate evaluation failed');
+        logger.error({ err, gateName, runId: context.run.runId }, 'Gate evaluation failed');
         results.push({
           gateName,
           passed: false,
@@ -144,7 +144,7 @@ export class GateManager {
     const passed = results.filter((r) => r.severity === 'pass').length;
 
     logger.info(
-      { runId: context.run.id, passed, failed, blocked },
+      { runId: context.run.runId, passed, failed, blocked },
       'Gate evaluation completed'
     );
 

@@ -1,7 +1,8 @@
-import redis from 'redis';
-import { logger } from '../../apps/control-service/src/lib/logger.js';
+import { createClient } from 'redis';
+import { logger } from '../../shared/src/logger.js';
 
-let redisClient: redis.RedisClient | null = null;
+type RedisClientType = ReturnType<typeof createClient>;
+let redisClient: RedisClientType | null = null;
 
 /**
  * Initialize Redis client for session revocation
@@ -13,11 +14,11 @@ export async function initializeRevocationStore(): Promise<void> {
   }
 
   try {
-    redisClient = redis.createClient({
+    redisClient = createClient({
       url: process.env.REDIS_URL,
     });
 
-    redisClient.on('error', (err) => {
+    redisClient.on('error', (err: Error) => {
       logger.error({ err }, 'Redis client error');
     });
 

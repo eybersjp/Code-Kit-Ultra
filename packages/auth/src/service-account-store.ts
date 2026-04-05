@@ -1,5 +1,5 @@
-import { getPool } from '../../apps/control-service/src/db/pool.js';
-import { logger } from '../../apps/control-service/src/lib/logger.js';
+import { getPool } from '../../shared/src/db.js';
+import { logger } from '../../shared/src/logger.js';
 
 export interface ServiceAccount {
   id: string;
@@ -88,7 +88,7 @@ export class ServiceAccountStore {
 
     try {
       const result = await pool.query(query, [orgId]);
-      return result.rows.map((row) => ({
+      return result.rows.map((row: any) => ({
         id: row.id,
         orgId: row.org_id,
         workspaceId: row.workspace_id,

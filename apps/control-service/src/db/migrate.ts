@@ -22,7 +22,7 @@ async function getAppliedMigrations(pool: any): Promise<string[]> {
   const result = await pool.query(
     'SELECT version FROM schema_migrations ORDER BY version'
   );
-  return result.rows.map((r) => r.version);
+  return result.rows.map((r: any) => r.version);
 }
 
 async function getMigrationFiles(): Promise<string[]> {

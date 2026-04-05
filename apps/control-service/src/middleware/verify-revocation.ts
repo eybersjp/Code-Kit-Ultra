@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { isRevoked } from '../../../packages/auth/src/session-revocation.js';
+import { isRevoked } from '../../../../packages/auth/src/session-revocation.js';
 import { logger } from '../lib/logger.js';
 
 /**

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
-import { getPool } from '../../apps/control-service/src/db/pool.js';
-import { logger } from '../../apps/control-service/src/lib/logger.js';
+import { getPool } from '../../shared/src/db.js';
+import { logger } from '../../shared/src/logger.js';
 
 export interface AuditEvent {
   id: string;

@@ -21,7 +21,7 @@ export class ScopeGate extends BaseGate {
       'proj-shared': ['packages/shared', 'packages/core'],
     };
 
-    const boundaries = projectBoundaries[run.projectId] || [];
+    const boundaries = projectBoundaries[run.projectId ?? ''] || [];
 
     if (boundaries.length === 0) {
       return this.warning('No scope boundaries defined for this project');

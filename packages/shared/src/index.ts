@@ -2,10 +2,12 @@
  * Barrel file for shared types and contracts.
  */
 
-export * from "./types";
-export * from "./contracts";
-export * from "./observability-types";
-export * from "./governance-types";
-export * from "./phase10-types";
-export * from "./phase10_5-types";
-export * from "./contracts/events";
+export * from "./types.js";
+export * from "./contracts/events.js";
+export * from "./observability-types.js";
+export * from "./governance-types.js";
+export * from "./phase10-types.js";
+export * from "./phase10_5-types.js";
+export * from "./contracts/events.js";
+export * from "./logger.js";
+export * from "./db.js";

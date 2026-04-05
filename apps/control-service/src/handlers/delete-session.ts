@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { revokeSession } from '../../../packages/auth/src/session-revocation.js';
+import { revokeSession } from '../../../../packages/auth/src/session-revocation.js';
 import { logger } from '../lib/logger.js';
 
 /**
