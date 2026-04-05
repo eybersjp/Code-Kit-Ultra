@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "orchestrator/v1.0.0/output",
+  "title": "Orchestrator Output Schema",
+  "description": "Structured output produced by the Orchestrator after decomposing a validated AI CEO execution plan into ordered, routable task steps with checkpoints and a rollback strategy.",
+  "type": "object",
+  "required": [
+    "execution_plan",
+    "checkpoint_strategy",
+    "rollback_plan",
+    "estimated_steps"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "execution_plan": {
+      "type": "array",
+      "description": "Ordered array of task steps that constitute the full execution sequence. Each step is assigned to a specific skill or sub-agent and includes all inputs, dependencies, and verification criteria required to execute and validate it.",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "skill", "description", "inputs", "depends_on", "verification", "is_gate_check"],
+        "additionalProperties": false,
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "description": "Short unique identifier for this step within the execution plan (e.g., 'step-1', 'gate-phase-1')."
+          },
+          "phase_id": {
+            "type": "string",
+            "description": "The phase from the approved AI CEO plan that this step belongs to."
+          },
+          "skill": {
+            "type": "string",
+            "description": "The skill or sub-agent to which this step is routed (e.g., 'dev-agent', 'gate-manager', 'test-runner', 'deploy-agent')."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of what this step accomplishes and why it is positioned here in the sequence."
+          },
+          "inputs": {
+            "type": "object",
+            "description": "The structured inputs to be passed to the skill when invoking this step. Shape depends on the target skill's input contract.",
+            "additionalProperties": true
+          },
+          "depends_on": {
+            "type": "array",
+            "description": "List of step_ids that must complete successfully before this step can begin. An empty array means this step has no dependencies and may begin immediately.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "is_gate_check": {
+            "type": "boolean",
+            "description": "True if this step is a governance gate check (routed to gate-manager). Gate check steps block all subsequent steps in their phase until they pass."
+          },
+          "is_approval_pause": {
+            "type": "boolean",
+            "description": "True if this step is a pause point awaiting human or policy approval. Execution must not proceed past this step until an approval signal is received."
+          },
+          "approval_type": {
+            "type": "string",
+            "description": "If is_approval_pause is true, the category of approval required (e.g., 'human-in-the-loop', 'deployment-sign-off')."
+          },
+          "verification": {
+            "type": "object",
+            "description": "Verification specification for this step. Defines how to confirm the step completed correctly before advancing.",
+            "required": ["method", "expected_state", "failure_action"],
+            "additionalProperties": false,
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": ["test-runner", "schema-validator", "manual-review", "gate-check", "output-assertion", "none"],
+                "description": "The mechanism used to verify this step. 'none' is only valid for pause steps or non-mutating read-only steps."
+              },
+              "expected_state": {
+                "type": "string",
+                "description": "Description of the expected system state after this step completes successfully. This is the contract for verification."
+              },
+              "failure_action": {
+                "type": "string",
+                "enum": ["rollback-step", "rollback-phase", "rollback-all", "escalate", "pause"],
+                "description": "What to do if verification fails for this step."
+              }
+            }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "checkpoint_strategy": {
+      "type": "object",
+      "description": "The strategy governing when and how execution checkpoints are evaluated throughout the run.",
+      "required": ["checkpoint_frequency", "inter_phase_gate", "verification_agent", "failure_threshold"],
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_frequency": {
+          "type": "string",
+          "enum": ["after-every-step", "after-every-phase", "at-gate-steps-only"],
+          "description": "How frequently checkpoints are evaluated. 'after-every-step' is the most conservative and is recommended for safe mode."
+        },
+        "inter_phase_gate": {
+          "type": "boolean",
+          "description": "Whether a gate-manager check is inserted at each phase boundary before advancing to the next phase."
+        },
+        "verification_agent": {
+          "type": "string",
+          "description": "The skill or agent responsible for executing verification at each checkpoint."
+        },
+        "failure_threshold": {
+          "type": "integer",
+          "description": "The number of consecutive step failures that triggers an automatic full rollback. 0 means rollback on any single failure.",
+          "minimum": 0
+        }
+      }
+    },
+    "rollback_plan": {
+      "type": "object",
+      "description": "The rollback strategy for the full execution. Defines how to safely undo work at each phase boundary if verification fails.",
+      "required": ["summary", "phase_rollbacks"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "High-level description of the rollback strategy and any important caveats (e.g., operations that cannot be rolled back, data that may be affected)."
+        },
+        "phase_rollbacks": {
+          "type": "array",
+          "description": "Phase-level rollback definitions. Each entry defines what must be undone if the run fails at or after the named phase.",
+          "items": {
+            "type": "object",
+            "required": ["phase_id", "trigger_condition", "rollback_steps"],
+            "additionalProperties": false,
+            "properties": {
+              "phase_id": {
+                "type": "string",
+                "description": "The phase this rollback entry covers."
+              },
+              "trigger_condition": {
+                "type": "string",
+                "description": "The condition under which this phase rollback is triggered."
+              },
+              "rollback_steps": {
+                "type": "array",
+                "description": "Ordered list of rollback steps to execute if this phase must be rolled back.",
+                "items": {
+                  "type": "object",
+                  "required": ["step_id", "skill", "description"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "step_id": {
+                      "type": "string",
+                      "description": "Identifier for this rollback step."
+                    },
+                    "skill": {
+                      "type": "string",
+                      "description": "The skill or agent to invoke for this rollback step."
+                    },
+                    "description": {
+                      "type": "string",
+                      "description": "What this rollback step does."
+                    }
+                  }
+                },
+                "minItems": 1
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "estimated_steps": {
+      "type": "integer",
+      "description": "The total number of steps in the execution_plan array. Used by the runtime to track progress and detect incomplete plans.",
+      "minimum": 1
+    }
+  }
+}
