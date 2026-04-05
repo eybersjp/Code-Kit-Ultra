@@ -1,71 +1,74 @@
 import type { Request, Response } from "express";
 import { ApprovalService } from "../services/approval-service.js";
-import { writeAuditEvent } from "../../../../packages/audit/src/index";
 import { loadRunBundle, updateRunState } from "../../../../packages/memory/src/run-store";
 import { emitGateApproved } from "../events/dispatcher.js";
+import {
+  extractAuthContext,
+  extractRunId,
+  sendForbidden,
+  sendNotFound,
+  sendInternalError,
+  validateTenantAccess,
+} from "../lib/handler-utils.js";
+import { AuditEventBuilder, AuditActions } from "../lib/audit-builder.js";
 
 export async function approveGateHandler(req: Request, res: Response) {
   try {
-    const auth = (req as any).auth;
-    const actorName = auth.actor.actorName || "Unknown Actor";
-    
-    // In wave 3, check tenant scope
-    const runId = req.params.id as string;
-    const bundle = loadRunBundle(runId);
-    if (!bundle) return res.status(404).json({ error: "Run not found" });
+    const context = extractAuthContext(req);
+    const runId = extractRunId(req);
 
-    if (bundle.state.orgId && bundle.state.orgId !== auth.tenant.orgId) {
-       writeAuditEvent({
-         action: "GATE_APPROVE_DENIED",
-         actorName,
-         actorId: auth.actor.actorId,
-         actorType: auth.actor.actorType,
-         orgId: auth.tenant.orgId,
-         workspaceId: auth.tenant.workspaceId,
-         projectId: auth.tenant.projectId,
-         runId: runId,
-         result: "failure",
-       });
-       return res.status(403).json({ error: "Run belongs to a different organization." });
+    // Load run and validate it exists
+    const bundle = loadRunBundle(runId);
+    if (!bundle) {
+      return sendNotFound(res, "Run not found", "run");
     }
-    
-    await ApprovalService.approve(runId, actorName);
-    
-    // Add approver identity to the run state.
+
+    // Validate cross-tenant access
+    try {
+      validateTenantAccess(bundle.state.orgId, context);
+    } catch (err: any) {
+      // Log denial in audit trail
+      await new AuditEventBuilder(AuditActions.GATE_APPROVE_DENIED, context)
+        .withRunId(runId)
+        .withResult("failure")
+        .withDetails({ reason: err.message })
+        .emit();
+
+      return sendForbidden(res, err.message, "tenant_access_denied");
+    }
+
+    // Approve the gate
+    await ApprovalService.approve(runId, context.actor.name);
+
+    // Update run state with new timestamp
     bundle.state.updatedAt = new Date().toISOString();
     updateRunState(bundle.state.runId, bundle.state);
 
-    writeAuditEvent({
-      action: "GATE_APPROVED",
-      actorName,
-      actorId: auth.actor.actorId,
-      actorType: auth.actor.actorType,
-      orgId: auth.tenant.orgId,
-      workspaceId: auth.tenant.workspaceId,
-      projectId: auth.tenant.projectId,
-      runId: runId,
-      correlationId: bundle.state.correlationId,
-      result: "success",
-    });
+    // Log approval in audit trail
+    await new AuditEventBuilder(AuditActions.GATE_APPROVED, context)
+      .withRunId(runId)
+      .withResult("success")
+      .withCorrelationId(bundle.state.correlationId)
+      .emit();
 
-    // Wave 5: Emit canonical event
+    // Emit canonical event for downstream systems
     await emitGateApproved({
       runId,
-      tenant: auth.tenant,
+      tenant: context.tenant,
       actor: {
-        id: auth.actor.actorId,
-        type: auth.actor.actorType,
-        authMode: auth.actor.authMode || "bearer-session"
+        id: context.actor.id,
+        type: context.actor.type,
+        authMode: context.actor.authMode,
       },
       correlationId: bundle.state.correlationId,
       payload: {
-        actorName,
-        status: "approved"
-      }
+        actorName: context.actor.name,
+        status: "approved",
+      },
     });
 
-    res.json({ status: "approved", approvedBy: actorName });
+    res.json({ status: "approved", approvedBy: context.actor.name });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return sendInternalError(res, err, "approve_gate");
   }
 }

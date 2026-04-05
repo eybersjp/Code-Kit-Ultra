@@ -1,11 +1,8 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import chalk from "chalk";
-import { RunReader } from "./services/run-reader.js";
-import { ApprovalService } from "./services/approval-service.js";
 import { resolveApiKeyUser } from "../../../packages/core/src/auth";
 import { Role } from "../../../packages/shared/src/types";
-import { getLearningReport, getReliability, getAdaptivePolicies } from "./services/learning-service.js";
 import { getHealingForRun, getHealingAttempt, getHealingStrategiesService, getHealingStatsService } from "./services/healing-service.js";
 import { runMigrations } from "./db/migrate.js";
 import { closePool } from "./db/pool.js";
@@ -42,6 +39,13 @@ import { rejectGateHandler } from "./handlers/reject-gate.js";
 import { rollbackStepHandler } from "./handlers/rollback/index.js";
 import { rotateServiceAccountSecretHandler } from "./handlers/rotate-service-account-secret.js";
 import { deleteSessionHandler } from "./handlers/delete-session.js";
+import { getTimelineHandler } from "./handlers/get-timeline.js";
+import { listGatesHandler } from "./handlers/list-gates.js";
+import { resumeRunHandler } from "./handlers/resume-run.js";
+import { retryStepHandler } from "./handlers/retry-step.js";
+import { getLearningReportHandler } from "./handlers/get-learning-report.js";
+import { getLearningReliabilityHandler } from "./handlers/get-learning-reliability.js";
+import { getLearningPoliciesHandler } from "./handlers/get-learning-policies.js";
 import {
   getHealingForRunHandler,
   getHealingAttemptHandler,
@@ -74,74 +78,26 @@ app.post("/v1/runs", authenticate, requireAnyPermission(["run:create"]), createR
 app.get("/v1/runs", authenticate, requireAnyPermission(["run:view"]), listRunsHandler);
 app.get("/v1/runs/:id", authenticate, requireAnyPermission(["run:view"]), getRunHandler);
 
-app.get("/v1/runs/:id/timeline", authenticate, requireAnyPermission(["run:view"]), async (req, res) => {
-  try {
-    const timeline = RunReader.getTimeline(req.params.id as string);
-    res.json(timeline);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.get("/v1/runs/:id/timeline", authenticate, requireAnyPermission(["run:view"]), getTimelineHandler);
 
 // --- Approvals ---
-app.get("/v1/gates", authenticate, requireAnyPermission(["gate:view"]), async (req, res) => {
-  try {
-    const approvals = ApprovalService.getApprovals();
-    res.json(approvals);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.get("/v1/gates", authenticate, requireAnyPermission(["gate:view"]), listGatesHandler);
 
 app.post("/v1/gates/:id/approve", authenticate, requireAnyPermission(["gate:approve"]), approveGateHandler);
 app.post("/v1/gates/:id/reject", authenticate, requireAnyPermission(["gate:reject"]), rejectGateHandler);
 
-app.post("/v1/runs/:id/resume", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), async (req, res) => {
-  try {
-    const actorName = (req as any).auth?.actor?.actorName || "Unknown Actor";
-    await ApprovalService.resume(req.params.id as string, actorName);
-    res.json({ status: "resumed", resumedBy: actorName });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.post("/v1/runs/:id/resume", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), resumeRunHandler);
 
-app.post("/v1/runs/:id/retry-step", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), async (req, res) => {
-  try {
-    const actorName = (req as any).auth?.actor?.actorName || "Unknown Actor";
-    await ApprovalService.retry(req.params.id as string, req.body.stepId as string, actorName);
-    res.json({ status: "retrying", retryBy: actorName });
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.post("/v1/runs/:id/retry-step", authenticate, requireAnyPermission(["run:create", "healing:invoke"]), retryStepHandler);
 
 app.post("/v1/runs/:id/rollback-step", authenticate, requireAnyPermission(["execution:rollback"]), rollbackStepHandler);
 
 // --- Learning ---
-app.get("/v1/learning/report", authenticate, requireAnyPermission(["policy:view", "execution:view"]), (req, res) => {
-  try {
-    res.json(getLearningReport());
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.get("/v1/learning/report", authenticate, requireAnyPermission(["policy:view", "execution:view"]), getLearningReportHandler);
 
-app.get("/v1/learning/reliability", authenticate, requireAnyPermission(["policy:view", "execution:view"]), (req, res) => {
-  try {
-    res.json(getReliability());
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.get("/v1/learning/reliability", authenticate, requireAnyPermission(["policy:view", "execution:view"]), getLearningReliabilityHandler);
 
-app.get("/v1/learning/policies", authenticate, requireAnyPermission(["policy:view"]), (req, res) => {
-  try {
-    res.json(getAdaptivePolicies());
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.get("/v1/learning/policies", authenticate, requireAnyPermission(["policy:view"]), getLearningPoliciesHandler);
 
 // --- Healing ---
 app.get("/v1/runs/:runId/healing", authenticate, requireAnyPermission(["run:view"]), getHealingForRunHandler);
