@@ -8,8 +8,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@cku/shared": "workspace:*",
-    "@cku/insforge": "workspace:*"
+    "@cku/shared": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.0.0"
