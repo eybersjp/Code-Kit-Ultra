@@ -7,6 +7,7 @@ export * from "./contracts";
 export * from "./verify-insforge-token";
 export * from "./resolve-session";
 export * from "./issue-execution-token";
+export * from "./verify-execution-token";
 
 // Forward declare shared types for convenience
 export type { 
