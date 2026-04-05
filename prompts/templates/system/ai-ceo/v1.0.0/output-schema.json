@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ai-ceo/v1.0.0/output",
+  "title": "AI CEO Output Schema",
+  "description": "Structured output produced by the AI CEO agent after evaluating a request and producing a governed execution plan.",
+  "type": "object",
+  "required": [
+    "planning_summary",
+    "assumptions",
+    "risks",
+    "approval_requirements",
+    "recommended_execution_path",
+    "verification_plan",
+    "next_actions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "planning_summary": {
+      "type": "string",
+      "description": "A concise narrative summary of what the agent is planning to accomplish, the scope of work, and the key decisions made during planning. Should be human-readable and auditable."
+    },
+    "assumptions": {
+      "type": "array",
+      "description": "An explicit list of all assumptions made during planning. Each assumption should be stated clearly so reviewers can confirm or reject them before execution begins.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0
+    },
+    "risks": {
+      "type": "array",
+      "description": "Identified risks associated with the proposed execution path. Each risk entry should describe the risk, its likelihood, potential impact, and any mitigations built into the plan.",
+      "items": {
+        "type": "object",
+        "required": ["description", "likelihood", "impact", "mitigation"],
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "A clear description of the risk."
+          },
+          "likelihood": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Estimated likelihood that this risk materializes."
+          },
+          "impact": {
+            "type": "string",
+            "enum": ["low", "medium", "high", "critical"],
+            "description": "Estimated impact if the risk materializes."
+          },
+          "mitigation": {
+            "type": "string",
+            "description": "Planned mitigation or contingency for this risk."
+          }
+        }
+      },
+      "minItems": 0
+    },
+    "approval_requirements": {
+      "type": "array",
+      "description": "List of explicit approval requirements that must be satisfied before or during execution. Each entry names the approval type, who must approve, and why it is required.",
+      "items": {
+        "type": "object",
+        "required": ["approval_type", "approver", "reason", "blocking"],
+        "additionalProperties": false,
+        "properties": {
+          "approval_type": {
+            "type": "string",
+            "description": "The category or name of the required approval (e.g., 'human-in-the-loop', 'policy-gate', 'deployment-sign-off')."
+          },
+          "approver": {
+            "type": "string",
+            "description": "The role, identity, or system responsible for granting this approval."
+          },
+          "reason": {
+            "type": "string",
+            "description": "Why this approval is required, referencing policy rules or risk factors."
+          },
+          "blocking": {
+            "type": "boolean",
+            "description": "Whether execution must halt until this approval is granted."
+          }
+        }
+      },
+      "minItems": 0
+    },
+    "recommended_execution_path": {
+      "type": "object",
+      "description": "The recommended execution strategy, including the ordered list of high-level phases, the skills to be involved, and the sequencing rationale.",
+      "required": ["phases", "rationale"],
+      "additionalProperties": false,
+      "properties": {
+        "phases": {
+          "type": "array",
+          "description": "Ordered list of high-level execution phases.",
+          "items": {
+            "type": "object",
+            "required": ["phase_id", "name", "description", "skills_involved"],
+            "additionalProperties": false,
+            "properties": {
+              "phase_id": {
+                "type": "string",
+                "description": "A short unique identifier for the phase (e.g., 'phase-1')."
+              },
+              "name": {
+                "type": "string",
+                "description": "Human-readable name of the phase."
+              },
+              "description": {
+                "type": "string",
+                "description": "What this phase accomplishes."
+              },
+              "skills_involved": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "List of skills or sub-agents involved in this phase."
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "rationale": {
+          "type": "string",
+          "description": "Explanation of why this execution path was chosen over alternatives, including any trade-offs considered."
+        }
+      }
+    },
+    "verification_plan": {
+      "type": "object",
+      "description": "The strategy for verifying that execution produced correct, safe results at each phase and overall.",
+      "required": ["checkpoints", "overall_acceptance_criteria"],
+      "additionalProperties": false,
+      "properties": {
+        "checkpoints": {
+          "type": "array",
+          "description": "Ordered list of verification checkpoints tied to execution phases.",
+          "items": {
+            "type": "object",
+            "required": ["after_phase", "criteria"],
+            "additionalProperties": false,
+            "properties": {
+              "after_phase": {
+                "type": "string",
+                "description": "The phase_id after which this checkpoint is evaluated."
+              },
+              "criteria": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Specific, testable acceptance criteria for this checkpoint."
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "overall_acceptance_criteria": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Top-level acceptance criteria that must all be satisfied for the full execution to be considered successful."
+        }
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "description": "The immediate next actions to be taken, in priority order. Each action includes the actor responsible and a clear description of what must happen.",
+      "items": {
+        "type": "object",
+        "required": ["action_id", "actor", "description", "depends_on"],
+        "additionalProperties": false,
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "description": "A short unique identifier for this action."
+          },
+          "actor": {
+            "type": "string",
+            "description": "The agent, skill, or human role responsible for executing this action."
+          },
+          "description": {
+            "type": "string",
+            "description": "A clear, actionable description of what must be done."
+          },
+          "depends_on": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of action_ids that must complete before this action can begin."
+          }
+        }
+      },
+      "minItems": 1
+    }
+  }
+}

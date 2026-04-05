@@ -1,0 +1,17 @@
+{
+  "name": "@cku/prompt-system",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@cku/shared": "workspace:*",
+    "handlebars": "^4.7.8",
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "vitest": "^1.6.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "@types/handlebars": "^4.1.0"
+  }
+}
