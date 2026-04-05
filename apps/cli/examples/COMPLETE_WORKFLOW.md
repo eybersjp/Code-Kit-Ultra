@@ -14,7 +14,7 @@ docker compose up -d
 cd apps/control-service && pnpm dev
 
 # 3. Verify API is running
-curl http://localhost:8080/health
+curl http://localhost:7474/health
 # Expected: { "status": "healthy", "version": "1.3.0" }
 ```
 
@@ -172,7 +172,7 @@ pnpm run ck /ck-trace run-001
 # Start web UI
 pnpm run dev:web
 
-# Open browser: http://localhost:3000
+# Open browser: http://localhost:7473
 # You can:
 # ✓ See all runs in a dashboard
 # ✓ Watch real-time execution progress
@@ -185,7 +185,7 @@ pnpm run dev:web
 ### Step 10: REST API (Programmatic)
 ```bash
 # Create a run (REST)
-curl -X POST http://localhost:8080/v1/runs \
+curl -X POST http://localhost:7474/v1/runs \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -195,24 +195,24 @@ curl -X POST http://localhost:8080/v1/runs \
 # Response: { "id": "run-002", "status": "created" }
 
 # List all runs (REST)
-curl http://localhost:8080/v1/runs \
+curl http://localhost:7474/v1/runs \
   -H "Authorization: Bearer $TOKEN"
 # Response: Array of all runs with status
 
 # Approve a gate (REST)
-curl -X POST http://localhost:8080/v1/gates/security_gate/approve \
+curl -X POST http://localhost:7474/v1/gates/security_gate/approve \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{}'
 # Response: { "gateId": "security_gate", "status": "approved" }
 
 # Get run details (REST)
-curl http://localhost:8080/v1/runs/run-002 \
+curl http://localhost:7474/v1/runs/run-002 \
   -H "Authorization: Bearer $TOKEN"
 # Response: Complete run details including all gates, tasks, timeline
 
 # Get run timeline (REST)
-curl http://localhost:8080/v1/runs/run-002/timeline \
+curl http://localhost:7474/v1/runs/run-002/timeline \
   -H "Authorization: Bearer $TOKEN"
 # Response: Chronological list of all events
 ```
@@ -340,7 +340,7 @@ jobs:
 ### API Connection Failed
 ```bash
 # Check if API is running
-curl http://localhost:8080/health
+curl http://localhost:7474/health
 
 # If not:
 docker compose up -d

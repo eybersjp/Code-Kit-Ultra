@@ -156,12 +156,12 @@
 - **Task:** `apps/control-service/src/routes/` — prefix all routers with `/v1/`
   - `app.use('/v1', authRouter)`, `app.use('/v1', runsRouter)`, etc.
 - **Task:** Add compatibility shim: unversioned routes return `410 Gone` with `{ "message": "Use /v1/..." }` to prevent silent breakage
-- **Verification:** `curl http://localhost:8080/runs` returns 410; `curl http://localhost:8080/v1/runs` works
+- **Verification:** `curl http://localhost:7474/runs` returns 410; `curl http://localhost:7474/v1/runs` works
 
 ### 3.2 Update CLI to /v1/ routes
 - **Task:** Global search in `apps/cli/src/` for all `fetch('/runs`, `/gates`, etc.
 - **Task:** Replace with `/v1/` equivalents
-- **Task:** Add `CKU_API_BASE_URL` env var (default `http://localhost:8080`) so CLI target is configurable
+- **Task:** Add `CKU_API_BASE_URL` env var (default `http://localhost:7474`) so CLI target is configurable
 
 ### 3.3 Update web control plane to /v1/ routes
 - **Task:** `apps/web-control-plane/src/lib/api-client.ts` — update API client base path from `/` to `/v1/`
@@ -342,7 +342,7 @@ Each gate in `packages/governance/src/gates/` implements `GateEvaluator` interfa
 - **Task:** `apps/control-service/src/middleware/security.ts`:
   ```typescript
   app.use(cors({
-    origin: process.env.CKU_ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
+    origin: process.env.CKU_ALLOWED_ORIGINS?.split(',') || 'http://localhost:7473',
     credentials: true
   }));
   ```
@@ -387,7 +387,7 @@ Each gate in `packages/governance/src/gates/` implements `GateEvaluator` interfa
     control-service:
       build: .
       ports:
-        - "8080:8080"
+        - "8080:7474"
       depends_on:
         - postgres
         - redis
@@ -431,7 +431,7 @@ Each gate in `packages/governance/src/gates/` implements `GateEvaluator` interfa
               cpu: 500m
               memory: 512Mi
   ```
-- **Task:** `k8s/service.yaml`: `ClusterIP` service on port 8080
+- **Task:** `k8s/service.yaml`: `ClusterIP` service on port 7474
 - **Task:** `k8s/hpa.yaml`: `HorizontalPodAutoscaler` targeting 70% CPU, min 2 / max 10 replicas
 - **Task:** `k8s/configmap.yaml`: non-secret env vars
 - **Task:** `k8s/secret.yaml`: template for secrets (values populated at deploy time, not committed)
@@ -450,7 +450,7 @@ Each gate in `packages/governance/src/gates/` implements `GateEvaluator` interfa
   CKU_LEGACY_API_KEYS_ENABLED=false
   
   # Security
-  CKU_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:8080
+  CKU_ALLOWED_ORIGINS=http://localhost:7473,http://localhost:7474
   
   # Observability
   LOG_LEVEL=info

@@ -61,7 +61,7 @@ npm run cku /ck-doctor
 
 ```
 apps/
-  control-service/        API server (Express, port 8080)
+  control-service/        API server (Express, port 7474)
   cli/                    CLI surface
   web-control-plane/      Operator web UI
 

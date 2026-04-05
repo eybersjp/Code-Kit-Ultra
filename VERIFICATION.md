@@ -76,15 +76,15 @@ docker compose up -d
 sleep 30
 
 # Health check
-curl http://localhost:8080/health
+curl http://localhost:7474/health
 # Expected: { "status": "healthy", "version": "1.3.0" }
 
 # Readiness check
-curl http://localhost:8080/ready
+curl http://localhost:7474/ready
 # Expected: { "status": "ready", "checks": { "database": true, "redis": true } }
 
 # Metrics
-curl http://localhost:8080/metrics
+curl http://localhost:7474/metrics
 # Expected: Prometheus format output
 ```
 
@@ -201,7 +201,7 @@ Gate Approval:        <100ms (with DB write)
 
 Monitor with:
 ```bash
-curl http://localhost:8080/metrics | grep http_request_duration_seconds
+curl http://localhost:7474/metrics | grep http_request_duration_seconds
 ```
 
 ---

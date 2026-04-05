@@ -189,7 +189,7 @@ Complete dashboard implementation:
 ✓ Report generation
 ```
 
-**How to run**: `pnpm run dev:web` (open http://localhost:3000)
+**How to run**: `pnpm run dev:web` (open http://localhost:7473)
 
 ---
 
@@ -254,7 +254,7 @@ Complete workflow verified with 22 integration tests:
 ```
 pnpm run ck /ck-init "Build feature"
     ↓
-CLI sends request to API (http://localhost:8080)
+CLI sends request to API (http://localhost:7474)
     ↓
 API validates auth token
     ↓
@@ -280,7 +280,7 @@ Returns confirmation
 
 ### Flow 3: Web UI → API
 ```
-Open http://localhost:3000
+Open http://localhost:7473
     ↓
 Dashboard loads runs from API
     ↓
@@ -367,9 +367,9 @@ npx vitest run packages/auth/src apps/control-service/test/ apps/control-service
 pnpm install
 docker compose up -d
 # Then test each component:
-curl http://localhost:8080/health        # API
+curl http://localhost:7474/health        # API
 pnpm run ck auth status                   # CLI
-open http://localhost:3000               # Web UI
+open http://localhost:7473               # Web UI
 ```
 
 ### Option 3: Follow Complete Workflow (10 minutes)

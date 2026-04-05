@@ -42,7 +42,7 @@ services:
     container_name: cku-control-service
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "7474:7474"
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,15 +50,15 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 8080
+      PORT: 7474
       DATABASE_URL: postgresql://cku:dev@postgres:5432/cku
       REDIS_URL: redis://redis:6379
       CKU_SERVICE_ACCOUNT_SECRET: ${CKU_SERVICE_ACCOUNT_SECRET:?required}
       CKU_LEGACY_API_KEYS_ENABLED: "false"
-      CKU_ALLOWED_ORIGINS: ${CKU_ALLOWED_ORIGINS:-http://localhost:3000}
+      CKU_ALLOWED_ORIGINS: ${CKU_ALLOWED_ORIGINS:-http://localhost:7473}
       LOG_LEVEL: ${LOG_LEVEL:-info}
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474/health || exit 1"]
       interval: 30s
       timeout: 10s
       start_period: 45s

@@ -228,7 +228,7 @@ echo "✅ Redis healthy"
 # Wait for control-service to be ready
 echo "⏳ Waiting for control-service..."
 for i in {1..30}; do
-  if curl -sf http://localhost:8080/health &>/dev/null; then
+  if curl -sf http://localhost:7474/health &>/dev/null; then
     echo "✅ Control service healthy"
     break
   fi
@@ -298,7 +298,7 @@ echo "🏥 Testing health endpoints..."
 
 # Test /health endpoint
 echo "Testing GET /health..."
-HEALTH_RESPONSE=$(curl -s http://localhost:8080/health)
+HEALTH_RESPONSE=$(curl -s http://localhost:7474/health)
 echo "Response: $HEALTH_RESPONSE"
 
 # Verify response contains expected fields
@@ -311,7 +311,7 @@ fi
 
 # Test /ready endpoint
 echo "Testing GET /ready..."
-READY_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ready)
+READY_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:7474/ready)
 
 if [ "$READY_STATUS" -eq 200 ]; then
   echo "✅ /ready returns 200 (ready)"
@@ -424,7 +424,7 @@ echo "🚨 Testing alert rules in staging..."
 
 # Test 1: Verify alert endpoint exists
 echo "Test 1: Checking alert monitoring endpoint..."
-if curl -sf http://localhost:8080/metrics &>/dev/null; then
+if curl -sf http://localhost:7474/metrics &>/dev/null; then
   echo "✅ Metrics endpoint available"
 else
   echo "⚠️  Metrics endpoint not available - may be normal for this version"
@@ -432,7 +432,7 @@ fi
 
 # Test 2: Generate test errors and verify error counter increases
 echo "Test 2: Generating test 5xx error..."
-curl -s http://localhost:8080/test/trigger-error 2>/dev/null || echo "⚠️  Test error endpoint not found"
+curl -s http://localhost:7474/test/trigger-error 2>/dev/null || echo "⚠️  Test error endpoint not found"
 
 # Test 3: Check logging of errors
 echo "Test 3: Checking error logs..."
@@ -462,7 +462,7 @@ cd /home/user/Code-Kit-Ultra
 
 # Set staging environment flag
 export TEST_ENV=staging
-export API_BASE_URL=http://localhost:8080
+export API_BASE_URL=http://localhost:7474
 
 # Run smoke tests
 echo "Executing: pnpm test:smoke --env=staging"

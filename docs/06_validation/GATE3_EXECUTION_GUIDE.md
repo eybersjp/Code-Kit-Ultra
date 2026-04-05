@@ -103,7 +103,7 @@ docker compose exec redis redis-cli ping
 # Expected: PONG
 
 # Check Control Service
-curl http://localhost:8080/health
+curl http://localhost:7474/health
 # Expected: {"status":"healthy","version":"1.3.0"}
 ```
 
@@ -134,7 +134,7 @@ EOF
 
 ```bash
 # Basic health check
-curl -s http://localhost:8080/health | jq .
+curl -s http://localhost:7474/health | jq .
 
 # Expected response:
 # {
@@ -149,7 +149,7 @@ curl -s http://localhost:8080/health | jq .
 
 ```bash
 # Readiness probe
-curl -i http://localhost:8080/ready
+curl -i http://localhost:7474/ready
 
 # Expected:
 # - 200 if service is ready
@@ -197,7 +197,7 @@ To test alert triggering in staging, the system can simulate errors:
 # For manual testing:
 
 # 1. Trigger 5xx error (test endpoint - if implemented)
-curl http://localhost:8080/test/trigger-500
+curl http://localhost:7474/test/trigger-500
 
 # 2. Check logs for alert
 docker compose logs control-service | grep -i "alert\|critical"
@@ -213,7 +213,7 @@ docker compose logs control-service | grep -i "alert\|critical"
 
 ```bash
 export TEST_ENV=staging
-export API_BASE_URL=http://localhost:8080
+export API_BASE_URL=http://localhost:7474
 
 # Run smoke test suite
 pnpm test:smoke

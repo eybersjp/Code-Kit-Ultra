@@ -18,12 +18,12 @@ import { securityHeaders, httpsRedirect } from "./middleware/security-headers.js
 import { globalRateLimiter, tokenCreationRateLimiter } from "./middleware/rate-limit.js";
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 7474;
 
 app.use(httpsRedirect);
 app.use(securityHeaders);
 app.use(cors({
-  origin: process.env.CKU_ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+  origin: process.env.CKU_ALLOWED_ORIGINS?.split(',') || ['http://localhost:7473'],
   credentials: true,
 }));
 app.use(express.json());

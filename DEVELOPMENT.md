@@ -100,7 +100,7 @@ If not using Docker:
    pnpm dev
    ```
 
-   The API will be available at `http://localhost:8080`.
+   The API will be available at `http://localhost:7474`.
 
 ---
 
@@ -167,7 +167,7 @@ npx vitest run packages/auth/src apps/control-service/test/ apps/control-service
 ```
 Code-Kit-Ultra/
 ├── apps/                          # Runnable applications
-│   ├── control-service/           # Express API server (port 8080)
+│   ├── control-service/           # Express API server (port 7474)
 │   │   ├── src/
 │   │   │   ├── handlers/          # HTTP request handlers
 │   │   │   ├── middleware/        # Auth, rate limit, metrics
