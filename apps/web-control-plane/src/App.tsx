@@ -10,6 +10,7 @@ import { Settings } from './pages/Settings';
 import { Analytics } from './pages/Analytics';
 import { PolicyEditor } from './pages/PolicyEditor';
 import { AuditBrowser } from './pages/AuditBrowser';
+import { Automation } from './pages/Automation';
 
 import './styles/index.css';
 
@@ -26,6 +27,7 @@ const App: React.FC = () => {
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/policies" element={<PolicyEditor />} />
           <Route path="/audit-browser" element={<AuditBrowser />} />
+          <Route path="/automation" element={<Automation />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Shell>

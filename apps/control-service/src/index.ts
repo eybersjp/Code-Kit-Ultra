@@ -52,6 +52,14 @@ import {
   getHealingStrategiesHandler,
   getHealingStatsHandler
 } from "./handlers/healing/index.js";
+import {
+  getAutomationStatusHandler,
+  setAutomationModeHandler,
+  getAutoApprovalRulesHandler,
+  getAlertAcknowledgmentRulesHandler,
+  getHealingStrategiesHandler as getAutomationHealingStrategiesHandler,
+  getRollbackStrategiesHandler
+} from "./handlers/get-automation-status.js";
 
 import { ServiceAccountRoutes } from "./routes/service-accounts.js";
 import { verifyRevocation } from "./middleware/verify-revocation.js";
@@ -98,6 +106,14 @@ app.get("/v1/learning/report", authenticate, requireAnyPermission(["policy:view"
 app.get("/v1/learning/reliability", authenticate, requireAnyPermission(["policy:view", "execution:view"]), getLearningReliabilityHandler);
 
 app.get("/v1/learning/policies", authenticate, requireAnyPermission(["policy:view"]), getLearningPoliciesHandler);
+
+// --- Automation ---
+app.get("/v1/automation/status", authenticate, requireAnyPermission(["automation:view"]), getAutomationStatusHandler);
+app.post("/v1/automation/mode", authenticate, requireAnyPermission(["automation:manage"]), setAutomationModeHandler);
+app.get("/v1/automation/approvals", authenticate, requireAnyPermission(["automation:view"]), getAutoApprovalRulesHandler);
+app.get("/v1/automation/alerts", authenticate, requireAnyPermission(["automation:view"]), getAlertAcknowledgmentRulesHandler);
+app.get("/v1/automation/healing", authenticate, requireAnyPermission(["automation:view"]), getAutomationHealingStrategiesHandler);
+app.get("/v1/automation/rollback", authenticate, requireAnyPermission(["automation:view"]), getRollbackStrategiesHandler);
 
 // --- Healing ---
 app.get("/v1/runs/:runId/healing", authenticate, requireAnyPermission(["run:view"]), getHealingForRunHandler);
