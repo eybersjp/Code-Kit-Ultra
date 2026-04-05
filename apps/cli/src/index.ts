@@ -10,6 +10,12 @@ import path from "node:path";
 import os from "node:os";
 import axios from "axios";
 import { saveProjectMemory } from "../../../packages/memory/src";
+import {
+  interactiveRunWorkflow,
+  promptYesNo,
+  selectFromList,
+  promptText,
+} from "./lib/interactive-prompts.js";
 
 const CONFIG_DIR = path.join(os.homedir(), ".ck");
 const SESSION_PATH = path.join(CONFIG_DIR, "session.json");
@@ -224,8 +230,26 @@ program
   .description("Run the Code Kit Ultra pipeline")
   .argument("[idea]", "Project idea (defaults to last idea)")
   .option("-m, --mode <mode>", "turbo | builder | pro | expert")
-  .action((idea: string | undefined, options: { mode?: string }) => {
-    executePipeline(idea, { mode: options.mode ? normalizeMode(options.mode) : undefined });
+  .option("-i, --interactive", "Interactive mode (ask questions)")
+  .action(async (idea: string | undefined, options: { mode?: string; interactive?: boolean }) => {
+    if (options.interactive) {
+      const config = await interactiveRunWorkflow();
+      executePipeline(config.idea, {
+        mode: config.mode,
+      });
+    } else {
+      executePipeline(idea, { mode: options.mode ? normalizeMode(options.mode) : undefined });
+    }
+  });
+
+program
+  .command("/ck-interactive")
+  .description("Interactive setup for Code Kit Ultra (guided workflow)")
+  .action(async () => {
+    const config = await interactiveRunWorkflow();
+    executePipeline(config.idea, {
+      mode: config.mode,
+    });
   });
 
 program
@@ -676,6 +700,35 @@ auth
   });
 
 auth
+  .command("login-interactive")
+  .description("Interactive login (prompts for token)")
+  .action(async () => {
+    console.log(chalk.bold.cyan("\n🔐 Code Kit Ultra — Interactive Login\n"));
+
+    const token = await promptText("Enter your JWT bearer token:");
+
+    try {
+      if (!fs.existsSync(CONFIG_DIR)) fs.mkdirSync(CONFIG_DIR);
+
+      // Verify the token by calling /v1/session
+      const response = await api.get("/v1/session", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const sessionData = {
+        token,
+        ...response.data
+      };
+
+      fs.writeFileSync(SESSION_PATH, JSON.stringify(sessionData, null, 2));
+      console.log(chalk.green("\n✓ Successfully logged in!"));
+      console.log(chalk.dim(`Session: ${sessionData.actor?.actorName || sessionData.actor?.actorId} (${sessionData.actor?.actorType})\n`));
+    } catch (err: any) {
+      console.error(chalk.red(`\n✗ Login failed: ${err.response?.data?.error || err.message}\n`));
+    }
+  });
+
+auth
   .command("logout")
   .description("Clear the local session")
   .action(() => {
@@ -797,6 +850,95 @@ program
       console.log(chalk.green("Success: Step rollback completed."));
     } catch (err: any) {
       console.error(chalk.red(`Error: ${err.message}`));
+    }
+  });
+
+// Main interactive menu command
+program
+  .command("/ck-menu")
+  .description("Show interactive menu of common tasks")
+  .action(async () => {
+    console.log(chalk.bold.cyan("\n📋 Code Kit Ultra — Main Menu\n"));
+
+    const actions = [
+      { name: chalk.green("Run governed pipeline (interactive)"), value: "run" },
+      { name: chalk.green("Login (interactive)"), value: "login" },
+      { name: chalk.cyan("Check authentication status"), value: "status" },
+      { name: chalk.cyan("List recent runs"), value: "runs" },
+      { name: chalk.cyan("Initialize new project"), value: "init" },
+      { name: chalk.red("Exit"), value: "exit" },
+    ];
+
+    let continueMenu = true;
+    while (continueMenu) {
+      const selection = await selectFromList("Select an action:", actions);
+
+      switch (selection) {
+        case "run":
+          const config = await interactiveRunWorkflow();
+          await executePipeline(config.idea, {
+            mode: config.mode,
+          });
+          break;
+
+        case "login":
+          console.log(chalk.bold.cyan("\n🔐 Login\n"));
+          const token = await promptText("Enter your JWT bearer token:");
+          try {
+            if (!fs.existsSync(CONFIG_DIR)) fs.mkdirSync(CONFIG_DIR);
+            const response = await api.get("/v1/session", {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const sessionData = { token, ...response.data };
+            fs.writeFileSync(SESSION_PATH, JSON.stringify(sessionData, null, 2));
+            console.log(chalk.green("✓ Successfully logged in!\n"));
+          } catch (err: any) {
+            console.error(chalk.red(`✗ Login failed: ${err.response?.data?.error || err.message}\n`));
+          }
+          break;
+
+        case "status":
+          const session = getSession();
+          if (!session) {
+            console.log(chalk.yellow("Not logged in.\n"));
+          } else {
+            console.log(chalk.cyan("\n🔐 Authentication Status:"));
+            console.log(chalk.green("✓ Logged in"));
+            console.log(chalk.dim(`  Actor: ${session.actor?.actorName || session.actor?.actorId}`));
+            console.log(chalk.dim(`  Type: ${session.actor?.actorType}`));
+            console.log(chalk.dim(`  Org: ${session.tenant?.orgId}\n`));
+          }
+          break;
+
+        case "runs":
+          try {
+            const memory = loadProjectMemory();
+            if (!memory.runs || memory.runs.length === 0) {
+              console.log(chalk.yellow("\nNo recent runs found.\n"));
+            } else {
+              console.log(chalk.cyan("\n📋 Recent Runs:\n"));
+              memory.runs.slice(0, 5).forEach((run, i) => {
+                const runState = run as any;
+                const status = runState.status || runState.state?.status || "pending";
+                console.log(chalk.dim(`${i + 1}. ${run.id} — ${status}`));
+              });
+              console.log("");
+            }
+          } catch (err) {
+            console.log(chalk.yellow("\nNo project data found.\n"));
+          }
+          break;
+
+        case "init":
+          const idea = await promptText("What do you want to build?");
+          await executePipeline(idea, { mode: "builder" });
+          break;
+
+        case "exit":
+          continueMenu = false;
+          console.log(chalk.cyan("Goodbye!\n"));
+          break;
+      }
     }
   });
 
