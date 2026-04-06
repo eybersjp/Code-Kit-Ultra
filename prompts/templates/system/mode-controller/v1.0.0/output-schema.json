@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mode-controller/v1.0.0/output",
+  "title": "Mode Controller Output Schema",
+  "description": "Structured output produced by the Mode Controller after evaluating session context, actor identity, environment, and policy constraints to recommend the appropriate execution mode.",
+  "type": "object",
+  "required": [
+    "recommended_mode",
+    "reasoning",
+    "risk_factors",
+    "escalation_required"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "recommended_mode": {
+      "type": "string",
+      "enum": ["safe", "balanced", "god"],
+      "description": "The recommended execution mode for this run. 'safe' is the most conservative and is the default for production environments, new actors, or high-risk tasks. 'balanced' is the standard mode. 'god' is the highest-velocity mode and requires explicit operator opt-in and policy authorization."
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Human-readable explanation of why this mode was recommended. Must cite the specific factors that drove the decision — actor type, environment, risk score, policy constraints, and operator signals. This is an auditable record and must be specific, not generic."
+    },
+    "risk_factors": {
+      "type": "array",
+      "description": "The specific risk factors identified during mode selection evaluation. Each entry describes one factor that influenced the recommendation. Factors that pushed toward a more conservative mode should be clearly distinguished from those that permitted a more aggressive mode.",
+      "items": {
+        "type": "object",
+        "required": ["factor", "value", "impact", "direction"],
+        "additionalProperties": false,
+        "properties": {
+          "factor": {
+            "type": "string",
+            "description": "The name of the risk factor being evaluated (e.g., 'target-environment', 'actor-trust-level', 'task-risk-score', 'policy-mode-restriction')."
+          },
+          "value": {
+            "type": "string",
+            "description": "The observed value of this factor for the current run (e.g., 'production', 'new-actor', '8', 'god-mode-disabled')."
+          },
+          "impact": {
+            "type": "string",
+            "description": "The influence this factor had on mode selection (e.g., 'forced safe mode', 'permitted god mode', 'required escalation')."
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["conservative", "permissive", "neutral"],
+            "description": "Whether this factor pushed mode selection toward a more conservative mode, a more permissive mode, or had no directional effect."
+          }
+        }
+      },
+      "minItems": 0
+    },
+    "escalation_required": {
+      "type": "boolean",
+      "description": "True if the mode selection decision is ambiguous and requires explicit human confirmation before execution may begin. When true, the escalation_reason field must also be populated."
+    },
+    "escalation_reason": {
+      "type": "string",
+      "description": "Required when escalation_required is true. Explains what is ambiguous about the mode selection, what information or decision is needed from the human, and what modes are under consideration. Should be clear enough for a non-technical operator to make an informed decision."
+    },
+    "mode_override_applied": {
+      "type": "boolean",
+      "description": "True if a policy-mandated mode override was applied, superseding operator preference or other selection logic. When true, the recommended_mode reflects the policy mandate, not the Mode Controller's independent assessment."
+    },
+    "override_source": {
+      "type": "string",
+      "description": "If mode_override_applied is true, identifies the source of the override (e.g., 'policy.mandatedMode', 'production-environment-default', 'high-risk-score-override')."
+    }
+  },
+  "if": {
+    "properties": {
+      "escalation_required": { "const": true }
+    }
+  },
+  "then": {
+    "required": ["escalation_reason"]
+  }
+}

@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dev-agent/v1.0.0/output",
+  "title": "Dev Agent Output Schema",
+  "description": "Structured output produced by the Dev Agent after implementing a coding task within approved scope.",
+  "type": "object",
+  "required": [
+    "task_summary",
+    "files_modified",
+    "tests_written",
+    "assumptions",
+    "risks",
+    "verification_steps",
+    "rollback_instructions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "task_summary": {
+      "type": "string",
+      "description": "A concise human-readable description of the task that was implemented, what was changed, and the outcome. Should be sufficient for a reviewer to understand the scope of changes without reading every file diff."
+    },
+    "files_modified": {
+      "type": "array",
+      "description": "Complete list of files that were created, modified, or deleted during task execution.",
+      "items": {
+        "type": "object",
+        "required": ["path", "operation", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Relative or absolute path to the file."
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["created", "modified", "deleted", "renamed"],
+            "description": "The type of change applied to this file."
+          },
+          "description": {
+            "type": "string",
+            "description": "A brief summary of what changed in this file and why."
+          },
+          "lines_changed": {
+            "type": "integer",
+            "description": "Approximate number of lines changed (optional but recommended for large files)."
+          }
+        }
+      },
+      "minItems": 0
+    },
+    "tests_written": {
+      "type": "array",
+      "description": "List of test files or test cases written as part of this task. If no tests were written, this array should be empty with a note captured in assumptions.",
+      "items": {
+        "type": "object",
+        "required": ["path", "test_type", "coverage_description"],
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "type": "string",
+            "description": "Path to the test file."
+          },
+          "test_type": {
+            "type": "string",
+            "enum": ["unit", "integration", "e2e", "contract", "snapshot", "other"],
+            "description": "The category of test."
+          },
+          "coverage_description": {
+            "type": "string",
+            "description": "What scenarios, edge cases, or code paths this test covers."
+          }
+        }
+      },
+      "minItems": 0
+    },
+    "assumptions": {
+      "type": "array",
+      "description": "All assumptions made during implementation that reviewers or subsequent agents should be aware of. Includes any scope boundaries that were inferred rather than explicitly stated.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 0
+    },
+    "risks": {
+      "type": "array",
+      "description": "Risks or concerns identified during implementation. These do not necessarily block delivery but should be tracked and addressed before production deployment.",
+      "items": {
+        "type": "object",
+        "required": ["description", "severity", "recommendation"],
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the risk or concern."
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["low", "medium", "high"],
+            "description": "Severity level of the risk."
+          },
+          "recommendation": {
+            "type": "string",
+            "description": "Recommended action to address or mitigate this risk."
+          }
+        }
+      },
+      "minItems": 0
+    },
+    "verification_steps": {
+      "type": "array",
+      "description": "Ordered list of steps that must be executed to verify the implementation is correct. These steps should be concrete and runnable by an automated verification agent or human reviewer.",
+      "items": {
+        "type": "object",
+        "required": ["step_id", "description", "command_or_check", "expected_result"],
+        "additionalProperties": false,
+        "properties": {
+          "step_id": {
+            "type": "string",
+            "description": "Short unique identifier for this verification step (e.g., 'verify-1')."
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of what this step verifies."
+          },
+          "command_or_check": {
+            "type": "string",
+            "description": "The command to run, assertion to evaluate, or check to perform."
+          },
+          "expected_result": {
+            "type": "string",
+            "description": "The expected outcome of this step if the implementation is correct."
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "rollback_instructions": {
+      "type": "object",
+      "description": "Instructions for safely reverting all changes made during this task if verification fails or if the changes need to be undone.",
+      "required": ["summary", "steps"],
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "A brief description of what rollback involves and any important caveats."
+        },
+        "steps": {
+          "type": "array",
+          "description": "Ordered list of rollback steps.",
+          "items": {
+            "type": "object",
+            "required": ["step_id", "description", "command_or_action"],
+            "additionalProperties": false,
+            "properties": {
+              "step_id": {
+                "type": "string",
+                "description": "Short unique identifier for this rollback step."
+              },
+              "description": {
+                "type": "string",
+                "description": "What this rollback step does."
+              },
+              "command_or_action": {
+                "type": "string",
+                "description": "The command to run or manual action to take."
+              }
+            }
+          },
+          "minItems": 1
+        }
+      }
+    }
+  }
+}
