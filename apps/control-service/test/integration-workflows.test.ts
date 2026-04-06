@@ -290,7 +290,7 @@ describe("Integration Workflows", () => {
 
       if (qaRule) {
         // Should be able to retry verification
-        expect(qaRule.maxPass Percentage).toBeGreaterThan(0);
+        expect(qaRule.maxPassPercentage).toBeGreaterThan(0);
       }
     });
 
