@@ -1,0 +1,10 @@
+{
+  "runtime_version": "1.0.0",
+  "prompts": [
+    { "id": "ai-ceo", "active_version": "1.0.0", "path": "prompts/templates/system/ai-ceo/v1.0.0" },
+    { "id": "dev-agent", "active_version": "1.0.0", "path": "prompts/templates/system/dev-agent/v1.0.0" },
+    { "id": "gate-manager", "active_version": "1.0.0", "path": "prompts/templates/system/gate-manager/v1.0.0" },
+    { "id": "orchestrator", "active_version": "1.0.0", "path": "prompts/templates/system/orchestrator/v1.0.0" },
+    { "id": "mode-controller", "active_version": "1.0.0", "path": "prompts/templates/system/mode-controller/v1.0.0" }
+  ]
+}

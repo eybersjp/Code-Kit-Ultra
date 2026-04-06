@@ -70,5 +70,36 @@ export const api = {
   getOrgs: async () => {
       // Placeholder for organizational mapping if any
       return [{ id: 'org-1', name: 'Default Organization' }];
-  }
+  },
+
+  // Automation
+  getAutomationStatus: async () => {
+    const res = await apiBase.get('/automation/status');
+    return res.data;
+  },
+
+  setAutomationMode: async (mode: 'safe' | 'balanced' | 'aggressive') => {
+    const res = await apiBase.post('/automation/mode', { mode });
+    return res.data;
+  },
+
+  getAutoApprovalRules: async () => {
+    const res = await apiBase.get('/automation/approvals');
+    return res.data;
+  },
+
+  getAlertAcknowledgmentRules: async () => {
+    const res = await apiBase.get('/automation/alerts');
+    return res.data;
+  },
+
+  getHealingStrategies: async () => {
+    const res = await apiBase.get('/automation/healing');
+    return res.data;
+  },
+
+  getRollbackStrategies: async () => {
+    const res = await apiBase.get('/automation/rollback');
+    return res.data;
+  },
 };

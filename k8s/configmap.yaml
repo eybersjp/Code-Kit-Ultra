@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cku-config
+  namespace: cku
+data:
+  LOG_LEVEL: "info"
+  NODE_ENV: "production"
+  CKU_LEGACY_API_KEYS_ENABLED: "false"
