@@ -24,19 +24,23 @@ pnpm run dev:web
 This is a **pnpm monorepo** with 3 workspaces:
 
 ### `packages/` — Core Libraries
-- **auth** — JWT execution tokens, session revocation, RBAC, InsForge integration
-- **governance** — 9 governance gates + risk scoring + adaptive consensus
-- **orchestrator** — Run state machine and step sequencing
-- **policy** — Policy evaluation (role-mapping, permissions)
-- **audit** — SHA-256 hash-chain audit logger (dual-emit to InsForge)
-- **prompt-system** — Dynamic prompt compilation and versioning
-- **agents** — Agent profiles and definitions (used by governance consensus)
-- **observability** — Prometheus metrics
-- **realtime** — WebSocket event bus
-- **skill-engine** — Skill routing and execution
-- **learning** — Outcome-driven learning loop
-- **healing** — Self-healing and remediation
-- **shared** — Shared types, logger, DB pool registry
+
+**Phase 1 (High-Priority):**
+- [**shared**](packages/shared/CLAUDE.md) — Shared types, logger, DB pool registry
+- [**auth**](packages/auth/CLAUDE.md) — JWT execution tokens, session revocation, RBAC, InsForge integration
+- [**policy**](packages/policy/CLAUDE.md) — Policy evaluation (role-mapping, permissions)
+- [**governance**](packages/governance/CLAUDE.md) — 9 governance gates + risk scoring + adaptive consensus
+- [**orchestrator**](packages/orchestrator/CLAUDE.md) — Run state machine and step sequencing
+
+**Phase 2 Optional (Tier A):**
+- [**audit**](packages/audit/CLAUDE.md) — SHA-256 hash-chain audit logger (dual-emit to InsForge)
+- [**agents**](packages/agents/CLAUDE.md) — Agent profiles and definitions (used by governance consensus)
+- [**realtime**](packages/realtime/CLAUDE.md) — WebSocket event bus for real-time updates
+- [**observability**](packages/observability/CLAUDE.md) — Prometheus metrics and traces
+- [**learning**](packages/learning/CLAUDE.md) — Outcome-driven learning loop + policy evolution
+- [**healing**](packages/healing/CLAUDE.md) — Self-healing strategies and rollback coordination
+- [**skill-engine**](packages/skill-engine/CLAUDE.md) — Skill routing, registration, and execution
+- [**prompt-system**](packages/prompt-system/CLAUDE.md) — Dynamic prompt compilation and versioning
 
 ### `apps/` — Applications
 - **control-service** (Express, port 7474) — Governance orchestrator + API
@@ -71,6 +75,14 @@ sudo apt-get install redis-server && sudo systemctl start redis-server
 ```
 
 **Note**: Windows users should use Docker or WSL2 for development. Native Windows PostgreSQL/Redis setup is not tested.
+
+## Architecture & Configuration
+
+Comprehensive guides for system design, policy configuration, and testing:
+
+- [**System Architecture**](docs/ARCHITECTURE.md) — System layers, request/execution flows, package dependency graph
+- [**Config Schema**](docs/CONFIG_SCHEMA.md) — policy.json reference, mode-specific overrides, role definitions
+- [**Testing Guide**](docs/TESTING.md) — Consolidated test commands, patterns, and fixtures
 
 ## Key Testing Commands
 
