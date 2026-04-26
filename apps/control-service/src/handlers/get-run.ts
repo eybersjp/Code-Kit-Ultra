@@ -7,7 +7,10 @@ import { requireAnyPermission } from "../middleware/authorize.js";
 // Needs exact signature for express middleware, or we could just export the function handling req/res
 export async function getRunHandler(req: Request, res: Response) {
   try {
-    const auth = (req as any).auth;
+    const auth = req.auth;
+    if (!auth) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const runId = req.params.id as string;
     const run = RunReader.getRun(runId);
 

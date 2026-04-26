@@ -1,6 +1,7 @@
-import { AlertAcknowledgmentService } from "./alert-acknowledgment-service";
+import { getAlertAcknowledgmentService } from "./alert-acknowledgment-service";
 import { AuditEventBuilder, AuditActions } from "../lib/audit-builder";
 import { logger } from "../../../../packages/shared/src/logger";
+import { getAlertStore } from "./alert-store";
 import type { TenantContext, ActorType } from "../../../../packages/shared/src/types";
 
 /**
@@ -50,7 +51,7 @@ export async function onAlertAutoAcknowledged(
     await new AuditEventBuilder(AuditActions.ALERT_AUTO_ACKNOWLEDGED, {
       tenant: context.tenant,
       actor: context.actor,
-    } as any)
+    })
       .withAlertId(context.alertId)
       .withRuleId(context.ruleId)
       .withResult("success")
@@ -116,7 +117,7 @@ export async function onAlertEscalated(
     await new AuditEventBuilder(AuditActions.ALERT_ESCALATION, {
       tenant: context.tenant,
       actor: context.actor,
-    } as any)
+    })
       .withAlertId(context.alertId)
       .withRuleId(context.ruleId)
       .withResult("failure")
@@ -192,7 +193,7 @@ export async function onAcknowledgmentCompleted(
     await new AuditEventBuilder(AuditActions.ALERT_ACKNOWLEDGMENT_COMPLETED, {
       tenant: context.tenant,
       actor: context.actor,
-    } as any)
+    })
       .withAlertId(context.alertId)
       .withResult(context.status === "acknowledged" ? "success" : "failure")
       .withCorrelationId(context.correlationId)

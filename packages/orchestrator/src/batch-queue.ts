@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import type { BuilderActionBatch } from "../../agents/src/action-types";
+import { generateBatchId } from "../../shared/src/id-generator";
 
 export type QueueStatus = "pending" | "approved" | "executed" | "blocked";
 
@@ -33,7 +34,7 @@ function ensureDir(dir: string) {
 }
 
 function randomId() {
-  return "batch_" + Math.random().toString(36).slice(2, 10);
+  return generateBatchId();
 }
 
 export function createQueuedBatch(params: {

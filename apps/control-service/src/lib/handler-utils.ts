@@ -27,7 +27,7 @@ export interface AuthContext {
  * if authenticate middleware is applied).
  */
 export function extractAuthContext(req: Request): AuthContext {
-  const auth = (req as any).auth;
+  const auth = req.auth;
 
   if (!auth) {
     throw new Error("Authentication context not found in request");

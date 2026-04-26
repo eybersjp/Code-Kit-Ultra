@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../../packages/shared/src/*"],
+      "@audit/*": ["../../packages/audit/src/*"],
+      "@orchestrator/*": ["../../packages/orchestrator/src/*"],
+      "@governance/*": ["../../packages/governance/src/*"],
+      "@memory/*": ["../../packages/memory/src/*"],
+      "@core/*": ["../../packages/core/src/*"]
+    },
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src", "test"],
+  "exclude": ["node_modules", "dist"]
+}

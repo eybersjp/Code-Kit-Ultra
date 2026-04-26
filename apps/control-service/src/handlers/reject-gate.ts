@@ -23,12 +23,20 @@ import {
 export async function rejectGateHandler(req: Request, res: Response) {
   try {
     const context = extractAuthContext(req);
+    if (!context) {
+      return res.status(401).json({ error: "Unauthorized: No auth context" });
+    }
+    if (!context.actor?.id || !context.actor?.name || !context.tenant?.orgId) {
+      return res.status(401).json({ error: "Unauthorized: Incomplete auth context" });
+    }
+
     const gateId = extractGateId(req);
     const reason = req.body?.reason as string | undefined;
     const runId = req.body?.runId as string | undefined;
 
     // Validate required fields
     try {
+      validators.required(runId, 'runId');
       validators.required(reason, 'reason');
       validators.minLength(reason || '', 5, 'reason');
     } catch (err: any) {
@@ -39,7 +47,7 @@ export async function rejectGateHandler(req: Request, res: Response) {
     }
 
     // Get current gate decision
-    const gateDecision = await GateStore.getGateDecision(gateId, runId);
+    const gateDecision = await GateStore.getGateDecision(gateId, runId!);
 
     if (!gateDecision) {
       return sendNotFound(res, 'Gate decision not found', 'gate');

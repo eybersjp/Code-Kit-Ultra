@@ -44,7 +44,13 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       } else {
         session = await resolveInsForgeSession(token);
       }
-      
+
+      // Validate session was successfully resolved
+      if (!session || !session.actor || !session.tenant) {
+        res.status(401).json({ error: "Unauthorized: Invalid bearer token" });
+        return;
+      }
+
       const permissions = resolvePermissions(session.actor.roles);
 
       req.auth = {
@@ -54,7 +60,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
         authMode: "bearer_session",
         memberships: session.actor.roles,
       };
-      
+
       return next();
     }
 
@@ -70,7 +76,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
       // Log deprecation for human/operator usage
       console.warn(`[AUTH] DEPRECATED: Legacy API key used for actor ${legacyUser.id}. Please transition to InsForge bearer sessions for human access or Service Account tokens for automated tasks.`);
 
-      req.user = legacyUser as any; // Legacy patch for existing handlers
+      req.user = legacyUser;
       
       const permissions = resolvePermissions([legacyUser.role]);
 
@@ -79,7 +85,7 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
           actorId: legacyUser.id,
           actorName: legacyUser.id, // Fallback since legacy user has no name
           actorType: "legacy_api_key",
-          roles: [legacyUser.role as any],
+          roles: [legacyUser.role],
         },
         tenant: {
           orgId: "default",

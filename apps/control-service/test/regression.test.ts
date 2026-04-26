@@ -32,11 +32,20 @@ vi.mock('../src/db/seed.js', () => ({
 }));
 
 vi.mock('../../../packages/auth/src/resolve-session.js', () => ({
-  resolveInsForgeSession: vi.fn().mockRejectedValue(new Error('No token')),
+  resolveInsForgeSession: vi.fn(),
 }));
 
 vi.mock('../../../packages/core/src/auth', () => ({
   resolveApiKeyUser: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock('redis', () => ({
+  createClient: vi.fn(() => ({
+    on: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 import { app } from '../src/index.js';
@@ -63,7 +72,6 @@ const validAdminSession = {
 describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (resolveInsForgeSession as any).mockRejectedValue(new Error('No token'));
   });
 
   describe('REG-001: Health & Readiness Endpoints (v1.2.0 behavior preserved)', () => {
@@ -100,7 +108,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
     });
 
     it('Valid auth token still returns 200 with session data', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
       const res = await request(app)
         .get('/v1/session')
@@ -119,7 +127,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
     });
 
     it('GET /v1/runs with auth returns structured response', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
       const res = await request(app)
         .get('/v1/runs')
@@ -138,7 +146,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
     });
 
     it('POST /v1/runs with auth validates request structure', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
       const res = await request(app)
         .post('/v1/runs')
@@ -173,7 +181,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
     });
 
     it('POST /v1/gates/:id/approve with auth validates', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
       const res = await request(app)
         .post('/v1/gates/gate-001/approve')
@@ -214,7 +222,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
 
   describe('REG-006: Session Management (v1.2.0 behavior preserved)', () => {
     it('Session revocation check still works', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
       // The revocation check should be called but not fail the request
       const res = await request(app)
@@ -230,7 +238,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
         expiresAt: Math.floor(Date.now() / 1000) - 3600, // Expired
       };
 
-      (resolveInsForgeSession as any).mockResolvedValueOnce(expiredSession);
+      (resolveInsForgeSession as any).mockResolvedValue(expiredSession);
 
       const res = await request(app)
         .get('/v1/session')
@@ -258,7 +266,7 @@ describe('Regression Tests — v1.2.0 → v1.3.0 Compatibility', () => {
 
   describe('REG-008: Response Format Consistency (v1.2.0 behavior preserved)', () => {
     it('All authenticated responses include proper content-type', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
       const res = await request(app)
         .get('/v1/session')

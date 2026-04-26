@@ -5,7 +5,10 @@ import { loadRunBundle } from "../../../../../packages/memory/src/run-store";
 
 export async function rollbackStepHandler(req: Request, res: Response) {
   try {
-    const auth = (req as any).auth;
+    const auth = req.auth;
+    if (!auth) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const actorName = auth.actor.actorName || "Unknown Actor";
     const runId = req.params.id as string;
     const bundle = loadRunBundle(runId);

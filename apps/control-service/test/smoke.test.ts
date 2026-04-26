@@ -33,11 +33,20 @@ vi.mock('../src/db/seed.js', () => ({
 
 // Mock auth to avoid real JWT validation
 vi.mock('../../../packages/auth/src/resolve-session.js', () => ({
-  resolveInsForgeSession: vi.fn().mockRejectedValue(new Error('No token')),
+  resolveInsForgeSession: vi.fn(),
 }));
 
 vi.mock('../../../packages/core/src/auth', () => ({
   resolveApiKeyUser: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock('redis', () => ({
+  createClient: vi.fn(() => ({
+    on: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 import { app } from '../src/index.js';
@@ -82,8 +91,6 @@ describe('Smoke Tests — Startup & Health', () => {
 describe('Smoke Tests — Authentication', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset to default rejection so unauthenticated tests work
-    (resolveInsForgeSession as any).mockRejectedValue(new Error('No token'));
   });
 
   it('A-001: GET /v1/session with no token returns 401', async () => {
@@ -92,7 +99,7 @@ describe('Smoke Tests — Authentication', () => {
   });
 
   it('A-002: GET /v1/session with valid mocked token returns session data', async () => {
-    (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+    (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
     const res = await request(app)
       .get('/v1/session')
@@ -116,6 +123,11 @@ describe('Smoke Tests — Authentication', () => {
 });
 
 describe('Smoke Tests — Runs (auth required)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (resolveInsForgeSession as any).mockRejectedValue(new Error('Invalid or expired token'));
+  });
+
   it('R-001: POST /v1/runs requires authentication', async () => {
     const res = await request(app)
       .post('/v1/runs')
@@ -135,7 +147,7 @@ describe('Smoke Tests — Runs (auth required)', () => {
 describe('Smoke Tests — Gates (auth required)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (resolveInsForgeSession as any).mockRejectedValue(new Error('No token'));
+    (resolveInsForgeSession as any).mockRejectedValue(new Error('Invalid or expired token'));
   });
 
   it('G-001: POST /v1/gates/:id/approve requires authentication', async () => {
@@ -169,7 +181,7 @@ describe('Smoke Tests — Gates (auth required)', () => {
   });
 
   it('G-002: POST /v1/gates/:id/reject with auth but no reason returns 400 or 401', async () => {
-    (resolveInsForgeSession as any).mockResolvedValueOnce(validAdminSession);
+    (resolveInsForgeSession as any).mockResolvedValue(validAdminSession);
 
     const res = await request(app)
       .post('/v1/gates/gate-123/reject')

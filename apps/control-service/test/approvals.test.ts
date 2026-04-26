@@ -24,7 +24,7 @@ describe("Control Service: Gate Approval Permissions", () => {
     (resolveInsForgeSession as any).mockResolvedValue(reviewerSession);
 
     const response = await request(app)
-      .post("/approvals/gate-123/approve")
+      .post("/v1/gates/gate-123/approve")
       .set("Authorization", "Bearer reviewer-token");
 
     // We don't have the approval service logic mocked here so it might fail with 500,
@@ -38,7 +38,7 @@ describe("Control Service: Gate Approval Permissions", () => {
     (resolveInsForgeSession as any).mockResolvedValue(viewerSession);
 
     const response = await request(app)
-      .post("/approvals/gate-123/approve")
+      .post("/v1/gates/gate-123/approve")
       .set("Authorization", "Bearer viewer-token");
 
     expect(response.status).toBe(403);

@@ -1,7 +1,8 @@
-import { loadRunBundle, updateRunState } from "../../../../packages/memory/src/run-store";
+import { loadRunBundle, updateRunState } from "@memory/run-store";
 import { AuditEventBuilder, AuditActions } from "../lib/audit-builder";
-import { logger } from "../../../../packages/shared/src/logger";
-import type { TenantContext, ActorType } from "../../../../packages/shared/src/types";
+import { logger } from "@shared/logger";
+import type { TenantContext, ActorType } from "@shared/types";
+import { getAlertStore } from "./alert-store";
 
 /**
  * Event handler for auto-approval chain events
@@ -40,7 +41,7 @@ export async function onGateApproved(context: AutoApprovalEventContext): Promise
     await new AuditEventBuilder(AuditActions.GATE_AUTO_APPROVED, {
       tenant: context.tenant,
       actor: context.actor,
-    } as any)
+    })
       .withRunId(context.runId)
       .withGateId(context.gateId)
       .withResult("success")
@@ -99,7 +100,7 @@ export async function onGateRejected(context: AutoApprovalEventContext): Promise
     await new AuditEventBuilder(AuditActions.GATE_REJECTED, {
       tenant: context.tenant,
       actor: context.actor,
-    } as any)
+    })
       .withRunId(context.runId)
       .withGateId(context.gateId)
       .withResult("failure")
@@ -117,6 +118,26 @@ export async function onGateRejected(context: AutoApprovalEventContext): Promise
       bundle.state.rejectedGates = [...rejectedGates, context.gateId];
       bundle.state.updatedAt = new Date().toISOString();
       updateRunState(context.runId, bundle.state);
+
+      // Create alert for gate rejection
+      const alertStore = getAlertStore();
+      await alertStore.recordAlert({
+        id: `alert-${context.correlationId}-${context.gateId}`,
+        type: "deployment_failure",
+        severity: "high",
+        title: `Gate Rejected: ${context.gateId}`,
+        description: `The gate ${context.gateId} was rejected. Reason: ${context.metadata?.reason || "Unknown"}`,
+        isResolved: false,
+        createdAt: new Date(),
+        source: "auto-approval-chain",
+        alertId: context.gateId,
+        metadata: {
+          runId: context.runId,
+          gateId: context.gateId,
+          correlationId: context.correlationId,
+          reason: context.metadata?.reason,
+        },
+      });
     }
 
     logger.info(
@@ -158,7 +179,7 @@ export async function onAutoApprovalChainCompleted(
     await new AuditEventBuilder("AUTO_APPROVAL_CHAIN_COMPLETED", {
       tenant: context.tenant,
       actor: context.actor,
-    } as any)
+    })
       .withRunId(context.runId)
       .withResult(context.result === "success" ? "success" : "failure")
       .withCorrelationId(context.correlationId)
@@ -177,6 +198,30 @@ export async function onAutoApprovalChainCompleted(
     bundle.state.chainCompletedAt = new Date().toISOString();
     bundle.state.updatedAt = new Date().toISOString();
     updateRunState(context.runId, bundle.state);
+
+    // Create alert for failures (but not for successful completions)
+    if (context.result !== "success") {
+      const alertStore = getAlertStore();
+      const severity = context.result === "full_failure" ? "critical" : "high";
+      await alertStore.recordAlert({
+        id: `alert-chain-${context.correlationId}`,
+        type: "approval_chain_failure",
+        severity,
+        title: `Auto-Approval Chain ${context.result === "full_failure" ? "Failed" : "Partially Failed"}`,
+        description: `Approved: ${context.approvedGates}/${context.totalGates}, Rejected: ${context.rejectedGates}/${context.totalGates}`,
+        isResolved: false,
+        createdAt: new Date(),
+        source: "auto-approval-chain",
+        metadata: {
+          runId: context.runId,
+          correlationId: context.correlationId,
+          result: context.result,
+          totalGates: context.totalGates,
+          approvedGates: context.approvedGates,
+          rejectedGates: context.rejectedGates,
+        },
+      });
+    }
 
     logger.info(
       {
