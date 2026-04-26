@@ -11,9 +11,14 @@ import { logger } from '../lib/logger.js';
  */
 export async function rotateServiceAccountSecretHandler(req: Request, res: Response) {
   try {
+    const auth = req.auth;
+    if (!auth) {
+      return res.status(401).json({ error: 'UNAUTHORIZED' });
+    }
+
     const saId = req.params['id'] as string;
-    const actorId = String((req as any).auth?.actor?.actorId || 'unknown');
-    const orgId = String((req as any).auth?.org?.id || 'unknown');
+    const actorId = auth.actor.actorId;
+    const orgId = auth.tenant.orgId;
 
     // Verify the service account exists and belongs to this org
     const sa = await ServiceAccountStore.getServiceAccount(saId, orgId);

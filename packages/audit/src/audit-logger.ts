@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { getPool } from '../../shared/src/db.js';
 import { logger } from '../../shared/src/logger.js';
+import { generateAuditId } from '../../shared/src/id-generator.js';
 
 export interface AuditEvent {
   id: string;
@@ -69,7 +70,7 @@ export class AuditLogger {
         const hash = this.computeHash(eventData, previousHash);
 
         // Insert audit event
-        const id = `audit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const id = generateAuditId();
         const query = `
           INSERT INTO audit_events (
             id, org_id, actor, action, resource_type, resource_id,

@@ -2,6 +2,22 @@ import { writeAuditEvent } from "../../../../packages/audit/src/index.js";
 import type { AuthContext } from "./handler-utils.js";
 
 /**
+ * Flexible audit context that works with different actor/tenant structures.
+ */
+interface AuditContext {
+  actor: {
+    id: string;
+    name: string;
+    type: string;
+  };
+  tenant: {
+    orgId: string;
+    workspaceId?: string;
+    projectId?: string;
+  };
+}
+
+/**
  * Fluent builder for creating structured audit events.
  * Ensures consistent audit event structure across all handlers.
  *
@@ -15,15 +31,15 @@ import type { AuthContext } from "./handler-utils.js";
 export class AuditEventBuilder {
   private event: Record<string, any>;
 
-  constructor(action: string, context: AuthContext) {
+  constructor(action: string, context: AuthContext | AuditContext) {
     this.event = {
       action,
       actorName: context.actor.name,
       actorId: context.actor.id,
       actorType: context.actor.type,
       orgId: context.tenant.orgId,
-      workspaceId: context.tenant.workspaceId,
-      projectId: context.tenant.projectId,
+      ...(context.tenant.workspaceId && { workspaceId: context.tenant.workspaceId }),
+      ...(context.tenant.projectId && { projectId: context.tenant.projectId }),
       timestamp: new Date().toISOString(),
     };
   }

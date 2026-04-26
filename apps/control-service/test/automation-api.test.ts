@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import request from "supertest";
-import { app } from "../src/index";
-import { resolveInsForgeSession } from "../../../packages/auth/src/resolve-session";
 
-vi.mock("../../../packages/auth/src/resolve-session");
+// MUST import setup before importing app to ensure mocks are hoisted
+import { mockResolveInsForgeSession } from "./setup";
+import { app } from "../src/index";
 
 describe("Automation API Endpoints", () => {
   const adminSession = {
@@ -32,7 +32,10 @@ describe("Automation API Endpoints", () => {
 
   describe("GET /v1/automation/status", () => {
     it("should allow authenticated users to get automation status", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/status")
@@ -50,7 +53,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should return status object", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/status")
@@ -67,7 +73,10 @@ describe("Automation API Endpoints", () => {
 
   describe("POST /v1/automation/mode", () => {
     it("should allow changing automation mode", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .post("/v1/automation/mode")
@@ -79,7 +88,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should require automation:manage permission", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(viewerSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "viewer-token") return viewerSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .post("/v1/automation/mode")
@@ -91,7 +103,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should accept safe mode", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .post("/v1/automation/mode")
@@ -102,7 +117,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should accept balanced mode", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .post("/v1/automation/mode")
@@ -113,7 +131,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should accept aggressive mode", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .post("/v1/automation/mode")
@@ -124,7 +145,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should reject invalid mode", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .post("/v1/automation/mode")
@@ -137,7 +161,10 @@ describe("Automation API Endpoints", () => {
 
   describe("GET /v1/automation/approvals", () => {
     it("should allow getting auto-approval rules", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/approvals")
@@ -155,7 +182,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should return rules array", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/approvals")
@@ -170,7 +200,10 @@ describe("Automation API Endpoints", () => {
 
   describe("GET /v1/automation/alerts", () => {
     it("should allow getting alert acknowledgment rules", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/alerts")
@@ -188,7 +221,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should return rules", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/alerts")
@@ -203,7 +239,10 @@ describe("Automation API Endpoints", () => {
 
   describe("GET /v1/automation/healing", () => {
     it("should allow getting healing strategies", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/healing")
@@ -221,7 +260,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should return strategies", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/healing")
@@ -236,7 +278,10 @@ describe("Automation API Endpoints", () => {
 
   describe("GET /v1/automation/rollback", () => {
     it("should allow getting rollback strategies", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/rollback")
@@ -254,7 +299,10 @@ describe("Automation API Endpoints", () => {
     });
 
     it("should return strategies", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const response = await request(app)
         .get("/v1/automation/rollback")
@@ -269,7 +317,10 @@ describe("Automation API Endpoints", () => {
 
   describe("Endpoint Consistency", () => {
     it("should have consistent response format", async () => {
-      (resolveInsForgeSession as any).mockResolvedValue(adminSession);
+      mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+        if (token === "admin-token") return adminSession;
+        throw new Error("invalid token");
+      });
 
       const endpoints = [
         "/v1/automation/approvals",

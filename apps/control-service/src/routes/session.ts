@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 
 export function getSession(req: Request, res: Response) {
-  const auth = (req as any).auth;
-  
+  const auth = req.auth;
+
   if (!auth) {
     return res.status(401).json({ error: "Unauthenticated" });
   }

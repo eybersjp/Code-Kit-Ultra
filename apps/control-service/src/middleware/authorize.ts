@@ -4,7 +4,7 @@ import { Permission } from "../../../../packages/policy/src/permissions.js";
 // Require a specific single permission
 export function requirePermission(permission: Permission) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const auth = (req as any).auth;
+    const auth = req.auth;
     if (!auth) return res.status(401).json({ error: "Missing authentication context" });
 
     if (!auth.permissions.includes(permission)) {
@@ -17,7 +17,7 @@ export function requirePermission(permission: Permission) {
 // Require ANY of the permissions in the list
 export function requireAnyPermission(permissions: Permission[]) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const auth = (req as any).auth;
+    const auth = req.auth;
     if (!auth) return res.status(401).json({ error: "Missing authentication context" });
 
     const hasAny = permissions.some((p: Permission) => auth.permissions.includes(p));
@@ -33,7 +33,7 @@ export function requireAnyPermission(permissions: Permission[]) {
 // Require the request target to match actor's project scope
 export function requireProjectScope() {
   return (req: Request, res: Response, next: NextFunction) => {
-    const auth = (req as any).auth;
+    const auth = req.auth;
     if (!auth) return res.status(401).json({ error: "Missing authentication context" });
 
     const targetProject = req.params.projectId || req.query.projectId || req.body.projectId;
@@ -47,7 +47,7 @@ export function requireProjectScope() {
 // Require the request target to match actor's org scope
 export function requireOrgScope() {
   return (req: Request, res: Response, next: NextFunction) => {
-    const auth = (req as any).auth;
+    const auth = req.auth;
     if (!auth) return res.status(401).json({ error: "Missing authentication context" });
 
     const targetOrg = req.params.orgId || req.query.orgId || req.body.orgId;

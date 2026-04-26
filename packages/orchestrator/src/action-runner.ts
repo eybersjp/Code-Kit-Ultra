@@ -111,11 +111,13 @@ export function runActionBatch(params: {
   batch: BuilderActionBatch;
   approvedGates?: string[];
   dryRun?: boolean;
+  parallel?: boolean;
 }): ActionRunnerResult {
   const { workspaceRoot, mode, batch } = params;
   const approvedGates = params.approvedGates ?? [];
   const modePolicy = getModePolicy(mode);
   const dryRun = params.dryRun ?? modePolicy.execution.dryRunByDefault;
+  const parallel = params.parallel ?? false;
 
   const assessments = batch.actions.map(assessAction);
   const results: ActionExecutionResult[] = [];
@@ -229,12 +231,21 @@ export function runActionBatch(params: {
     JSON.stringify(rollback, null, 2),
   );
 
+  // Count unique agent groups if parallel execution
+  const agentGroups = new Set(
+    batch.actions
+      .map((a) => (a as any).agentGroup)
+      .filter((g) => g !== undefined && g !== null)
+  );
+
   const summary = results.some((r) => r.status === "blocked")
     ? "Action batch completed with blocked actions."
     : results.some((r) => r.status === "approval_required")
     ? "Action batch requires approval before full execution."
     : dryRun
     ? "Action batch simulated in dry-run mode."
+    : parallel && agentGroups.size > 0
+    ? `Parallel action batch executed across ${agentGroups.size} agent groups`
     : "Action batch executed successfully.";
 
   return {

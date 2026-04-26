@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ServiceAccountAuth, ServiceAccount } from "../../../../packages/auth/src/service-account.js";
+import { generateServiceAccountId } from "../../../../packages/shared/src/id-generator.js";
 
 /**
  * Wave 8: Service Account Management.
@@ -29,7 +30,7 @@ export const ServiceAccountRoutes = {
       return res.status(400).json({ error: "Service account name is required" });
     }
 
-    const id = `sa-${Math.random().toString(36).substring(2, 9)}`;
+    const id = generateServiceAccountId();
     const sa: ServiceAccount = {
       id,
       name,

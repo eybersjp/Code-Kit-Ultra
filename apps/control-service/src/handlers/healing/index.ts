@@ -4,7 +4,9 @@ import { writeAuditEvent } from "../../../../../packages/audit/src/index";
 import { loadRunBundle } from "../../../../../packages/memory/src/run-store";
 
 function verifyHealingTenant(req: Request, res: Response, runId: string) {
-  const auth = (req as any).auth;
+  const auth = req.auth;
+  if (!auth) return { valid: false, response: res.status(401).json({ error: "Unauthorized" }) };
+
   const bundle = loadRunBundle(runId);
   if (!bundle) return { valid: false, response: res.status(404).json({ error: "Run not found" }) };
 

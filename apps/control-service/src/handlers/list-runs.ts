@@ -5,11 +5,19 @@ import { loadRunBundle } from "../../../../packages/memory/src/run-store.js";
 
 export async function listRunsHandler(req: Request, res: Response) {
   try {
-    const auth = (req as any).auth;
+    const auth = req.auth;
+    if (!auth) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    if (!auth.actor?.id || !auth.actor?.actorId || !auth.tenant?.orgId) {
+      return res.status(401).json({ error: "Unauthorized: Incomplete auth context" });
+    }
+
     const runs = RunReader.getRuns();
 
     // Filter to only what matches the user's org
-    const filtered = runs.filter((r: any) => {
+    const filtered = runs.filter((r) => {
+      if (!r?.id) return false;
       const state = loadRunBundle(r.id)?.state;
       if (!state) return true; // Legacy fallback
       if (state.orgId && state.orgId !== auth.tenant.orgId) return false;
@@ -18,7 +26,7 @@ export async function listRunsHandler(req: Request, res: Response) {
 
     writeAuditEvent({
       action: "LIST_RUNS",
-      actorName: auth.actor.actorName,
+      actorName: auth.actor.actorName || auth.actor.actorId,
       actorId: auth.actor.actorId,
       actorType: auth.actor.actorType,
       orgId: auth.tenant.orgId,

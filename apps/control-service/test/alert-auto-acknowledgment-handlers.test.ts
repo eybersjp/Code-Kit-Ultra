@@ -14,14 +14,36 @@ import {
   type AlertEscalationContext,
   type AcknowledgmentCompletionContext,
 } from "../src/services/alert-auto-acknowledgment-handlers";
-import * as alertStore from "../../../packages/alert-management/src/alert-store";
+import * as alertStore from "../src/services/alert-store";
 import * as acknowledmentService from "../src/services/alert-acknowledgment-service";
 import * as auditBuilder from "../src/lib/audit-builder";
 
 // Mock dependencies
-vi.mock("../../../packages/alert-management/src/alert-store");
+vi.mock("../src/services/alert-store");
 vi.mock("../src/services/alert-acknowledgment-service");
-vi.mock("../src/lib/audit-builder");
+
+// Create builder object that will be returned by AuditEventBuilder constructor
+const createMockBuilder = () => ({
+  withAlertId: vi.fn().mockReturnThis(),
+  withRuleId: vi.fn().mockReturnThis(),
+  withResult: vi.fn().mockReturnThis(),
+  withCorrelationId: vi.fn().mockReturnThis(),
+  withDetails: vi.fn().mockReturnThis(),
+  emit: vi.fn().mockResolvedValue(undefined),
+});
+
+let mockBuilder = createMockBuilder();
+
+vi.mock("../src/lib/audit-builder", () => {
+  return {
+    AuditEventBuilder: vi.fn(() => mockBuilder),
+    AuditActions: {
+      ALERT_AUTO_ACKNOWLEDGED: "ALERT_AUTO_ACKNOWLEDGED",
+      ALERT_ESCALATION: "ALERT_ESCALATION",
+      ALERT_ACKNOWLEDGMENT_COMPLETED: "ALERT_ACKNOWLEDGMENT_COMPLETED",
+    },
+  };
+});
 
 describe("Alert Auto-Acknowledgment Event Handlers", () => {
   const mockContext: AlertAutoAcknowledgmentContext = {
@@ -72,6 +94,8 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset mockBuilder for fresh mock state
+    mockBuilder = createMockBuilder();
     // Reset handler registry
     getHandlerRegistry().onAlertAutoAcknowledged.clear();
     getHandlerRegistry().onAlertEscalated.clear();
@@ -90,14 +114,9 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
 
   describe("onAlertAutoAcknowledged handler", () => {
     it("should log audit event when alert is auto-acknowledged", async () => {
-      const mockEmit = vi.fn().mockResolvedValue(undefined);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAlertAutoAcknowledged(mockContext);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.emit).toHaveBeenCalled();
+      expect(mockBuilder.emit).toHaveBeenCalled();
     });
 
     it("should record acknowledgment in alert acknowledgment service", async () => {
@@ -106,9 +125,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
       };
       vi.mocked(acknowledmentService.getAlertAcknowledgmentService).mockReturnValue(
         mockService as any
-      );
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
       );
 
       await onAlertAutoAcknowledged(mockContext);
@@ -142,9 +158,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
       vi.mocked(acknowledmentService.getAlertAcknowledgmentService).mockReturnValue(
         mockService as any
       );
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAlertAutoAcknowledged(mockContext);
 
@@ -158,13 +171,9 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
 
   describe("onAlertEscalated handler", () => {
     it("should log audit event when alert escalates", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAlertEscalated(mockEscalationContext);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.emit).toHaveBeenCalled();
+      expect(mockBuilder.emit).toHaveBeenCalled();
     });
 
     it("should create escalation alert in alert store", async () => {
@@ -173,9 +182,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAlertEscalated(mockEscalationContext);
 
@@ -197,9 +203,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAlertEscalated(context);
 
@@ -225,9 +228,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAlertEscalated(mockEscalationContext);
 
@@ -241,13 +241,9 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
 
   describe("onAcknowledgmentCompleted handler", () => {
     it("should log completion audit event", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAcknowledgmentCompleted(mockCompletionContext);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.emit).toHaveBeenCalled();
+      expect(mockBuilder.emit).toHaveBeenCalled();
     });
 
     it("should create summary alert for escalated status", async () => {
@@ -261,9 +257,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAcknowledgmentCompleted(context);
 
@@ -284,9 +277,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAcknowledgmentCompleted(context);
 
@@ -304,9 +294,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAcknowledgmentCompleted(context);
 
@@ -330,9 +317,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
     it("should register and invoke custom handler on auto-acknowledgment", async () => {
       const customHandler = vi.fn();
       registerAlertAutoAcknowledgedHandler(customHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchAlertAutoAcknowledgedEvent(mockContext);
 
@@ -342,9 +326,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
     it("should register and invoke custom handler on escalation", async () => {
       const customHandler = vi.fn();
       registerAlertEscalatedHandler(customHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
       vi.mocked(alertStore.getAlertStore).mockReturnValue({
         getAlert: vi.fn().mockResolvedValue(mockAlert),
         recordAlert: vi.fn(),
@@ -358,9 +339,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
     it("should register and invoke custom handler on completion", async () => {
       const customHandler = vi.fn();
       registerAcknowledgmentCompletedHandler(customHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchAcknowledgmentCompletedEvent(mockCompletionContext);
 
@@ -372,9 +350,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
       const workingHandler = vi.fn();
       registerAlertAutoAcknowledgedHandler(failingHandler);
       registerAlertAutoAcknowledgedHandler(workingHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchAlertAutoAcknowledgedEvent(mockContext);
 
@@ -389,9 +364,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
       registerAlertAutoAcknowledgedHandler(handler1);
       registerAlertAutoAcknowledgedHandler(handler2);
       registerAlertAutoAcknowledgedHandler(handler3);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchAlertAutoAcknowledgedEvent(mockContext);
 
@@ -466,9 +438,7 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
     });
 
     it("should handle audit event emission errors gracefully", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockRejectedValue(
-        new Error("Audit error")
-      );
+      mockBuilder.emit.mockRejectedValueOnce(new Error("Audit error"));
 
       // Should not throw
       await expect(onAlertAutoAcknowledged(mockContext)).resolves.not.toThrow();
@@ -480,9 +450,6 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
         recordAlert: vi.fn().mockRejectedValue(new Error("Store error")),
       };
       vi.mocked(alertStore.getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       // Should not throw
       await expect(onAlertEscalated(mockEscalationContext)).resolves.not.toThrow();
@@ -498,13 +465,10 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
           confidence: 0.98,
         },
       };
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAlertAutoAcknowledged(contextWithMetadata);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.withDetails).toHaveBeenCalledWith(
+      expect(mockBuilder.withDetails).toHaveBeenCalledWith(
         expect.objectContaining({
           autoAckScore: 95,
           confidence: 0.98,
@@ -513,13 +477,9 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
     });
 
     it("should include escalation level in escalation audit event", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAlertEscalated(mockEscalationContext);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.withDetails).toHaveBeenCalledWith(
+      expect(mockBuilder.withDetails).toHaveBeenCalledWith(
         expect.objectContaining({
           escalationLevel: 2,
         })
@@ -527,13 +487,9 @@ describe("Alert Auto-Acknowledgment Event Handlers", () => {
     });
 
     it("should include completion status in completion audit event", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAcknowledgmentCompleted(mockCompletionContext);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.withDetails).toHaveBeenCalledWith(
+      expect(mockBuilder.withDetails).toHaveBeenCalledWith(
         expect.objectContaining({
           status: "acknowledged",
         })

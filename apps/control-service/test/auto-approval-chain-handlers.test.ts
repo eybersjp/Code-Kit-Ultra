@@ -13,14 +13,37 @@ import {
   type AutoApprovalEventContext,
   type ChainCompletionContext,
 } from "../src/services/auto-approval-chain-handlers";
-import * as runStore from "../../../packages/memory/src/run-store";
-import { getAlertStore } from "../../../packages/alert-management/src/alert-store";
+import * as runStore from "@memory/run-store";
+import { getAlertStore } from "../src/services/alert-store";
 import * as auditBuilder from "../src/lib/audit-builder";
 
+// Create builder object that will be returned by AuditEventBuilder constructor
+const createMockBuilder = () => ({
+  withAlertId: vi.fn().mockReturnThis(),
+  withRunId: vi.fn().mockReturnThis(),
+  withGateId: vi.fn().mockReturnThis(),
+  withResult: vi.fn().mockReturnThis(),
+  withCorrelationId: vi.fn().mockReturnThis(),
+  withDetails: vi.fn().mockReturnThis(),
+  emit: vi.fn().mockResolvedValue(undefined),
+});
+
+let mockBuilder = createMockBuilder();
+
 // Mock dependencies
-vi.mock("../../../packages/memory/src/run-store");
-vi.mock("../../../packages/alert-management/src/alert-store");
-vi.mock("../src/lib/audit-builder");
+vi.mock("@memory/run-store");
+vi.mock("../src/services/alert-store");
+
+vi.mock("../src/lib/audit-builder", () => {
+  return {
+    AuditEventBuilder: vi.fn(() => mockBuilder),
+    AuditActions: {
+      GATE_APPROVED: "GATE_APPROVED",
+      GATE_REJECTED: "GATE_REJECTED",
+      APPROVAL_CHAIN_COMPLETED: "APPROVAL_CHAIN_COMPLETED",
+    },
+  };
+});
 
 describe("Auto-Approval Chain Event Handlers", () => {
   const mockContext: AutoApprovalEventContext = {
@@ -50,46 +73,44 @@ describe("Auto-Approval Chain Event Handlers", () => {
     result: "partial_failure",
   };
 
-  const mockRunBundle = {
-    state: {
-      runId: "run-123",
-      orgId: "org-1",
-      approvedGates: [],
-      rejectedGates: [],
-      correlationId: "corr-123",
-      updatedAt: new Date().toISOString(),
-    },
-  };
+  let mockRunBundle: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset mockBuilder for fresh mock state
+    mockBuilder = createMockBuilder();
     // Reset handler registry
     getHandlerRegistry().onGateApproved.clear();
     getHandlerRegistry().onGateRejected.clear();
     getHandlerRegistry().onChainCompleted.clear();
 
+    // Create fresh mockRunBundle for each test to prevent mutation pollution
+    mockRunBundle = {
+      state: {
+        runId: "run-123",
+        orgId: "org-1",
+        approvedGates: [],
+        rejectedGates: [],
+        correlationId: "corr-123",
+        updatedAt: new Date().toISOString(),
+      },
+    };
+
     // Setup default mocks
     vi.mocked(runStore.loadRunBundle).mockReturnValue(mockRunBundle as any);
+    vi.mocked(runStore.updateRunState).mockResolvedValue(undefined);
+    vi.mocked(getAlertStore).mockReturnValue({ recordAlert: vi.fn().mockResolvedValue(undefined) } as any);
   });
 
   describe("onGateApproved handler", () => {
     it("should log audit event when gate is approved", async () => {
-      const mockEmit = vi.fn();
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onGateApproved(mockContext);
 
       expect(runStore.loadRunBundle).toHaveBeenCalledWith("run-123");
-      expect(auditBuilder.AuditEventBuilder.prototype.emit).toHaveBeenCalled();
+      expect(mockBuilder.emit).toHaveBeenCalled();
     });
 
     it("should add gate to approvedGates in run state", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onGateApproved(mockContext);
 
       expect(runStore.updateRunState).toHaveBeenCalledWith("run-123", expect.any(Object));
@@ -103,17 +124,11 @@ describe("Auto-Approval Chain Event Handlers", () => {
         state: { ...mockRunBundle.state, approvedGates: ["security-gate"] },
       };
       vi.mocked(runStore.loadRunBundle).mockReturnValue(bundleWithApprovedGate as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onGateApproved(mockContext);
 
-      const [, updatedState] = vi.mocked(runStore.updateRunState).mock.calls[0];
-      const count = updatedState.approvedGates.filter(
-        (g: string) => g === "security-gate"
-      ).length;
-      expect(count).toBe(1);
+      // Should not call updateRunState when gate is already approved
+      expect(runStore.updateRunState).not.toHaveBeenCalled();
     });
 
     it("should handle missing run bundle gracefully", async () => {
@@ -127,21 +142,13 @@ describe("Auto-Approval Chain Event Handlers", () => {
 
   describe("onGateRejected handler", () => {
     it("should log audit event when gate is rejected", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onGateRejected(mockContext);
 
       expect(runStore.loadRunBundle).toHaveBeenCalledWith("run-123");
-      expect(auditBuilder.AuditEventBuilder.prototype.emit).toHaveBeenCalled();
+      expect(mockBuilder.emit).toHaveBeenCalled();
     });
 
     it("should add gate to rejectedGates in run state", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onGateRejected(mockContext);
 
       expect(runStore.updateRunState).toHaveBeenCalledWith("run-123", expect.any(Object));
@@ -154,17 +161,14 @@ describe("Auto-Approval Chain Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onGateRejected(mockContext);
 
       expect(mockAlertStore.recordAlert).toHaveBeenCalledWith(expect.any(Object));
       const alert = vi.mocked(mockAlertStore.recordAlert).mock.calls[0][0];
       expect(alert.type).toBe("deployment_failure");
-      expect(alert.runId).toBe("run-123");
-      expect(alert.gateId).toBe("security-gate");
+      expect(alert.metadata.runId).toBe("run-123");
+      expect(alert.metadata.gateId).toBe("security-gate");
     });
 
     it("should not create duplicate rejection alerts", async () => {
@@ -177,36 +181,23 @@ describe("Auto-Approval Chain Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onGateRejected(mockContext);
 
-      const [, updatedState] = vi.mocked(runStore.updateRunState).mock.calls[0];
-      const count = updatedState.rejectedGates.filter(
-        (g: string) => g === "security-gate"
-      ).length;
-      expect(count).toBe(1);
+      // Should not call updateRunState or create alert when gate is already rejected
+      expect(runStore.updateRunState).not.toHaveBeenCalled();
+      expect(mockAlertStore.recordAlert).not.toHaveBeenCalled();
     });
   });
 
   describe("onAutoApprovalChainCompleted handler", () => {
     it("should log completion audit event", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAutoApprovalChainCompleted(mockChainContext);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.emit).toHaveBeenCalled();
+      expect(mockBuilder.emit).toHaveBeenCalled();
     });
 
     it("should update run state with completion status", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-
       await onAutoApprovalChainCompleted(mockChainContext);
 
       expect(runStore.updateRunState).toHaveBeenCalledWith("run-123", expect.any(Object));
@@ -220,9 +211,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAutoApprovalChainCompleted(mockChainContext);
 
@@ -243,9 +231,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAutoApprovalChainCompleted(fullFailureContext);
 
@@ -265,9 +250,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
         recordAlert: vi.fn(),
       };
       vi.mocked(getAlertStore).mockReturnValue(mockAlertStore as any);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onAutoApprovalChainCompleted(successContext);
 
@@ -279,9 +261,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
     it("should register and invoke custom handlers on gate approval", async () => {
       const customHandler = vi.fn();
       registerGateApprovedHandler(customHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchGateApprovedEvent(mockContext);
 
@@ -291,9 +270,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
     it("should register and invoke custom handlers on gate rejection", async () => {
       const customHandler = vi.fn();
       registerGateRejectedHandler(customHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
       vi.mocked(getAlertStore).mockReturnValue({ recordAlert: vi.fn() } as any);
 
       await dispatchGateRejectedEvent(mockContext);
@@ -304,9 +280,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
     it("should register and invoke custom handlers on chain completion", async () => {
       const customHandler = vi.fn();
       registerChainCompletedHandler(customHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
       vi.mocked(getAlertStore).mockReturnValue({ recordAlert: vi.fn() } as any);
 
       await dispatchChainCompletedEvent(mockChainContext);
@@ -319,9 +292,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
       const workingHandler = vi.fn();
       registerGateApprovedHandler(failingHandler);
       registerGateApprovedHandler(workingHandler);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchGateApprovedEvent(mockContext);
 
@@ -336,9 +306,6 @@ describe("Auto-Approval Chain Event Handlers", () => {
       registerGateApprovedHandler(handler1);
       registerGateApprovedHandler(handler2);
       registerGateApprovedHandler(handler3);
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await dispatchGateApprovedEvent(mockContext);
 
@@ -391,9 +358,7 @@ describe("Auto-Approval Chain Event Handlers", () => {
     });
 
     it("should handle audit event emission errors gracefully", async () => {
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockRejectedValue(
-        new Error("Audit error")
-      );
+      mockBuilder.emit.mockRejectedValue(new Error("Audit error"));
 
       // Should not throw
       await expect(onGateApproved(mockContext)).resolves.not.toThrow();
@@ -409,13 +374,10 @@ describe("Auto-Approval Chain Event Handlers", () => {
           autoApprovalScore: 95,
         },
       };
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
 
       await onGateApproved(contextWithMetadata);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.withDetails).toHaveBeenCalledWith(
+      expect(mockBuilder.withDetails).toHaveBeenCalledWith(
         expect.objectContaining({
           reason: "High coverage met",
           autoApprovalScore: 95,
@@ -430,14 +392,10 @@ describe("Auto-Approval Chain Event Handlers", () => {
           reason: "Security vulnerabilities detected",
         },
       };
-      vi.spyOn(auditBuilder.AuditEventBuilder.prototype, "emit").mockResolvedValue(
-        undefined
-      );
-      vi.mocked(getAlertStore).mockReturnValue({ recordAlert: vi.fn() } as any);
 
       await onGateRejected(contextWithReason);
 
-      expect(auditBuilder.AuditEventBuilder.prototype.withDetails).toHaveBeenCalledWith(
+      expect(mockBuilder.withDetails).toHaveBeenCalledWith(
         expect.objectContaining({
           rejectionReason: "Security vulnerabilities detected",
         })

@@ -8,9 +8,9 @@ import { logger } from '../lib/logger.js';
  */
 export async function deleteSessionHandler(req: Request, res: Response) {
   try {
-    const session = (req as any).auth;
+    const auth = req.auth;
 
-    if (!session || !session.jti) {
+    if (!auth) {
       return res.status(401).json({
         error: 'UNAUTHORIZED',
         message: 'No active session',
@@ -20,10 +20,15 @@ export async function deleteSessionHandler(req: Request, res: Response) {
     // Calculate remaining TTL (default 10 minutes from now)
     const remainingTtl = 10 * 60;
 
-    // Revoke the session
-    await revokeSession(session.jti, remainingTtl);
+    // Revoke the session using actor ID
+    const sessionId = auth.actor.actorId;
+    if (!sessionId) {
+      return res.status(401).json({ error: "Invalid session" });
+    }
 
-    logger.info({ userId: session.userId }, 'Session revoked');
+    await revokeSession(sessionId, remainingTtl);
+
+    logger.info({ userId: auth.actor.actorId }, 'Session revoked');
 
     return res.status(200).json({
       status: 'revoked',
