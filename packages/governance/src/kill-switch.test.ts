@@ -10,8 +10,8 @@ const validParams = {
     consensusScore: 0.9,
     summary: "High confidence",
   },
-  constraints: { valid: true, violations: [] },
-  consensus: { finalDecision: "approve" as const, agreementScore: 1.0, votes: [] },
+  constraints: { valid: true, violations: [], summary: "All constraints passed" },
+  consensus: { finalDecision: "approve" as const, agreementScore: 1.0, votes: [], summary: "Strong consensus" },
 };
 
 describe("evaluateKillSwitch", () => {
@@ -22,6 +22,7 @@ describe("evaluateKillSwitch", () => {
       constraints: {
         valid: false,
         violations: [{ code: "BLOCKED_ACTION_TYPE", message: "Test violation" }],
+        summary: "Constraint violation detected",
       },
     });
     expect(result.blocked).toBe(true);
@@ -32,7 +33,7 @@ describe("evaluateKillSwitch", () => {
   it("should block when consensus is rejected", () => {
     const result = evaluateKillSwitch({
       ...validParams,
-      consensus: { finalDecision: "reject", agreementScore: 0.1, votes: [] },
+      consensus: { finalDecision: "reject", agreementScore: 0.1, votes: [], summary: "Consensus rejected" },
     });
     expect(result.blocked).toBe(true);
     expect(result.code).toBe("CONSENSUS_REJECTED");
@@ -113,6 +114,7 @@ describe("evaluateKillSwitch", () => {
       constraints: {
         valid: false,
         violations: [{ code: "BLOCKED_ACTION_TYPE", message: "Test" }],
+        summary: "Constraint violation detected",
       },
     });
     expect(result.blocked).toBe(true);
@@ -126,7 +128,7 @@ describe("evaluateKillSwitch", () => {
         ...validParams.confidence,
         overall: 0.5, // Below threshold
       },
-      consensus: { finalDecision: "reject", agreementScore: 0.0, votes: [] },
+      consensus: { finalDecision: "reject", agreementScore: 0.0, votes: [], summary: "Consensus rejected" },
     });
     expect(result.blocked).toBe(true);
     expect(result.code).toBe("CONSENSUS_REJECTED");

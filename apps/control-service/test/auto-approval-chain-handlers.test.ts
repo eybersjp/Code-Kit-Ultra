@@ -98,7 +98,7 @@ describe("Auto-Approval Chain Event Handlers", () => {
 
     // Setup default mocks
     vi.mocked(runStore.loadRunBundle).mockReturnValue(mockRunBundle as any);
-    vi.mocked(runStore.updateRunState).mockResolvedValue(undefined);
+    vi.mocked(runStore.updateRunState).mockResolvedValue(undefined as any);
     vi.mocked(getAlertStore).mockReturnValue({ recordAlert: vi.fn().mockResolvedValue(undefined) } as any);
   });
 

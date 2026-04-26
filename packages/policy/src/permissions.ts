@@ -13,4 +13,6 @@ export type Permission =
   | "policy:manage"
   | "audit:view"
   | "service_account:manage"
-  | "service_account:view";
+  | "service_account:view"
+  | "automation:view"
+  | "automation:manage";

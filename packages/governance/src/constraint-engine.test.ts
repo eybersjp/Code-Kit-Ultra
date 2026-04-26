@@ -4,20 +4,17 @@ import type { ConstraintPolicy } from "./constraint-engine";
 import type { BuilderActionBatch } from "../../agents/src/action-types";
 
 const validBatch: BuilderActionBatch = {
-  id: "batch-001",
+  runId: "run-001",
+  phase: "build",
+  generatedBy: "test",
+  summary: "Test batch",
   actions: [
     {
-      id: "action-1",
-      type: "create_file",
+      type: "write_file",
       path: "/src/file1.ts",
       content: "console.log('test');",
-      description: "Create test file",
     },
   ],
-  description: "Test batch",
-  mode: "builder",
-  timestamp: Date.now(),
-  runId: "run-001",
 };
 
 const defaultPolicy: ConstraintPolicy = {
@@ -63,11 +60,9 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
-          type: "create_file",
+          type: "write_file",
           path: "/forbidden/file.ts",
           content: "test",
-          description: "Create file in forbidden path",
         },
       ],
     };
@@ -81,11 +76,9 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
-          type: "create_file",
+          type: "write_file",
           path: "/node_modules/package.ts",
           content: "test",
-          description: "Create file in node_modules",
         },
       ],
     };
@@ -100,10 +93,8 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
           type: "run_command",
           command: "rm -rf /src",
-          description: "Dangerous command",
         },
       ],
     };
@@ -117,10 +108,8 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
           type: "run_command",
           command: "sudo apt-get install package",
-          description: "Sudo command",
         },
       ],
     };
@@ -189,10 +178,8 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
           type: "run_command",
           command: "rm -rf /",
-          description: "Dangerous command",
         },
       ],
     };
@@ -211,17 +198,13 @@ describe("evaluateConstraints", () => {
           description: "Dangerous action",
         } as any,
         {
-          id: "action-2",
-          type: "create_file",
+          type: "write_file",
           path: "/forbidden/file.ts",
           content: "test",
-          description: "Forbidden path",
         },
         {
-          id: "action-3",
           type: "run_command",
           command: "sudo rm -rf /",
-          description: "Multiple violations",
         },
       ],
     };
@@ -236,10 +219,8 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
           type: "run_command",
           command: "RM -RF /src",
-          description: "Dangerous command with uppercase",
         },
       ],
     };
@@ -254,18 +235,14 @@ describe("evaluateConstraints", () => {
       ...validBatch,
       actions: [
         {
-          id: "action-1",
-          type: "create_file",
+          type: "write_file",
           path: "/test/subdir/file.ts",
           content: "test",
-          description: "Create file in allowed test directory",
         },
         {
-          id: "action-2",
-          type: "create_file",
+          type: "write_file",
           path: "/config/settings.json",
           content: '{}',
-          description: "Create file in allowed config directory",
         },
       ],
     };
@@ -290,10 +267,8 @@ describe("evaluateConstraints", () => {
           description: "Dangerous action",
         } as any,
         {
-          id: "action-2",
           type: "run_command",
           command: "sudo test",
-          description: "Sudo command",
         },
       ],
     };

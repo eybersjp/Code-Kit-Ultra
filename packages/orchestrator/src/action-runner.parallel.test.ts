@@ -24,8 +24,8 @@ describe("Action Runner Parallel Execution", () => {
       generatedBy: "parallel-agent",
       summary: "Execute parallel groups",
       actions: [
-        { type: "write_file", path: "group-a.txt", content: "A\n", agentGroup: "alpha" },
-        { type: "write_file", path: "group-b.txt", content: "B\n", agentGroup: "beta" },
+        { type: "write_file", path: "group-a.txt", content: "A\n" },
+        { type: "write_file", path: "group-b.txt", content: "B\n" },
       ],
     };
 

@@ -85,6 +85,22 @@ export class AuditEventBuilder {
   }
 
   /**
+   * Add alert ID to audit event.
+   */
+  withAlertId(alertId: string | undefined): this {
+    if (alertId) this.event.alertId = alertId;
+    return this;
+  }
+
+  /**
+   * Add rule ID to audit event.
+   */
+  withRuleId(ruleId: string | undefined): this {
+    if (ruleId) this.event.ruleId = ruleId;
+    return this;
+  }
+
+  /**
    * Add arbitrary details to audit event.
    * Details are merged at top level (not nested).
    */
@@ -98,7 +114,7 @@ export class AuditEventBuilder {
    * Should be called after all builder methods are chained.
    */
   async emit(): Promise<void> {
-    await writeAuditEvent(this.event);
+    await writeAuditEvent(this.event as Parameters<typeof writeAuditEvent>[0]);
   }
 
   /**
@@ -147,4 +163,13 @@ export const AuditActions = {
   // Authorization failures
   GATE_APPROVE_DENIED: "GATE_APPROVE_DENIED",
   UNAUTHORIZED_ACCESS: "UNAUTHORIZED_ACCESS",
+
+  // Audit and settings
+  AUDIT_VIEW: "AUDIT_VIEW",
+  SETTINGS_UPDATED: "SETTINGS_UPDATED",
+
+  // Alert operations
+  ALERT_AUTO_ACKNOWLEDGED: "ALERT_AUTO_ACKNOWLEDGED",
+  ALERT_ESCALATION: "ALERT_ESCALATION",
+  ALERT_ACKNOWLEDGMENT_COMPLETED: "ALERT_ACKNOWLEDGMENT_COMPLETED",
 } as const;

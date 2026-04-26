@@ -8,7 +8,7 @@ export interface RollbackTrigger {
   metric: string;
   threshold: number;
   duration: number; // seconds
-  operator: "greater_than" | "less_than";
+  operator: "greater_than" | "less_than" | "equals";
 }
 
 /**

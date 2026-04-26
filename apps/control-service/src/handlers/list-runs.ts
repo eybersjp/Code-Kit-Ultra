@@ -9,7 +9,7 @@ export async function listRunsHandler(req: Request, res: Response) {
     if (!auth) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    if (!auth.actor?.id || !auth.actor?.actorId || !auth.tenant?.orgId) {
+    if (!auth.actor?.actorId || !auth.tenant?.orgId) {
       return res.status(401).json({ error: "Unauthorized: Incomplete auth context" });
     }
 
@@ -17,8 +17,8 @@ export async function listRunsHandler(req: Request, res: Response) {
 
     // Filter to only what matches the user's org
     const filtered = runs.filter((r) => {
-      if (!r?.id) return false;
-      const state = loadRunBundle(r.id)?.state;
+      if (!r?.runId) return false;
+      const state = loadRunBundle(r.runId)?.state;
       if (!state) return true; // Legacy fallback
       if (state.orgId && state.orgId !== auth.tenant.orgId) return false;
       return true;

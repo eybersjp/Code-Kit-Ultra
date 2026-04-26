@@ -86,7 +86,7 @@ const baseInput: GateEvaluationInput = {
       title: "Test",
       description: "",
       status: "pending",
-      type: "testing",
+      type: "skills",
       dependencies: ["t2"],
       metadata: {},
     },
@@ -104,7 +104,7 @@ const baseInput: GateEvaluationInput = {
       title: "Monitor",
       description: "",
       status: "pending",
-      type: "monitoring",
+      type: "automation",
       dependencies: ["t4"],
       metadata: {},
     },
@@ -176,6 +176,7 @@ describe("evaluateGates", () => {
           .map((_, i) => ({
             id: `q${i}`,
             text: `Question ${i}`,
+            blocking: false,
           })),
       },
     };
@@ -195,6 +196,7 @@ describe("evaluateGates", () => {
           .map((_, i) => ({
             id: `q${i}`,
             text: `Question ${i}`,
+            blocking: false,
           })),
       },
     };
@@ -214,6 +216,7 @@ describe("evaluateGates", () => {
           .map((_, i) => ({
             id: `q${i}`,
             text: `Question ${i}`,
+            blocking: false,
           })),
       },
     };
@@ -299,6 +302,7 @@ describe("evaluateGates", () => {
           .map((_, i) => ({
             id: `q${i}`,
             text: `Question ${i}`,
+            blocking: false,
           })),
       },
     };
@@ -315,7 +319,11 @@ describe("evaluateGates", () => {
         ...baseInput.clarificationResult,
         assumptions: Array(7)
           .fill(null)
-          .map((_, i) => `Assumption ${i}`),
+          .map((_, i) => ({
+            id: `a${i}`,
+            text: `Assumption ${i}`,
+            confidence: "medium" as const,
+          })),
       },
     };
     const result = evaluateGates(input);

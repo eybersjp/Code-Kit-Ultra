@@ -96,7 +96,7 @@ describe('Execution Token Verification — Gate 1 R-04', () => {
       expect(() => verifyExecutionToken(authHeader)).toThrow('Invalid execution token');
     });
 
-    it('should reject expired execution token', (done) => {
+    it('should reject expired execution token', async () => {
       // Create token that expires immediately
       const token = jwt.sign(validTokenPayload, secret, {
         issuer,
@@ -106,11 +106,13 @@ describe('Execution Token Verification — Gate 1 R-04', () => {
       });
 
       // Wait a bit for token to expire
-      setTimeout(() => {
-        const authHeader = `Bearer ${token}`;
-        expect(() => verifyExecutionToken(authHeader)).toThrow('Execution token expired');
-        done();
-      }, 100);
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          const authHeader = `Bearer ${token}`;
+          expect(() => verifyExecutionToken(authHeader)).toThrow('Execution token expired');
+          resolve();
+        }, 100);
+      });
     });
 
     it('should reject token with wrong issuer', () => {

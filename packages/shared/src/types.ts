@@ -10,7 +10,7 @@ export type StepStatus = "pending" | "running" | "success" | "failed" | "paused"
 export type Role = "admin" | "operator" | "reviewer" | "viewer" | "service_account";
 export type ExecutionRisk = "low" | "medium" | "high";
 
-export type ActorType = "user" | "service_account" | "legacy_api_key";
+export type ActorType = "user" | "service_account" | "legacy_api_key" | "system";
 
 export interface TenantContext {
   orgId: string;
@@ -236,6 +236,15 @@ export interface RunState {
   actorId?: string;
   actorType?: ActorType;
   correlationId?: string;
+
+  // Auto-approval chain tracking
+  approvedGates?: string[];
+  rejectedGates?: string[];
+  chainStatus?: string;
+  chainCompletedAt?: string;
+
+  // Test results tracking
+  testResults?: Record<string, boolean>;
 }
 
 export interface RunBundle {

@@ -66,7 +66,9 @@ describe("Control Service: retry and rollback endpoints", () => {
         runId: RUN_ID,
         createdAt: new Date().toISOString(),
         idea: "Test idea",
-        input: { idea: "Test idea" },
+        input: { idea: "Test idea", mode: "expert" as const },
+        assumptions: [],
+        clarifyingQuestions: [],
       },
       plan: {
         runId: RUN_ID,
@@ -120,7 +122,7 @@ describe("Control Service: retry and rollback endpoints", () => {
       actor: { actorId: "op-1", actorType: "user", actorName: "Operator", roles: ["operator"] },
       tenant: { orgId: "org-1", workspaceId: "ws-1" },
     });
-    mockApprovalService.retry.mockResolvedValue({});
+    mockApprovalService.retry.mockResolvedValue({} as any);
 
     const response = await request(app)
       .post(`/v1/runs/${RUN_ID}/retry-step`)
@@ -154,7 +156,7 @@ describe("Control Service: retry and rollback endpoints", () => {
       actor: { actorId: "admin-1", actorType: "user", actorName: "Admin", roles: ["admin"] },
       tenant: { orgId: "org-1", workspaceId: "ws-1", projectId: "proj-1" },
     });
-    mockApprovalService.rollback.mockResolvedValue({});
+    mockApprovalService.rollback.mockResolvedValue({} as any);
 
     const response = await request(app)
       .post(`/v1/runs/${RUN_ID}/rollback-step`)

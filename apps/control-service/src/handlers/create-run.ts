@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { Mode } from "../../../../packages/shared/src/types.js";
 import { runVerticalSlice } from "../../../../packages/orchestrator/src";
 import crypto from "node:crypto";
 import path from "node:path";
@@ -21,7 +22,7 @@ export async function createRunHandler(req: Request, res: Response) {
       return res.status(403).json({ error: "Run creation requires a project scope (projectId missing in token)." });
     }
 
-    const { idea, mode = "expert", dryRun = false } = req.body;
+    const { idea, mode = "expert" as Mode, dryRun = false } = req.body as { idea: string; mode?: Mode; dryRun?: boolean };
     if (!idea || typeof idea !== "string") {
       return res.status(400).json({ error: "Bad request: idea is required and must be a string" });
     }

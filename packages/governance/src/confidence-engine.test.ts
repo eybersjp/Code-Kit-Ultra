@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import { scoreExecution } from "./confidence-engine";
 
 const maxInputs = {
-  intent: { confidence: 1.0, aligned: true, summary: "" },
-  validation: { valid: true, errors: [] },
-  constraints: { valid: true, violations: [] },
-  consensus: { finalDecision: "approve" as const, agreementScore: 1.0, votes: [] },
+  intent: { valid: true, confidence: 1.0, driftDetected: false, matchedKeywords: [], missingKeywords: [], notes: [] },
+  validation: { valid: true, checks: [], summary: "Batch passed structural validation." },
+  constraints: { valid: true, violations: [], summary: "Batch satisfies current constraint policy." },
+  consensus: { finalDecision: "approve" as const, agreementScore: 1.0, votes: [], summary: "Consensus: approve" },
 };
 
 describe("scoreExecution", () => {
@@ -23,7 +23,7 @@ describe("scoreExecution", () => {
   it("should reduce the score when validation fails", () => {
     const result = scoreExecution({
       ...maxInputs,
-      validation: { valid: false, errors: ["missing field"] },
+      validation: { valid: false, checks: [], summary: "Batch failed one or more validation checks." },
     });
     expect(result.validationScore).toBe(0.4);
     expect(result.overall).toBeLessThan(1.0);
@@ -35,7 +35,7 @@ describe("scoreExecution", () => {
   it("should reduce consensus score by 40% when decision is revise", () => {
     const result = scoreExecution({
       ...maxInputs,
-      consensus: { finalDecision: "revise", agreementScore: 1.0, votes: [] },
+      consensus: { finalDecision: "revise" as const, agreementScore: 1.0, votes: [], summary: "Consensus: revise" },
     });
     expect(result.consensusScore).toBeCloseTo(0.6, 2);
     // overall = (1.0 * 0.35) + (1.0 * 0.2) + (1.0 * 0.25) + (0.6 * 0.2) = 0.35 + 0.2 + 0.25 + 0.12 = 0.92
@@ -46,7 +46,7 @@ describe("scoreExecution", () => {
   it("should produce near-zero consensus score when decision is reject", () => {
     const result = scoreExecution({
       ...maxInputs,
-      consensus: { finalDecision: "reject", agreementScore: 0.0, votes: [] },
+      consensus: { finalDecision: "reject" as const, agreementScore: 0.0, votes: [], summary: "Consensus: reject" },
     });
     expect(result.consensusScore).toBeCloseTo(0.1, 2);
     // overall = (1.0 * 0.35) + (1.0 * 0.2) + (1.0 * 0.25) + (0.1 * 0.2) = 0.35 + 0.2 + 0.25 + 0.02 = 0.82
@@ -64,7 +64,7 @@ describe("scoreExecution", () => {
   it("should handle constraint violations reducing policy score", () => {
     const result = scoreExecution({
       ...maxInputs,
-      constraints: { valid: false, violations: [{ code: "TEST", message: "test" }] },
+      constraints: { valid: false, violations: [{ code: "TEST", message: "test" }], summary: "Batch violates 1 constraint(s)." },
     });
     expect(result.policyScore).toBe(0.2);
     // overall = (1.0 * 0.35) + (1.0 * 0.2) + (0.2 * 0.25) + (1.0 * 0.2) = 0.35 + 0.2 + 0.05 + 0.2 = 0.8
@@ -75,7 +75,7 @@ describe("scoreExecution", () => {
   it("should scale alignment score with partial confidence", () => {
     const result = scoreExecution({
       ...maxInputs,
-      intent: { confidence: 0.5, aligned: true, summary: "" },
+      intent: { valid: true, confidence: 0.5, driftDetected: false, matchedKeywords: [], missingKeywords: [], notes: [] },
     });
     expect(result.alignmentScore).toBe(0.5);
     // overall = (0.5 * 0.35) + (1.0 * 0.2) + (1.0 * 0.25) + (1.0 * 0.2) = 0.175 + 0.2 + 0.25 + 0.2 = 0.825
@@ -85,10 +85,10 @@ describe("scoreExecution", () => {
   // Multiple failures combined
   it("should handle multiple failures reducing overall score significantly", () => {
     const result = scoreExecution({
-      intent: { confidence: 0.5, aligned: false, summary: "" },
-      validation: { valid: false, errors: ["error1", "error2"] },
-      constraints: { valid: false, violations: [{ code: "TEST", message: "test" }] },
-      consensus: { finalDecision: "reject", agreementScore: 0.0, votes: [] },
+      intent: { valid: false, confidence: 0.5, driftDetected: true, matchedKeywords: [], missingKeywords: [], notes: [] },
+      validation: { valid: false, checks: [], summary: "Batch failed one or more validation checks." },
+      constraints: { valid: false, violations: [{ code: "TEST", message: "test" }], summary: "Batch violates 1 constraint(s)." },
+      consensus: { finalDecision: "reject" as const, agreementScore: 0.0, votes: [], summary: "Consensus: reject" },
     });
     // overall = (0.5 * 0.35) + (0.4 * 0.2) + (0.2 * 0.25) + (0.1 * 0.2)
     // = 0.175 + 0.08 + 0.05 + 0.02 = 0.325, rounded to 2 decimals = 0.33

@@ -5,7 +5,7 @@
 
 import type { Request, Response, NextFunction } from 'express';
 import { createErrorRecorder, initializeAlerts } from './alert-rules';
-import { logger } from '../../../shared/src/logger';
+import { logger } from '../../../../packages/shared/src/logger';
 
 // Initialize alert system
 const alertManager = initializeAlerts();

@@ -34,7 +34,7 @@ export async function retryStepHandler(req: Request, res: Response) {
 
     await new AuditEventBuilder(AuditActions.STEP_RETRIED, context)
       .withRunId(runId)
-      .withStepId(stepId)
+      .withStepId(stepId!)
       .withResult("success")
       .emit();
 

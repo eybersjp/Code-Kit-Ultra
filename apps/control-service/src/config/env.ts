@@ -9,7 +9,7 @@ const envSchema = z.object({
     .startsWith('redis://', 'REDIS_URL must start with redis://'),
   JWT_SECRET: z.string()
     .min(32, 'JWT_SECRET must be at least 32 characters'),
-  NODE_ENV: z.enum(['development', 'staging', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'staging', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(7474),
   CKU_ALLOWED_ORIGINS: z.string().default('http://localhost:7473'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),

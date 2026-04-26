@@ -1,7 +1,0 @@
-{
-  "name": "@cku/shared",
-  "version": "1.0.3",
-  "type": "module",
-  "main": "src/types.ts",
-  "types": "src/types.ts"
-}

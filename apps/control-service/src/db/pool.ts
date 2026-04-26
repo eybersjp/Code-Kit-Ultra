@@ -39,7 +39,8 @@ export function getPool() {
 
 export async function testConnection() {
   try {
-    const client = await pool.connect();
+    const activePool = getPool();
+    const client = await activePool.connect();
     await client.query('SELECT 1');
     client.release();
     return true;
@@ -50,5 +51,6 @@ export async function testConnection() {
 }
 
 export async function closePool() {
-  await pool.end();
+  const activePool = getPool();
+  await activePool.end();
 }

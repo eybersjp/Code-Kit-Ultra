@@ -61,7 +61,7 @@ export async function rejectGateHandler(req: Request, res: Response) {
     }
 
     // Reject the gate
-    await GateStore.rejectGate(gateId, context.actor.id, reason);
+    await GateStore.rejectGate(gateId, context.actor.id, reason!);
 
     // Log rejection in audit trail
     await new AuditEventBuilder(AuditActions.GATE_REJECTED, context)

@@ -9,8 +9,9 @@ declare global {
       /**
        * Authentication context set by authenticate middleware.
        * Contains actor (user) and tenant (organization) information.
+       * Optional because authenticate middleware sets it after validation.
        */
-      auth: {
+      auth?: {
         actor: {
           actorId: string;
           actorName: string;
