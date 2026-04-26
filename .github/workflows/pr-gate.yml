@@ -39,6 +39,18 @@ jobs:
       - name: Typecheck Gate
         run: pnpm run typecheck
 
+      - name: Auth Tests Gate
+        run: pnpm run test:auth
+
+      - name: Governance Tests Gate
+        run: pnpm run test:governance
+
+      - name: Rebuild bcrypt for smoke tests
+        run: pnpm rebuild bcrypt || true
+
+      - name: Smoke Test Gate
+        run: pnpm run test:smoke
+
       - name: Repo Health Summary
         run: |
           echo "Repo Health Summary for PR #${{ github.event.pull_request.number }}"

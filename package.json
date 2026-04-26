@@ -16,7 +16,8 @@
     "test:auth": "vitest run packages/auth",
     "test:governance": "vitest run packages/governance",
     "test:orchestrator": "vitest run packages/orchestrator",
-    "test:smoke": "vitest run apps/control-service/test/smoke.test.ts",
+    "smoke:prep": "npm rebuild bcrypt || true",
+    "test:smoke": "npm run smoke:prep && vitest run apps/control-service/test/smoke.test.ts",
     "test:unit": "vitest run packages/",
     "test:integration": "vitest run apps/control-service/test/",
     "test:all": "vitest run",
@@ -36,6 +37,8 @@
     "release:control": "npm run release:control-center",
     "release:control:milestone": "MILESTONE_NAME='Phase 10 Milestone' tsx scripts/release/control-center.ts",
     "release:validate": "tsx scripts/release/validate-release.ts",
+    "validate:first-customer-readiness": "tsx scripts/validate-first-customer-readiness.ts",
+    "test:first-customer-readiness": "npm run validate:first-customer-readiness",
     "cku": "npx tsx ./codekit/apps/cli/src/index.ts"
   },
   "devDependencies": {

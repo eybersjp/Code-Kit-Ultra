@@ -26,15 +26,16 @@ export async function approveGateHandler(req: Request, res: Response) {
     // Validate cross-tenant access
     try {
       validateTenantAccess(bundle.state.orgId, context);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "tenant_access_denied";
       // Log denial in audit trail
       await new AuditEventBuilder(AuditActions.GATE_APPROVE_DENIED, context)
         .withRunId(runId)
         .withResult("failure")
-        .withDetails({ reason: err.message })
+        .withDetails({ reason: message })
         .emit();
 
-      return sendForbidden(res, err.message, "tenant_access_denied");
+      return sendForbidden(res, message, "tenant_access_denied");
     }
 
     // Approve the gate
@@ -44,11 +45,13 @@ export async function approveGateHandler(req: Request, res: Response) {
     bundle.state.updatedAt = new Date().toISOString();
     updateRunState(bundle.state.runId, bundle.state);
 
+    const correlationId = bundle.state.correlationId ?? runId;
+
     // Log approval in audit trail
     await new AuditEventBuilder(AuditActions.GATE_APPROVED, context)
       .withRunId(runId)
       .withResult("success")
-      .withCorrelationId(bundle.state.correlationId)
+      .withCorrelationId(correlationId)
       .emit();
 
     // Emit canonical event for downstream systems
@@ -60,7 +63,7 @@ export async function approveGateHandler(req: Request, res: Response) {
         type: context.actor.type,
         authMode: context.actor.authMode,
       },
-      correlationId: bundle.state.correlationId,
+      correlationId,
       payload: {
         actorName: context.actor.name,
         status: "approved",
@@ -68,7 +71,8 @@ export async function approveGateHandler(req: Request, res: Response) {
     });
 
     res.json({ status: "approved", approvedBy: context.actor.name });
-  } catch (err: any) {
-    return sendInternalError(res, err, "approve_gate");
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    return sendInternalError(res, error, "approve_gate");
   }
 }

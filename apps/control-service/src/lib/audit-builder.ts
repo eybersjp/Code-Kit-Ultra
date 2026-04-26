@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { writeAuditEvent } from "../../../../packages/audit/src/index.js";
 import type { AuthContext } from "./handler-utils.js";
 

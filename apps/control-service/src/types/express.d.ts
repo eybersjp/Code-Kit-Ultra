@@ -10,11 +10,11 @@ declare global {
        * Authentication context set by authenticate middleware.
        * Contains actor (user) and tenant (organization) information.
        */
-      auth: {
+      auth?: {
         actor: {
           actorId: string;
           actorName: string;
-          actorType: "human" | "service_account" | "system";
+          actorType: "user" | "service_account" | "legacy_api_key";
           authMode: string;
         };
         tenant: {
