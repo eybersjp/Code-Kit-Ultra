@@ -25,6 +25,14 @@ describe("ServiceAccountAuth", () => {
   });
 
   describe("issueToken", () => {
+    it("throws when CKU_SERVICE_ACCOUNT_SECRET is missing", () => {
+      vi.stubEnv("CKU_SERVICE_ACCOUNT_SECRET", "");
+
+      expect(() => ServiceAccountAuth.issueToken(mockServiceAccount)).toThrow(
+        /CKU_SERVICE_ACCOUNT_SECRET is required/
+      );
+    });
+
     it("TC-SA-001: issueToken returns a signed JWT string", () => {
       const token = ServiceAccountAuth.issueToken(mockServiceAccount);
 

@@ -1,9 +1,21 @@
 import { Request, Response } from 'express';
 import crypto from 'crypto';
-import bcrypt from 'bcrypt';
 import { ServiceAccountStore } from '../../../../packages/auth/src/service-account-store.js';
 import { AuditLogger } from '../../../../packages/audit/src/audit-logger.js';
 import { logger } from '../lib/logger.js';
+
+function hashSecret(secret: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const salt = crypto.randomBytes(16).toString('hex');
+    crypto.scrypt(secret, salt, 64, (err, derivedKey) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      resolve(`scrypt:${salt}:${derivedKey.toString('hex')}`);
+    });
+  });
+}
 
 /**
  * POST /v1/service-accounts/:id/rotate
@@ -27,7 +39,7 @@ export async function rotateServiceAccountSecretHandler(req: Request, res: Respo
 
     // Generate new secret
     const newSecret = crypto.randomBytes(32).toString('hex');
-    const newSecretHash = await bcrypt.hash(newSecret, 10);
+    const newSecretHash = await hashSecret(newSecret);
 
     // Store hashed secret
     await ServiceAccountStore.rotateSecret(saId, newSecretHash);

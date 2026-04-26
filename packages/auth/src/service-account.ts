@@ -1,7 +1,15 @@
 import jwt from "jsonwebtoken";
 import { AuthenticatedActor, ResolvedSession, TenantContext } from "../../shared/src/types";
 
-const SERVICE_ACCOUNT_SECRET = process.env.CKU_SERVICE_ACCOUNT_SECRET || "internal-sa-secret-change-me";
+function getServiceAccountSecret(): string {
+  const secret = process.env.CKU_SERVICE_ACCOUNT_SECRET?.trim();
+  if (!secret) {
+    throw new Error(
+      "CKU_SERVICE_ACCOUNT_SECRET is required for service account token operations"
+    );
+  }
+  return secret;
+}
 
 export interface ServiceAccount {
   id: string;
@@ -23,6 +31,7 @@ export const ServiceAccountAuth = {
    * Issue a long-lived or short-lived token for a service account.
    */
   issueToken(sa: ServiceAccount, expiresIn: string | number = "30d"): string {
+    const secret = getServiceAccountSecret();
     const payload = {
       sub: sa.id,
       name: sa.name,
@@ -33,7 +42,7 @@ export const ServiceAccountAuth = {
       type: "service_account",
     };
 
-    return jwt.sign(payload, SERVICE_ACCOUNT_SECRET, { expiresIn: expiresIn as any });
+    return jwt.sign(payload, secret, { expiresIn: expiresIn as any });
   },
 
   /**
@@ -41,7 +50,8 @@ export const ServiceAccountAuth = {
    */
   async verifyToken(token: string): Promise<ResolvedSession> {
     try {
-      const decoded = jwt.verify(token, SERVICE_ACCOUNT_SECRET) as any;
+      const secret = getServiceAccountSecret();
+      const decoded = jwt.verify(token, secret) as any;
 
       if (decoded.type !== "service_account") {
         throw new Error("Invalid token type: Not a service account token");

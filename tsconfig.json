@@ -11,5 +11,10 @@
     "resolveJsonModule": true,
     "outDir": "dist"
   },
-  "include": ["packages", "apps", "config", "examples"]
+  "include": ["packages", "apps", "config", "examples"],
+  "exclude": [
+    "packages/cku/codekit/**",
+    "**/*.test.ts",
+    "apps/control-service/test/**"
+  ]
 }

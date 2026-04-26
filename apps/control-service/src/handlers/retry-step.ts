@@ -23,11 +23,14 @@ export async function retryStepHandler(req: Request, res: Response) {
     // Validate step ID
     try {
       validators.required(stepId, "stepId");
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof ValidationError) {
         return sendBadRequest(res, err.message);
       }
       throw err;
+    }
+    if (!stepId) {
+      return sendBadRequest(res, "stepId is required");
     }
 
     await ApprovalService.retry(runId, stepId, context.actor.name);
@@ -39,7 +42,8 @@ export async function retryStepHandler(req: Request, res: Response) {
       .emit();
 
     res.json({ status: "retrying", retryBy: context.actor.name });
-  } catch (err: any) {
-    return sendInternalError(res, err, "retry_step");
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    return sendInternalError(res, error, "retry_step");
   }
 }

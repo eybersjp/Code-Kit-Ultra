@@ -55,6 +55,15 @@ jobs:
       - name: Run Core Tests (Auth)
         run: pnpm run test:auth
 
+      - name: Run Governance Tests
+        run: pnpm run test:governance
+
+      - name: Rebuild bcrypt for smoke tests
+        run: pnpm rebuild bcrypt || true
+
+      - name: Run Smoke Tests
+        run: pnpm run test:smoke
+
       - name: Run Monorepo Build Check
         run: |
           if [ -f "scripts/build-public-release.sh" ]; then

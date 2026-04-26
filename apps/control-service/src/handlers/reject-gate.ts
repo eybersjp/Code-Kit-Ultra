@@ -31,11 +31,18 @@ export async function rejectGateHandler(req: Request, res: Response) {
     try {
       validators.required(reason, 'reason');
       validators.minLength(reason || '', 5, 'reason');
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (err instanceof ValidationError) {
         return sendBadRequest(res, err.message);
       }
       throw err;
+    }
+
+    if (!runId) {
+      return sendBadRequest(res, 'runId is required');
+    }
+    if (!reason) {
+      return sendBadRequest(res, 'reason is required');
     }
 
     // Get current gate decision
@@ -58,7 +65,7 @@ export async function rejectGateHandler(req: Request, res: Response) {
     // Log rejection in audit trail
     await new AuditEventBuilder(AuditActions.GATE_REJECTED, context)
       .withGateId(gateId)
-      .withRunId(runId || 'unknown')
+      .withRunId(runId)
       .withResult('success')
       .withDetails({
         reason,
@@ -79,7 +86,8 @@ export async function rejectGateHandler(req: Request, res: Response) {
       reason,
       timestamp: new Date().toISOString(),
     });
-  } catch (err: any) {
-    return sendInternalError(res, err, 'reject_gate');
+  } catch (err: unknown) {
+    const error = err instanceof Error ? err : new Error(String(err));
+    return sendInternalError(res, error, 'reject_gate');
   }
 }
