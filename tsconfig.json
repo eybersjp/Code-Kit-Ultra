@@ -9,7 +9,16 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["packages/shared/src/*"],
+      "@audit/*": ["packages/audit/src/*"],
+      "@orchestrator/*": ["packages/orchestrator/src/*"],
+      "@governance/*": ["packages/governance/src/*"],
+      "@memory/*": ["packages/memory/src/*"],
+      "@core/*": ["packages/core/src/*"]
+    }
   },
   "include": ["packages", "apps", "config", "examples"]
 }

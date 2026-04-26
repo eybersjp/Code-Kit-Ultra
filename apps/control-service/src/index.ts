@@ -13,19 +13,38 @@ import { initializeRevocationStore, closeRevocationStore } from "../../../packag
 import { metricsMiddleware, metricsHandler } from "./middleware/metrics.js";
 import { securityHeaders, httpsRedirect } from "./middleware/security-headers.js";
 import { globalRateLimiter, tokenCreationRateLimiter } from "./middleware/rate-limit.js";
+import { getConfig } from "./config/env.js";
+import { errorHandler } from "./middleware/error-handler.js";
 
 const app = express();
-const PORT = process.env.PORT || 7474;
+let isShuttingDown = false;
 
-app.use(httpsRedirect);
-app.use(securityHeaders);
-app.use(cors({
-  origin: process.env.CKU_ALLOWED_ORIGINS?.split(',') || ['http://localhost:7473'],
-  credentials: true,
-}));
-app.use(express.json());
-app.use(metricsMiddleware);
-app.use(globalRateLimiter);
+// Setup middleware (called at module level, uses lazy config)
+(() => {
+  const config = getConfig();
+  app.use(httpsRedirect);
+  app.use(securityHeaders);
+  app.use(cors({
+    origin: config.CKU_ALLOWED_ORIGINS.split(','),
+    credentials: true,
+  }));
+  app.use(express.json());
+  app.use(metricsMiddleware);
+  app.use(globalRateLimiter);
+})();
+
+// Reject requests during graceful shutdown
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (isShuttingDown) {
+    res.status(503).json({
+      error: 'Service unavailable - shutdown in progress',
+      code: 'SERVICE_UNAVAILABLE',
+      timestamp: new Date().toISOString(),
+    });
+  } else {
+    next();
+  }
+});
 
 import { authenticate } from "./middleware/authenticate.js";
 import { requireAnyPermission } from "./middleware/authorize.js";
@@ -121,11 +140,27 @@ app.get("/v1/runs/:runId/healing/:attemptId", authenticate, requireAnyPermission
 app.get("/v1/healing/strategies", authenticate, requireAnyPermission(["healing:invoke", "run:view"]), getHealingStrategiesHandler);
 app.get("/v1/healing/stats", authenticate, requireAnyPermission(["run:view"]), getHealingStatsHandler);
 
+// Global error handler (must be last middleware)
+app.use(errorHandler);
+
 // Export the app for testing
 export { app };
 
 async function startServer() {
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason: unknown) => {
+    logger.error({ reason }, 'Unhandled promise rejection');
+    process.exit(1);
+  });
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error: Error) => {
+    logger.error({ error }, 'Uncaught exception');
+    process.exit(1);
+  });
+
   try {
+    const config = getConfig();
     logger.info('Starting Code Kit Ultra Control Service');
 
     // Run database migrations
@@ -143,9 +178,9 @@ async function startServer() {
     }
 
     // Start the server
-    const server = app.listen(PORT, () => {
+    const server = app.listen(config.PORT, () => {
       logger.info(
-        { port: PORT, version: '1.3.0' },
+        { port: config.PORT, version: '1.3.0' },
         '🚀 Code Kit Ultra Control Service started'
       );
       logger.info('API available at /v1/ prefix');
@@ -155,6 +190,8 @@ async function startServer() {
 
     // Handle graceful shutdown
     const gracefulShutdown = async (signal: string) => {
+      if (isShuttingDown) return;
+      isShuttingDown = true;
       logger.info({ signal }, 'Shutdown signal received');
 
       // Stop accepting new requests
@@ -184,7 +221,7 @@ async function startServer() {
       setTimeout(() => {
         logger.error('Graceful shutdown timeout, forcing exit');
         process.exit(1);
-      }, 5000);
+      }, 30000);
     };
 
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));

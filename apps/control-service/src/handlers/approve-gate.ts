@@ -15,12 +15,25 @@ import { AuditEventBuilder, AuditActions } from "../lib/audit-builder.js";
 export async function approveGateHandler(req: Request, res: Response) {
   try {
     const context = extractAuthContext(req);
+    if (!context) {
+      return res.status(401).json({ error: "Unauthorized: No auth context" });
+    }
+    if (!context.actor?.id || !context.actor?.name || !context.tenant?.orgId) {
+      return res.status(401).json({ error: "Unauthorized: Incomplete auth context" });
+    }
+
     const runId = extractRunId(req);
+    if (!runId) {
+      return res.status(400).json({ error: "Bad request: Missing runId parameter" });
+    }
 
     // Load run and validate it exists
     const bundle = loadRunBundle(runId);
     if (!bundle) {
       return sendNotFound(res, "Run not found", "run");
+    }
+    if (!bundle.state?.runId || !bundle.state?.orgId) {
+      return sendInternalError(res, new Error("Invalid run state"), "approve_gate");
     }
 
     // Validate cross-tenant access
@@ -48,7 +61,7 @@ export async function approveGateHandler(req: Request, res: Response) {
     await new AuditEventBuilder(AuditActions.GATE_APPROVED, context)
       .withRunId(runId)
       .withResult("success")
-      .withCorrelationId(bundle.state.correlationId)
+      .withCorrelationId(bundle.state.correlationId || "")
       .emit();
 
     // Emit canonical event for downstream systems
@@ -60,7 +73,7 @@ export async function approveGateHandler(req: Request, res: Response) {
         type: context.actor.type,
         authMode: context.actor.authMode,
       },
-      correlationId: bundle.state.correlationId,
+      correlationId: bundle.state.correlationId || "",
       payload: {
         actorName: context.actor.name,
         status: "approved",

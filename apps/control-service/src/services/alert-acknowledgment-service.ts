@@ -330,6 +330,15 @@ export class AlertAcknowledgmentService {
   }
 
   /**
+   * Record acknowledgment directly (used by event handlers)
+   */
+  recordAcknowledgment(ack: AlertAcknowledgment): void {
+    this.acknowledgments.set(ack.id, ack);
+    this.pendingAlerts.delete(ack.alertId);
+    logger.info({ acknowledgmentId: ack.id, alertId: ack.alertId }, "Acknowledgment recorded");
+  }
+
+  /**
    * Get acknowledgment by ID
    */
   getAcknowledgment(ackId: string): AlertAcknowledgment | undefined {

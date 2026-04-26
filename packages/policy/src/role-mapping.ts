@@ -9,34 +9,39 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     "healing:invoke",
     "policy:view", "policy:manage",
     "audit:view",
-    "service_account:manage", "service_account:view"
+    "service_account:manage", "service_account:view",
+    "automation:view", "automation:manage"
   ],
   operator: [
     "run:create", "run:view", "run:cancel",
     "gate:view", "gate:approve",
     "execution:view", "execution:high_risk",
     "healing:invoke",
-    "policy:view"
+    "policy:view",
+    "automation:view", "automation:manage"
   ],
   reviewer: [
     "run:view",
     "gate:view", "gate:approve", "gate:reject",
     "execution:view",
     "policy:view",
-    "audit:view"
+    "audit:view",
+    "automation:view"
   ],
   viewer: [
     "run:view",
     "gate:view",
     "execution:view",
     "policy:view",
-    "audit:view"
+    "audit:view",
+    "automation:view"
   ],
   service_account: [
     "run:create", "run:view", "run:cancel",
     "gate:view", "gate:approve",
     "execution:view", "execution:high_risk",
-    "healing:invoke"
+    "healing:invoke",
+    "automation:view", "automation:manage"
   ]
 };
 

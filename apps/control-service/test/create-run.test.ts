@@ -1,32 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
+
+// MUST import setup before importing app to ensure mocks are hoisted
+import { mockResolveInsForgeSession } from "./setup";
 import { app } from "../src/index";
-import { resolveInsForgeSession } from "../../../packages/auth/src/resolve-session.js";
+
+const defaultSessionMap: Record<string, any> = {
+  "admin-token": {
+    actor: { actorId: "admin-1", actorType: "user", actorName: "Admin", roles: ["admin"] },
+    tenant: { orgId: "org-1", workspaceId: "ws-1", projectId: "proj-1" },
+  },
+  "operator-token": {
+    actor: { actorId: "op-1", actorType: "user", actorName: "Operator", roles: ["operator"] },
+    tenant: { orgId: "org-1", workspaceId: "ws-1" },
+  },
+};
 import { runVerticalSlice } from "../../../packages/orchestrator/src";
 import { loadRunBundle, updateIntake, updatePlan, updateRunState } from "../../../packages/memory/src/run-store.js";
 import { writeAuditEvent } from "../../../packages/audit/src/index.js";
 import { emitRunCreated } from "../src/events/dispatcher.js";
-
-vi.mock("../../../packages/auth/src/resolve-session.js", () => ({
-  resolveInsForgeSession: vi.fn(),
-}));
-vi.mock("../../../packages/orchestrator/src", () => ({
-  runVerticalSlice: vi.fn(),
-}));
-vi.mock("../../../packages/memory/src/run-store.js", () => ({
-  loadRunBundle: vi.fn(),
-  updateIntake: vi.fn(),
-  updatePlan: vi.fn(),
-  updateRunState: vi.fn(),
-}));
-vi.mock("../../../packages/audit/src/index.js", () => ({
-  writeAuditEvent: vi.fn(),
-}));
-vi.mock("../src/events/dispatcher.js", () => ({
-  emitRunCreated: vi.fn(),
-}));
-
-const mockResolveInsForgeSession = vi.mocked(resolveInsForgeSession);
 const mockRunVerticalSlice = vi.mocked(runVerticalSlice);
 const mockLoadRunBundle = vi.mocked(loadRunBundle);
 const mockUpdateIntake = vi.mocked(updateIntake);
@@ -41,13 +33,18 @@ describe("Control Service: /runs create path", () => {
   });
 
   it("returns 403 when run creation session lacks project scope", async () => {
-    mockResolveInsForgeSession.mockResolvedValueOnce({
-      actor: { actorId: "admin-1", actorType: "user", actorName: "Admin", roles: ["admin"] },
-      tenant: { orgId: "org-1", workspaceId: "ws-1" },
-    } as any);
+    mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+      if (token === "admin-token") {
+        return {
+          actor: { actorId: "admin-1", actorType: "user", actorName: "Admin", roles: ["admin"] },
+          tenant: { orgId: "org-1", workspaceId: "ws-1" },
+        };
+      }
+      throw new Error("invalid token");
+    });
 
     const response = await request(app)
-      .post("/runs")
+      .post("/v1/runs")
       .set("Authorization", "Bearer admin-token")
       .send({ idea: "Create a SaaS portal" });
 
@@ -56,10 +53,15 @@ describe("Control Service: /runs create path", () => {
   });
 
   it("creates a run when project scope is present", async () => {
-    mockResolveInsForgeSession.mockResolvedValueOnce({
-      actor: { actorId: "admin-1", actorType: "user", actorName: "Admin", roles: ["admin"] },
-      tenant: { orgId: "org-1", workspaceId: "ws-1", projectId: "proj-1" },
-    } as any);
+    mockResolveInsForgeSession.mockImplementation(async (token: string) => {
+      if (token === "admin-token") {
+        return {
+          actor: { actorId: "admin-1", actorType: "user", actorName: "Admin", roles: ["admin"] },
+          tenant: { orgId: "org-1", workspaceId: "ws-1", projectId: "proj-1" },
+        };
+      }
+      throw new Error("invalid token");
+    });
 
     mockLoadRunBundle.mockReturnValueOnce(null);
     mockRunVerticalSlice.mockResolvedValueOnce({
@@ -83,7 +85,7 @@ describe("Control Service: /runs create path", () => {
     } as any);
 
     const response = await request(app)
-      .post("/runs")
+      .post("/v1/runs")
       .set("Authorization", "Bearer admin-token")
       .send({ idea: "Create a SaaS portal" });
 

@@ -32,11 +32,20 @@ vi.mock('../../../packages/auth/src/session-revocation.js', () => ({
 }));
 
 vi.mock('../../../packages/auth/src/resolve-session.js', () => ({
-  resolveInsForgeSession: vi.fn().mockRejectedValue(new Error('No token')),
+  resolveInsForgeSession: vi.fn(),
 }));
 
 vi.mock('../../../packages/core/src/auth', () => ({
   resolveApiKeyUser: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock('redis', () => ({
+  createClient: vi.fn(() => ({
+    on: vi.fn(),
+    connect: vi.fn().mockResolvedValue(undefined),
+    ping: vi.fn().mockResolvedValue('PONG'),
+    disconnect: vi.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 import { app } from '../src/index.js';
@@ -63,12 +72,11 @@ const validSession = {
 describe('End-to-End: Complete Workflow (v1.3.0)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (resolveInsForgeSession as any).mockRejectedValue(new Error('No token'));
   });
 
   describe('E2E-001: Create and Execute a Run', () => {
     it('should create a run and return valid response', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/runs')
@@ -100,7 +108,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
     });
 
     it('should list runs when authenticated', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .get('/v1/runs')
@@ -112,7 +120,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
 
   describe('E2E-002: Gate Approval Workflow', () => {
     it('should approve a gate with valid auth', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/gates/security_gate/approve')
@@ -123,23 +131,23 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
     });
 
     it('should reject a gate with reason', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/gates/cost_gate/reject')
         .set('Authorization', 'Bearer valid-token')
-        .send({ reason: 'Cost exceeds budget' });
+        .send({ runId: 'run-e2e-001', reason: 'Cost exceeds budget' });
 
       expect(res.status).not.toBe(500);
     });
 
     it('should require reason when rejecting a gate', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/gates/cost_gate/reject')
         .set('Authorization', 'Bearer valid-token')
-        .send({}); // no reason
+        .send({ runId: 'run-e2e-001' }); // no reason
 
       // Should either reject with 400 or be lenient
       expect([400, 401]).toContain(res.status);
@@ -148,7 +156,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
 
   describe('E2E-003: Resume and Rollback', () => {
     it('should resume a paused run', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/runs/run-123/resume')
@@ -159,7 +167,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
     });
 
     it('should rollback a step', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/runs/run-123/rollback-step')
@@ -170,7 +178,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
     });
 
     it('should retry a step', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/runs/run-123/retry-step')
@@ -202,7 +210,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
 
   describe('E2E-005: Session Management', () => {
     it('should get session info when authenticated', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .get('/v1/session')
@@ -213,7 +221,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
     });
 
     it('should delete session on logout', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .delete('/v1/sessions/me')
@@ -226,7 +234,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
   describe('E2E-006: Complete Run Lifecycle', () => {
     it('should handle a complete run from creation to approval', async () => {
       // Step 1: Create run
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       let res = await request(app)
         .post('/v1/runs')
         .set('Authorization', 'Bearer valid-token')
@@ -237,21 +245,21 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
       expect(res.status).not.toBe(500);
 
       // Step 2: Get run
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .get('/v1/runs')
         .set('Authorization', 'Bearer valid-token');
       expect(res.status).not.toBe(500);
 
       // Step 3: Check gates
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .get('/v1/gates')
         .set('Authorization', 'Bearer valid-token');
       expect(res.status).not.toBe(500);
 
       // Step 4: Approve a gate
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .post('/v1/gates/security_gate/approve')
         .set('Authorization', 'Bearer valid-token')
@@ -262,7 +270,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
 
   describe('E2E-007: Error Handling', () => {
     it('should handle malformed requests gracefully', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       const res = await request(app)
         .post('/v1/runs')
@@ -309,7 +317,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
 
   describe('E2E-009: Data Persistence', () => {
     it('should persist run data through database', async () => {
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
 
       // Create run (would save to DB in real scenario)
       let res = await request(app)
@@ -323,7 +331,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
       expect(res.status).not.toBe(500);
 
       // List runs (would retrieve from DB in real scenario)
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .get('/v1/runs')
         .set('Authorization', 'Bearer valid-token');
@@ -338,7 +346,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
       const gateId = 'security_gate';
 
       // 1. Create run
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       let res = await request(app)
         .post('/v1/runs')
         .set('Authorization', 'Bearer valid-token')
@@ -349,14 +357,14 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
       expect(res.status).not.toBe(500);
 
       // 2. Get session
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .get('/v1/session')
         .set('Authorization', 'Bearer valid-token');
       expect(res.status).toBe(200);
 
       // 3. Approve gate
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .post(`/v1/gates/${gateId}/approve`)
         .set('Authorization', 'Bearer valid-token')
@@ -364,7 +372,7 @@ describe('End-to-End: Complete Workflow (v1.3.0)', () => {
       expect(res.status).not.toBe(500);
 
       // 4. Get timeline
-      (resolveInsForgeSession as any).mockResolvedValueOnce(validSession);
+      (resolveInsForgeSession as any).mockResolvedValue(validSession);
       res = await request(app)
         .get('/v1/runs')
         .set('Authorization', 'Bearer valid-token');

@@ -288,9 +288,14 @@ describe("Integration Workflows", () => {
       const rules = testService.getAllRules();
       const qaRule = rules.find((r) => r.id === "test-verify-qa");
 
+      // Should be able to find the QA rule
+      expect(qaRule).toBeDefined();
+
       if (qaRule) {
-        // Should be able to retry verification
-        expect(qaRule.maxPass Percentage).toBeGreaterThan(0);
+        // Should have a min pass percentage threshold
+        expect(typeof qaRule.minPassPercentage).toBe("number");
+        expect(qaRule.minPassPercentage).toBeGreaterThan(0);
+        expect(qaRule.minPassPercentage).toBeLessThanOrEqual(100);
       }
     });
 

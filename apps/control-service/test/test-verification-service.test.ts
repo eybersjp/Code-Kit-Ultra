@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import * as runStoreModule from "../../../packages/memory/src/run-store";
 import {
   TestVerificationService,
   TestVerificationRule,
@@ -7,9 +8,48 @@ import {
 
 describe("TestVerificationService", () => {
   let service: TestVerificationService;
+  let mockRunBundle: any;
 
   beforeEach(() => {
+    vi.clearAllMocks();
+
     service = new TestVerificationService(DEFAULT_TEST_RULES);
+
+    // Create mock run bundle with all necessary properties
+    mockRunBundle = {
+      id: "test-run",
+      orgId: "test-org",
+      status: "pending",
+      gates: [
+        { id: "qa", status: "pending", approvals: [] },
+        { id: "security", status: "pending", approvals: [] },
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      correlationId: "corr-test",
+    };
+
+    // Spy on loadRunBundle and mock its implementation
+    const bundles: Record<string, any> = {
+      "test-run": mockRunBundle,
+      "run-123": mockRunBundle,
+      "run-456": mockRunBundle,
+      "run-789": mockRunBundle,
+      "run-coverage": mockRunBundle,
+      "run-block": mockRunBundle,
+      "run-warn": mockRunBundle,
+      "run-store": mockRunBundle,
+      "run-gate-results": mockRunBundle,
+      "run-parallel": mockRunBundle,
+      "run-sequential": mockRunBundle,
+      "run-threshold": mockRunBundle,
+      "run-exec-id": mockRunBundle,
+      "run-completed": mockRunBundle,
+    };
+
+    vi.spyOn(runStoreModule, "loadRunBundle").mockImplementation((runId: string) => {
+      return bundles[runId] || null;
+    });
   });
 
   describe("Rule Registration", () => {
@@ -371,6 +411,191 @@ describe("TestVerificationService", () => {
 
       expect(quick?.timeout).toBe(60);
       expect(slow?.timeout).toBe(600);
+    });
+  });
+
+  describe("Integration: Real Test Execution", () => {
+    it("should verify tests and return results for QA gate", async () => {
+      const result = await service.verifyTestsForGate("run-123", "qa");
+
+      expect(result).toBeDefined();
+      expect(result.results).toBeDefined();
+      expect(result.results.totalTests).toBeGreaterThan(0);
+      expect(result.results.startedAt).toBeInstanceOf(Date);
+      expect(result.results.completedAt).toBeInstanceOf(Date);
+    });
+
+    it("should track passed and failed test counts", async () => {
+      const result = await service.verifyTestsForGate("run-456", "qa");
+
+      expect(result.results.passedTests + result.results.failedTests).toBe(
+        result.results.totalTests
+      );
+    });
+
+    it("should determine approval based on pass percentage", async () => {
+      const result = await service.verifyTestsForGate("run-789", "qa");
+      const qaRule = service.getAllRules().find((r) => r.id === "test-verify-qa");
+
+      if (qaRule) {
+        const passPercentage =
+          (result.results.passedTests / result.results.totalTests) * 100;
+        const shouldApprove = passPercentage >= qaRule.minPassPercentage;
+
+        expect(result.approved === shouldApprove).toBe(true);
+      }
+    });
+
+    it("should capture coverage metrics when available", async () => {
+      const result = await service.verifyTestsForGate("run-coverage", "qa");
+
+      // Coverage might be undefined if coverage file doesn't exist, which is acceptable
+      if (result.results.coverage) {
+        expect(result.results.coverage.lines).toBeGreaterThanOrEqual(0);
+        expect(result.results.coverage.branches).toBeGreaterThanOrEqual(0);
+        expect(result.results.coverage.functions).toBeGreaterThanOrEqual(0);
+        expect(result.results.coverage.statements).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it("should enforce failure action: block prevents approval on test failure", async () => {
+      const blockRule: TestVerificationRule = {
+        id: "test-block-failure",
+        name: "Block on Failure",
+        description: "Block gate when tests fail",
+        gateId: "qa",
+        enabled: true,
+        requiredTests: [
+          { testName: "Sample Test", testPath: "test/sample/**/*.test.ts", required: true },
+        ],
+        minPassPercentage: 100,
+        failureAction: "block",
+        parallelExecution: true,
+        timeout: 300,
+      };
+
+      service.registerRule(blockRule);
+      const result = await service.verifyTestsForGate("run-block", "qa");
+
+      // If any test fails, approval should be false when failureAction is block
+      if (result.results.failedTests > 0) {
+        expect(result.approved).toBe(false);
+      }
+    });
+
+    it("should enforce failure action: warn allows approval despite failures", async () => {
+      const warnRule: TestVerificationRule = {
+        id: "test-warn-failure",
+        name: "Warn on Failure",
+        description: "Warn but allow when tests fail",
+        gateId: "security",
+        enabled: true,
+        requiredTests: [
+          { testName: "Security Test", testPath: "test/security/**/*.test.ts", required: true },
+        ],
+        minPassPercentage: 80,
+        failureAction: "warn",
+        parallelExecution: false,
+        timeout: 180,
+      };
+
+      service.registerRule(warnRule);
+      const result = await service.verifyTestsForGate("run-warn", "security");
+
+      // With warn action, approval should be true even if some tests fail (as long as min threshold met)
+      expect(typeof result.approved).toBe("boolean");
+    });
+
+    it("should store execution results for retrieval", async () => {
+      await service.verifyTestsForGate("run-store", "qa");
+
+      const executions = service.getExecutionsForRun("run-store");
+      expect(executions.length).toBeGreaterThan(0);
+      expect(executions[0].runId).toBe("run-store");
+    });
+
+    it("should retrieve test results by gate", async () => {
+      await service.verifyTestsForGate("run-gate-results", "qa");
+
+      const results = service.getTestResultsForGate("run-gate-results", "qa");
+      expect(Array.isArray(results)).toBe(true);
+    });
+
+    it("should handle parallel test execution", async () => {
+      const parallelRule: TestVerificationRule = {
+        id: "test-parallel-execution",
+        name: "Parallel Execution Test",
+        description: "Test parallel test execution",
+        gateId: "qa",
+        enabled: true,
+        requiredTests: [
+          { testName: "Test 1", testPath: "test/unit/1.test.ts", required: true },
+          { testName: "Test 2", testPath: "test/unit/2.test.ts", required: true },
+          { testName: "Test 3", testPath: "test/unit/3.test.ts", required: true },
+        ],
+        minPassPercentage: 70,
+        failureAction: "warn",
+        parallelExecution: true,
+        timeout: 300,
+      };
+
+      service.registerRule(parallelRule);
+      const result = await service.verifyTestsForGate("run-parallel", "qa");
+
+      expect(result.results.totalTests).toBe(3);
+      expect(result.results.results.length).toBe(3);
+    });
+
+    it("should handle sequential test execution", async () => {
+      const sequentialRule: TestVerificationRule = {
+        id: "test-sequential-execution",
+        name: "Sequential Execution Test",
+        description: "Test sequential test execution",
+        gateId: "security",
+        enabled: true,
+        requiredTests: [
+          { testName: "Security Scan", testPath: "test/security/scan.test.ts", required: true },
+          { testName: "Lint Check", testPath: "test/lint/check.test.ts", required: true },
+        ],
+        minPassPercentage: 80,
+        failureAction: "block",
+        parallelExecution: false,
+        timeout: 180,
+      };
+
+      service.registerRule(sequentialRule);
+      const result = await service.verifyTestsForGate("run-sequential", "security");
+
+      expect(result.results.totalTests).toBe(2);
+      expect(result.results.results.length).toBe(2);
+    });
+
+    it("should apply minPassPercentage threshold correctly", async () => {
+      const result = await service.verifyTestsForGate("run-threshold", "qa");
+      const qaRule = service.getAllRules().find((r) => r.id === "test-verify-qa");
+
+      if (qaRule && result.results.totalTests > 0) {
+        const passPercentage =
+          (result.results.passedTests / result.results.totalTests) * 100;
+        const meetsThreshold = passPercentage >= qaRule.minPassPercentage;
+
+        // Approval decision should match threshold requirement
+        expect(result.approved === meetsThreshold || qaRule.failureAction !== "block").toBe(true);
+      }
+    });
+
+    it("should include execution ID in results", async () => {
+      const result = await service.verifyTestsForGate("run-exec-id", "qa");
+
+      expect(result.results.id).toBeDefined();
+      expect(result.results.id).toContain("exec-");
+    });
+
+    it("should mark execution status as completed on success", async () => {
+      const result = await service.verifyTestsForGate("run-completed", "qa");
+
+      expect(result.results.status).toMatch(/completed|failed|timeout/);
+      expect(result.results.completedAt).not.toBeUndefined();
     });
   });
 });

@@ -182,7 +182,7 @@ export class RollbackAutomationService {
 
       // Execute rollback actions
       for (const action of strategy.rollbackActions) {
-        const actionExecution = {
+        const actionExecution: RollbackExecution['actionsPerformed'][0] = {
           action,
           startedAt: new Date(),
           status: "success" as const,
@@ -191,7 +191,7 @@ export class RollbackAutomationService {
         try {
           const result = await this.executeRollbackAction(action);
           actionExecution.completedAt = new Date();
-          (actionExecution as any).result = result;
+          actionExecution.result = result;
 
           logger.info(
             { executionId: execution.id, actionType: action.type },

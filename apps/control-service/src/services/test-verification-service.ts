@@ -1,5 +1,11 @@
 import { loadRunBundle, updateRunState } from "../../../../packages/memory/src/run-store";
 import { logger } from "../../../../packages/shared/src/logger";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Test Result
@@ -122,11 +128,6 @@ export class TestVerificationService {
     // Store execution results
     this.executions.set(execution.id, execution);
 
-    // Update run state with test results
-    bundle.state.testResults = this.formatTestResults(execution);
-    bundle.state.coverage = execution.coverage;
-    updateRunState(runId, bundle.state);
-
     logger.info(
       {
         executionId: execution.id,
@@ -163,23 +164,31 @@ export class TestVerificationService {
     };
 
     try {
-      // Run tests (either in parallel or sequentially)
-      const results = rule.parallelExecution
-        ? await this.runTestsParallel(rule.requiredTests)
-        : await this.runTestsSequential(rule.requiredTests);
+      const timeoutMs = rule.timeout * 1000;
+
+      const results = await Promise.race([
+        rule.parallelExecution
+          ? this.runTestsParallel(rule.requiredTests)
+          : this.runTestsSequential(rule.requiredTests),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Test suite timeout")),
+            timeoutMs
+          )
+        ),
+      ]);
 
       execution.results = results;
       execution.passedTests = results.filter((r) => r.status === "passed").length;
       execution.failedTests = results.filter((r) => r.status === "failed").length;
 
-      // Calculate coverage
       execution.coverage = await this.calculateCoverage(results);
 
       execution.status = "completed";
       execution.completedAt = new Date();
     } catch (err: any) {
       logger.error({ err, executionId }, "Test execution failed");
-      execution.status = "failed";
+      execution.status = err.message.includes("timeout") ? "timeout" : "failed";
       execution.completedAt = new Date();
     }
 
@@ -213,20 +222,35 @@ export class TestVerificationService {
     const startTime = Date.now();
 
     try {
-      // Simulate test execution
-      // In production, this would invoke actual test runners (Jest, Vitest, etc.)
-      await this.simulateTestRun(test);
+      const testCommand = this.getTestCommand(test.testPath);
+      const [command, ...args] = testCommand.split(" ");
+
+      const timeoutMs = (test.maxDuration || 60) * 1000;
+
+      const { stdout, stderr } = await Promise.race([
+        execFileAsync(command, args, {
+          cwd: process.cwd(),
+          timeout: timeoutMs,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Test execution timeout")),
+            timeoutMs
+          )
+        ),
+      ]);
 
       const duration = Date.now() - startTime;
-      const passed = Math.random() > 0.1; // 90% pass rate for simulation
+      const passed = !stdout.includes("FAIL") && !stderr.includes("error");
 
       return {
         testId: test.testName,
         testName: test.testName,
         status: passed ? "passed" : "failed",
         duration,
+        stdout,
+        stderr: stderr || undefined,
         timestamp: new Date(),
-        stdout: `Test output for ${test.testName}`,
       };
     } catch (err: any) {
       const duration = Date.now() - startTime;
@@ -242,30 +266,48 @@ export class TestVerificationService {
   }
 
   /**
-   * Simulate test run (in production, would invoke actual test runner)
+   * Determine test command from test path pattern
    */
-  private async simulateTestRun(test: RequiredTest): Promise<void> {
-    // Simulate test execution time
-    const delay = Math.random() * 1000 + 500; // 500-1500ms
-    return new Promise((resolve) => setTimeout(resolve, delay));
+  private getTestCommand(testPath: string): string {
+    if (testPath.includes("unit")) {
+      return "pnpm run test:unit";
+    } else if (testPath.includes("integration")) {
+      return "pnpm run test:integration";
+    } else if (testPath.includes("security")) {
+      return "pnpm run test:security";
+    } else if (testPath.includes("lint")) {
+      return "pnpm lint";
+    }
+    return "pnpm run test:all";
   }
 
   /**
-   * Calculate code coverage
+   * Calculate code coverage from coverage report
    */
   private async calculateCoverage(results: TestResult[]): Promise<CoverageMetrics | undefined> {
     if (results.length === 0) {
       return undefined;
     }
 
-    // In production, would aggregate coverage from test runner output
-    // Simulate coverage metrics
-    return {
-      lines: 85 + Math.random() * 15, // 85-100%
-      branches: 80 + Math.random() * 20,
-      functions: 88 + Math.random() * 12,
-      statements: 85 + Math.random() * 15,
-    };
+    try {
+      const coveragePath = join(
+        process.cwd(),
+        "coverage/coverage-summary.json"
+      );
+      const coverageData = JSON.parse(readFileSync(coveragePath, "utf8"));
+
+      const total = coverageData.total;
+
+      return {
+        lines: Math.round(total.lines.pct * 100) / 100,
+        branches: Math.round(total.branches.pct * 100) / 100,
+        functions: Math.round(total.functions.pct * 100) / 100,
+        statements: Math.round(total.statements.pct * 100) / 100,
+      };
+    } catch (err: any) {
+      logger.warn({ err }, "Failed to parse coverage metrics");
+      return undefined;
+    }
   }
 
   /**

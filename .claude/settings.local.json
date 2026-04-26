@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(pnpm test:all)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm test:all -- --reporter=verbose)",
+      "Bash(npm run *)",
+      "Bash(cd /d C:\\\\Users\\\\SSTECH\\\\developments\\\\code-kit-ultra\\\\.claude\\\\worktrees\\\\vibrant-lederberg-080dba)",
+      "Bash(npm test *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm run *)"
+    ]
+  }
+}

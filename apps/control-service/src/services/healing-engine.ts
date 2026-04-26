@@ -193,7 +193,7 @@ export class HealingEngine {
 
       // Execute actions in sequence
       for (const action of strategy.actions) {
-        const actionExecution = {
+        const actionExecution: HealingExecution['actionsPerformed'][0] = {
           action,
           startedAt: new Date(),
           status: "pending" as const,
@@ -203,7 +203,7 @@ export class HealingEngine {
           const result = await this.executeAction(action);
           actionExecution.status = "success";
           actionExecution.completedAt = new Date();
-          (actionExecution as any).result = result;
+          actionExecution.result = result;
 
           logger.info(
             { executionId: execution.id, actionType: action.type },

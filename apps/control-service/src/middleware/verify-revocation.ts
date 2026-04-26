@@ -8,18 +8,25 @@ import { logger } from '../lib/logger.js';
  */
 export async function verifyRevocation(req: Request, res: Response, next: NextFunction) {
   try {
-    const session = (req as any).auth;
+    const session = req.auth;
 
-    if (!session || !session.jti) {
+    if (!session) {
       // No session to check
       return next();
     }
 
+    // Session ID is in the actor context
+    const sessionId = session.actor?.actorId;
+    if (!sessionId) {
+      // No session ID available
+      return next();
+    }
+
     // Check if session is revoked
-    const revoked = await isRevoked(session.jti);
+    const revoked = await isRevoked(sessionId);
 
     if (revoked) {
-      logger.warn({ jti: session.jti }, 'Revoked token used');
+      logger.warn({ sessionId }, 'Revoked token used');
       return res.status(401).json({
         error: 'UNAUTHORIZED',
         message: 'Session has been revoked',
