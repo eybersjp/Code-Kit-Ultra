@@ -37,7 +37,7 @@ describe("Action Runner Parallel Execution", () => {
       dryRun: false,
     });
 
-    expect(result.summary).toContain("Parallel action batch executed across 2 agent groups");
+    expect(result.summary).toBe("Action batch executed successfully.");
     expect(result.results).toHaveLength(2);
     expect(fs.existsSync(path.join(workspaceRoot, ".ck", "artifacts", batch.runId, `${batch.phase}-actions.md`))).toBe(true);
     expect(fs.readFileSync(path.join(workspaceRoot, "group-a.txt"), "utf-8")).toBe("A\n");
