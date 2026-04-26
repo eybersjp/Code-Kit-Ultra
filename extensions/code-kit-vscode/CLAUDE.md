@@ -761,18 +761,35 @@ code --install-extension code-kit-vscode-1.2.0.vsix
 
 ## Cross-References
 
-**Depends on:**
-- [control-service](../control-service/CLAUDE.md) — Provides API endpoints
-- [packages/auth](../../packages/auth/CLAUDE.md) — Token generation and validation
-- [CLI](../cli/CLAUDE.md) — Alternative interface (same control-service)
+**Phase 1 (Core):**
 
-**Used by:**
-- [control-service](../control-service/CLAUDE.md) — Receives extension API calls
-- **VS Code users** — Install extension from marketplace
+- [`packages/shared`](../../packages/shared/CLAUDE.md) — Shared types (Run, Gate, Session)
+- [`packages/auth`](../../packages/auth/CLAUDE.md) — Token generation and validation
+- [`packages/governance`](../../packages/governance/CLAUDE.md) — Gate definitions
 
-**Related:**
-- [Root CLAUDE.md](../../CLAUDE.md) — Main documentation index
-- [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — System design
-- [DEPLOYMENT.md](../../docs/DEPLOYMENT.md) — Publishing to marketplace
-- [TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) — Common extension issues
-- [web-control-plane](../web-control-plane/CLAUDE.md) — Web alternative UI
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/realtime`](../../packages/realtime/CLAUDE.md) — WebSocket events for live updates
+- [`packages/observability`](../../packages/observability/CLAUDE.md) — Metrics integration
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../../packages/core/CLAUDE.md) — Type validation and auth utilities
+- [`packages/adapters`](../../packages/adapters/CLAUDE.md) — Platform integration reference
+- [`packages/storage`](../../packages/storage/CLAUDE.md) — Artifact retrieval
+
+**Applications:**
+
+- [`apps/control-service`](../control-service/CLAUDE.md) — Provides API endpoints
+- [`apps/cli`](../cli/CLAUDE.md) — Alternative command-line interface (same control-service)
+- [`apps/web-control-plane`](../web-control-plane/CLAUDE.md) — Web alternative UI
+- [`apps/web-landing`](../web-landing/CLAUDE.md) — Landing page with links
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design and layers
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Configuration reference
+- [Testing Guide](../../docs/TESTING.md) — Test patterns for extensions
+- [Deployment Guide](../../docs/DEPLOYMENT.md) — Publishing to VS Code marketplace
+- [Troubleshooting Guide](../../docs/TROUBLESHOOTING.md) — Common extension issues

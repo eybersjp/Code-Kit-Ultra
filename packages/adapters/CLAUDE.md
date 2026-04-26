@@ -515,19 +515,33 @@ describe('GitHub Adapter', () => {
 
 ## Cross-References
 
-**Depends on:**
-- `@packages/shared` — Type definitions (Mode, RunReport)
+**Phase 1 (Core):**
 
-**Used by:**
-- `apps/control-service` — Adapter selection for run execution
-- `apps/cli` — Platform adapter recommendations
-- `packages/skill-engine` — Provider adapter dispatch
-- `packages/learning` — Historical adapter performance tracking
+- [`@packages/shared`](../shared/CLAUDE.md) — Type definitions (Mode, RunReport)
 
-**Related Documentation:**
-- [Root CLAUDE.md](../../CLAUDE.md) — Project overview
-- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design
-- [API Documentation](../../docs/DEPLOYMENT.md) — Integration examples
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/skill-engine`](../skill-engine/CLAUDE.md) — Provider adapter dispatch
+- [`packages/learning`](../learning/CLAUDE.md) — Historical adapter performance tracking
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../core/CLAUDE.md) — Authentication utilities, type validation
+- [`packages/cku`](../cku/CLAUDE.md) — CLI adapter selection interface
+- [`packages/storage`](../storage/CLAUDE.md) — Artifact persistence for execution results
+
+**Applications:**
+
+- [`apps/control-service`](../../apps/control-service/CLAUDE.md) — Adapter selection for run execution
+- [`apps/cli`](../../apps/cli/CLAUDE.md) — Platform adapter recommendations
+- [`extensions/code-kit-vscode`](../../extensions/code-kit-vscode/CLAUDE.md) — IDE adapter integration
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System layers and request flows
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Policy configuration reference
+- [Testing Guide](../../docs/TESTING.md) — Test patterns and fixtures
 - [Troubleshooting Guide](../../docs/TROUBLESHOOTING.md) — Common adapter issues
 
 ---

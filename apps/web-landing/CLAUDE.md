@@ -528,17 +528,36 @@ const faqs = [
 
 ## Cross-References
 
-**Depends on:**
-- [control-service](../control-service/CLAUDE.md) — Provides API endpoints for auth/data
-- [packages/auth](../../packages/auth/CLAUDE.md) — Token generation and validation
+**Phase 1 (Core):**
 
-**Used by:**
-- **Public users** — Landing page entry point
-- [web-control-plane](../web-control-plane/CLAUDE.md) — Linked from docs
-- [CLI](../cli/CLAUDE.md) — Links to docs from help text
+- [`packages/shared`](../../packages/shared/CLAUDE.md) — Shared types and enums
+- [`packages/auth`](../../packages/auth/CLAUDE.md) — Token generation and validation
+- [`packages/governance`](../../packages/governance/CLAUDE.md) — Gate concepts for documentation
 
-**Related:**
-- [Root CLAUDE.md](../../CLAUDE.md) — Main documentation index
-- [DEPLOYMENT.md](../../docs/DEPLOYMENT.md) — How to deploy landing page
-- [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — System overview for docs
-- [TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) — Content for troubleshooting page
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/realtime`](../../packages/realtime/CLAUDE.md) — Live updates concept for docs
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../../packages/core/CLAUDE.md) — Authentication utilities
+- [`packages/cku`](../../packages/cku/CLAUDE.md) — CLI documentation reference
+- [`packages/adapters`](../../packages/adapters/CLAUDE.md) — Adapter system documentation
+- [`packages/storage`](../../packages/storage/CLAUDE.md) — Artifact storage documentation
+
+**Applications:**
+
+- [`apps/control-service`](../control-service/CLAUDE.md) — Provides API endpoints for auth/data
+- [`apps/cli`](../cli/CLAUDE.md) — Links to docs from help text
+- [`apps/web-control-plane`](../web-control-plane/CLAUDE.md) — Linked from docs
+- [`extensions/code-kit-vscode`](../../extensions/code-kit-vscode/CLAUDE.md) — Extension documentation
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System overview for docs
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Configuration documentation
+- [Testing Guide](../../docs/TESTING.md) — Testing documentation for users
+- [Deployment Guide](../../docs/DEPLOYMENT.md) — How to deploy landing page
+- [Troubleshooting Guide](../../docs/TROUBLESHOOTING.md) — Content for troubleshooting page
+- [Phase 3 Workflow Design](../../docs/PHASE_3_WORKFLOW_DESIGN.md) — Feature documentation

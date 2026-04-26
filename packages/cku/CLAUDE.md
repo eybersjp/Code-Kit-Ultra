@@ -634,21 +634,32 @@ describe('CLI Integration', () => {
 
 ## Cross-References
 
-**Depends on:**
-- `@packages/shared` — Types, enums (Mode, GateDecision, Task, SelectedSkill)
-- `@packages/orchestrator` — Execution, mode policies
-- `packages/cku/codekit/packages/memory` — Project memory management
-- External: `commander` (CLI parsing), `chalk` (colors), `axios` (HTTP)
+**Phase 1 (Core):**
 
-**Used by:**
-- `apps/cli` — Wrapper around CKU CLI
-- `extensions/code-kit-vscode` — IDE integration using CLI commands
-- Users — Direct command-line usage
+- [`packages/shared`](../shared/CLAUDE.md) — Types, enums (Mode, GateDecision, Task, SelectedSkill)
 
-**Related Documentation:**
-- [Root CLAUDE.md](../../CLAUDE.md) — Project overview
-- [Control Service CLAUDE.md](../../apps/control-service/CLAUDE.md) — API details
-- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/orchestrator`](../orchestrator/CLAUDE.md) — Execution engine, mode policies
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../core/CLAUDE.md) — Token validation, policy checks
+- [`packages/adapters`](../adapters/CLAUDE.md) — Adapter selection interface
+- [`packages/storage`](../storage/CLAUDE.md) — Artifact retrieval for reports
+
+**Applications:**
+
+- [`apps/control-service`](../../apps/control-service/CLAUDE.md) — API endpoint definitions
+- [`apps/cli`](../../apps/cli/CLAUDE.md) — Wrapper around CKU CLI
+- [`extensions/code-kit-vscode`](../../extensions/code-kit-vscode/CLAUDE.md) — IDE integration using CLI commands
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design and request flows
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Policy configuration reference
+- [Testing Guide](../../docs/TESTING.md) — CLI testing patterns
 - [Deployment Guide](../../docs/DEPLOYMENT.md) — CLI distribution
 
 ---

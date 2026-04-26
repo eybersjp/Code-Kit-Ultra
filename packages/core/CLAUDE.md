@@ -484,22 +484,37 @@ describe('Policy Engine', () => {
 
 ## Cross-References
 
-**Depends on:**
-- No internal dependencies (intentionally kept lightweight)
-- Node.js built-ins: `crypto`, `jsonwebtoken` (optional)
+**No internal dependencies** (intentionally kept lightweight)
 
-**Used by:**
-- Nearly all packages (auth, policy, audit utilities)
-- `apps/control-service` — Authentication, policy evaluation, audit logging
-- `apps/cli` — Token validation, policy checks
-- `packages/auth` — JWT utilities
-- `packages/governance` — Policy evaluation for gates
-- `packages/orchestrator` — Execution context validation
+**Phase 1 (Core):**
 
-**Related Documentation:**
+- [`packages/shared`](../shared/CLAUDE.md) — Shared types and enums
+- [`packages/auth`](../auth/CLAUDE.md) — Extended JWT utilities and session management
+- [`packages/policy`](../policy/CLAUDE.md) — Full policy system using core evaluation
+- [`packages/governance`](../governance/CLAUDE.md) — Policy evaluation for governance gates
+
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/audit`](../audit/CLAUDE.md) — Audit trail building on core logger
+- [`packages/orchestrator`](../orchestrator/CLAUDE.md) — Execution context validation
+
+**Tier B (Orchestration):**
+
+- [`packages/adapters`](../adapters/CLAUDE.md) — Type validation for execution
+- [`packages/cku`](../cku/CLAUDE.md) — CLI token and mode validation
+- [`packages/storage`](../storage/CLAUDE.md) — Configuration constants
+
+**Applications:**
+
+- [`apps/control-service`](../../apps/control-service/CLAUDE.md) — Authentication, policy evaluation, audit logging
+- [`apps/cli`](../../apps/cli/CLAUDE.md) — Token validation, policy checks
+
+**Cross-Cutting Documentation:**
+
 - [Root CLAUDE.md](../../CLAUDE.md) — Project overview
-- [Auth Package](../auth/CLAUDE.md) — Extended authentication
-- [Policy Package](../policy/CLAUDE.md) — Full policy system
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Policy configuration reference
+- [Testing Guide](../../docs/TESTING.md) — Test patterns
 - [Security Runbooks](../../docs/SECURITY_RUNBOOKS.md) — Credential rotation, incident response
 
 ---

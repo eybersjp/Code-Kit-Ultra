@@ -518,20 +518,38 @@ The built `dist/` can be deployed to:
 
 ## Cross-References
 
-**Depends on:**
-- [control-service](../control-service/CLAUDE.md) — Provides API endpoints
-- [packages/realtime](../../packages/realtime/CLAUDE.md) — WebSocket event bus
-- [packages/auth](../../packages/auth/CLAUDE.md) — Token validation and refresh
-- [packages/policy](../../packages/policy/CLAUDE.md) — Policy evaluation and schema
+**Phase 1 (Core):**
 
-**Used by:**
-- [control-service](../control-service/CLAUDE.md) — Serves UI via `/public` or external hosting
-- [web-landing](../web-landing/CLAUDE.md) — Links to control plane
-- [CLI](../cli/CLAUDE.md) — Alternative interface to same control-service
+- [`packages/shared`](../../packages/shared/CLAUDE.md) — Shared types and enums
+- [`packages/auth`](../../packages/auth/CLAUDE.md) — Token validation and refresh
+- [`packages/policy`](../../packages/policy/CLAUDE.md) — Policy evaluation and schema
+- [`packages/governance`](../../packages/governance/CLAUDE.md) — Gate definitions and risk scoring
 
-**Related:**
-- [Root CLAUDE.md](../../CLAUDE.md) — Main documentation index
-- [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — System design and data flow
-- [DEPLOYMENT.md](../../docs/DEPLOYMENT.md) — How to deploy control plane
-- [TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) — Common UI issues and fixes
-- [PERFORMANCE.md](../../docs/PERFORMANCE.md) — Frontend performance optimization
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/realtime`](../../packages/realtime/CLAUDE.md) — WebSocket event bus for live updates
+- [`packages/observability`](../../packages/observability/CLAUDE.md) — Metrics and traces
+- [`packages/learning`](../../packages/learning/CLAUDE.md) — Learning loop metrics
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../../packages/core/CLAUDE.md) — Type validation and auth utilities
+- [`packages/adapters`](../../packages/adapters/CLAUDE.md) — Adapter recommendations display
+- [`packages/storage`](../../packages/storage/CLAUDE.md) — Artifact and log retrieval
+
+**Applications:**
+
+- [`apps/control-service`](../control-service/CLAUDE.md) — Provides API endpoints
+- [`apps/cli`](../cli/CLAUDE.md) — Alternative command-line interface to same control-service
+- [`apps/web-landing`](../web-landing/CLAUDE.md) — Landing page with links to control plane
+- [`extensions/code-kit-vscode`](../../extensions/code-kit-vscode/CLAUDE.md) — Alternative IDE integration
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design and data flow
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Policy configuration reference
+- [Testing Guide](../../docs/TESTING.md) — Test patterns and fixtures
+- [Deployment Guide](../../docs/DEPLOYMENT.md) — How to deploy control plane
+- [Troubleshooting Guide](../../docs/TROUBLESHOOTING.md) — Common UI issues and fixes
+- [Performance Guide](../../docs/PERFORMANCE.md) — Frontend performance optimization

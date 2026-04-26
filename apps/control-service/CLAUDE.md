@@ -304,6 +304,50 @@ ORDER BY created_at DESC;
 - Inspect workflow event emitters in handlers during execution
 - Logs appear in control-service stdout
 
+## Cross-References
+
+**Phase 1 (Core):**
+
+- [`packages/shared`](../../packages/shared/CLAUDE.md) — Shared types and logger
+- [`packages/auth`](../../packages/auth/CLAUDE.md) — JWT execution tokens, session management
+- [`packages/policy`](../../packages/policy/CLAUDE.md) — Permission evaluation, role mapping
+- [`packages/governance`](../../packages/governance/CLAUDE.md) — 9 governance gates, risk scoring
+- [`packages/orchestrator`](../../packages/orchestrator/CLAUDE.md) — Run state machine, execution
+
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/audit`](../../packages/audit/CLAUDE.md) — SHA-256 audit trail logging
+- [`packages/agents`](../../packages/agents/CLAUDE.md) — Agent profiles for consensus
+- [`packages/realtime`](../../packages/realtime/CLAUDE.md) — WebSocket events
+- [`packages/observability`](../../packages/observability/CLAUDE.md) — Prometheus metrics
+- [`packages/learning`](../../packages/learning/CLAUDE.md) — Outcome-driven learning loop
+- [`packages/healing`](../../packages/healing/CLAUDE.md) — Self-healing and remediation
+- [`packages/skill-engine`](../../packages/skill-engine/CLAUDE.md) — Skill routing and execution
+- [`packages/prompt-system`](../../packages/prompt-system/CLAUDE.md) — Dynamic prompt compilation
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../../packages/core/CLAUDE.md) — Type validation, auth utilities
+- [`packages/adapters`](../../packages/adapters/CLAUDE.md) — Provider adapter selection
+- [`packages/cku`](../../packages/cku/CLAUDE.md) — CLI command interface
+- [`packages/storage`](../../packages/storage/CLAUDE.md) — Artifact and log persistence
+
+**Applications:**
+
+- [`apps/cli`](../../apps/cli/CLAUDE.md) — Command-line interface to control-service
+- [`apps/web-control-plane`](../../apps/web-control-plane/CLAUDE.md) — Operator control plane UI
+- [`extensions/code-kit-vscode`](../../extensions/code-kit-vscode/CLAUDE.md) — IDE extension integration
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System layers and request flows
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Policy configuration reference
+- [Testing Guide](../../docs/TESTING.md) — Test patterns and fixtures
+- [Phase 3 Workflow Design](../../docs/PHASE_3_WORKFLOW_DESIGN.md) — Automation workflows
+
+---
+
 ## Next Steps for Contributors
 
 1. **Add a new endpoint?** → Create `handlers/my-handler.ts`, add route in `src/index.ts`, add tests

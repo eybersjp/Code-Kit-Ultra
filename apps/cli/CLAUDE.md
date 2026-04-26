@@ -410,19 +410,37 @@ cku /ck-run --mode "safe"
 
 ## Cross-References
 
-**Depends on:**
-- [packages/shared](../../packages/shared/CLAUDE.md) — Type definitions (Mode, GateDecision, Task)
-- [packages/orchestrator](../../packages/orchestrator/CLAUDE.md) — Run execution pipeline
-- [packages/memory](../../packages/memory/CLAUDE.md) — Project memory and context
-- [packages/auth](../../packages/auth/CLAUDE.md) — Token generation and validation
+**Phase 1 (Core):**
 
-**Used by:**
-- [control-service](../control-service/CLAUDE.md) — Receives API calls from CLI
-- [web-landing](../web-landing/CLAUDE.md) — Links to CLI documentation
-- [VS Code extension](../../extensions/code-kit-vscode/CLAUDE.md) — Alternative UI for same control-service
+- [`packages/shared`](../../packages/shared/CLAUDE.md) — Type definitions (Mode, GateDecision, Task)
+- [`packages/auth`](../../packages/auth/CLAUDE.md) — Token generation and validation
+- [`packages/policy`](../../packages/policy/CLAUDE.md) — Permission evaluation
+- [`packages/governance`](../../packages/governance/CLAUDE.md) — Gate definitions
 
-**Related:**
-- [Root CLAUDE.md](../../CLAUDE.md) — Main documentation index
-- [ARCHITECTURE.md](../../docs/ARCHITECTURE.md) — System design and layers
-- [DEPLOYMENT.md](../../docs/DEPLOYMENT.md) — How to deploy CLI as binary
-- [TROUBLESHOOTING.md](../../docs/TROUBLESHOOTING.md) — Common CLI issues and fixes
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/orchestrator`](../../packages/orchestrator/CLAUDE.md) — Run execution pipeline
+- [`packages/learning`](../../packages/learning/CLAUDE.md) — Learning loop outcomes
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../../packages/core/CLAUDE.md) — Type validation and auth utilities
+- [`packages/cku`](../../packages/cku/CLAUDE.md) — CLI command engine and session management
+- [`packages/adapters`](../../packages/adapters/CLAUDE.md) — Adapter recommendations
+- [`packages/storage`](../../packages/storage/CLAUDE.md) — Report storage and retrieval
+
+**Applications:**
+
+- [`apps/control-service`](../control-service/CLAUDE.md) — Receives API calls from CLI
+- [`apps/web-control-plane`](../web-control-plane/CLAUDE.md) — Alternative web UI for same API
+- [`apps/web-landing`](../web-landing/CLAUDE.md) — Links to CLI documentation
+- [`extensions/code-kit-vscode`](../../extensions/code-kit-vscode/CLAUDE.md) — Alternative IDE UI for same control-service
+
+**Cross-Cutting Documentation:**
+
+- [Root CLAUDE.md](../../CLAUDE.md) — Project overview and architecture
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System design and layers
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Mode configuration and policy reference
+- [Testing Guide](../../docs/TESTING.md) — CLI test patterns
+- [Deployment Guide](../../docs/DEPLOYMENT.md) — How to deploy CLI as binary
+- [Troubleshooting Guide](../../docs/TROUBLESHOOTING.md) — Common CLI issues and fixes

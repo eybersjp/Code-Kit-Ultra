@@ -549,20 +549,32 @@ describe('Combined Storage', () => {
 
 ## Cross-References
 
-**Depends on:**
-- External: `axios` (for InsForge HTTP API)
-- Node.js built-ins: `fs` (file-system), `path` (path operations)
+**Phase 1 (Core):**
 
-**Used by:**
-- `apps/control-service` — Artifact storage for runs
-- `packages/audit` — Audit log persistence
-- `packages/prompt-system` — Prompt cache storage
-- `packages/learning` — Learning model persistence
+- [`packages/shared`](../shared/CLAUDE.md) — Type definitions
 
-**Related Documentation:**
+**Phase 2 (Tier A - Optional):**
+
+- [`packages/audit`](../audit/CLAUDE.md) — Audit log persistence
+- [`packages/prompt-system`](../prompt-system/CLAUDE.md) — Prompt cache storage
+- [`packages/learning`](../learning/CLAUDE.md) — Learning model persistence
+
+**Tier B (Orchestration):**
+
+- [`packages/core`](../core/CLAUDE.md) — Configuration defaults and constants
+- [`packages/adapters`](../adapters/CLAUDE.md) — Execution result persistence
+- [`packages/cku`](../cku/CLAUDE.md) — Artifact retrieval for CLI reports
+
+**Applications:**
+
+- [`apps/control-service`](../../apps/control-service/CLAUDE.md) — Artifact storage for runs and reports
+
+**Cross-Cutting Documentation:**
+
 - [Root CLAUDE.md](../../CLAUDE.md) — Project overview
-- [Control Service CLAUDE.md](../../apps/control-service/CLAUDE.md) — Run artifact management
-- [Audit Package](../audit/CLAUDE.md) — Audit logging
+- [Architecture Guide](../../docs/ARCHITECTURE.md) — System layers and data flow
+- [Config Schema](../../docs/CONFIG_SCHEMA.md) — Storage configuration reference
+- [Testing Guide](../../docs/TESTING.md) — Storage mock patterns
 - [Deployment Guide](../../docs/DEPLOYMENT.md) — Storage setup and configuration
 - [Troubleshooting Guide](../../docs/TROUBLESHOOTING.md) — Storage issues and recovery
 

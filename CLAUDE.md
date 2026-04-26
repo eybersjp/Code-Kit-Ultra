@@ -21,18 +21,20 @@ pnpm run dev:web
 
 ## Monorepo Structure
 
-This is a **pnpm monorepo** with 3 workspaces:
+This is a **pnpm monorepo** with 3 workspaces covering 13 packages + 4 apps + 1 IDE extension:
 
-### `packages/` — Core Libraries
+### `packages/` — Core Libraries (13 packages)
 
 **Phase 1 (High-Priority):**
+
 - [**shared**](packages/shared/CLAUDE.md) — Shared types, logger, DB pool registry
 - [**auth**](packages/auth/CLAUDE.md) — JWT execution tokens, session revocation, RBAC, InsForge integration
 - [**policy**](packages/policy/CLAUDE.md) — Policy evaluation (role-mapping, permissions)
 - [**governance**](packages/governance/CLAUDE.md) — 9 governance gates + risk scoring + adaptive consensus
 - [**orchestrator**](packages/orchestrator/CLAUDE.md) — Run state machine and step sequencing
 
-**Phase 2 Optional (Tier A):**
+**Phase 2 (Tier A - Optional):**
+
 - [**audit**](packages/audit/CLAUDE.md) — SHA-256 hash-chain audit logger (dual-emit to InsForge)
 - [**agents**](packages/agents/CLAUDE.md) — Agent profiles and definitions (used by governance consensus)
 - [**realtime**](packages/realtime/CLAUDE.md) — WebSocket event bus for real-time updates
@@ -42,14 +44,23 @@ This is a **pnpm monorepo** with 3 workspaces:
 - [**skill-engine**](packages/skill-engine/CLAUDE.md) — Skill routing, registration, and execution
 - [**prompt-system**](packages/prompt-system/CLAUDE.md) — Dynamic prompt compilation and versioning
 
-### `apps/` — Applications
-- **control-service** (Express, port 7474) — Governance orchestrator + API
-- **cli** — Command-line interface
-- **web-control-plane** — Operator control plane UI
-- **web-landing** — Landing page
+**Tier B (Orchestration):**
 
-### `extensions/` — IDE Extensions
-- **code-kit-vscode** — VS Code integration
+- [**core**](packages/core/CLAUDE.md) — Foundational utilities, type helpers, shared constants
+- [**adapters**](packages/adapters/CLAUDE.md) — Pluggable adapter system for platform integration
+- [**cku**](packages/cku/CLAUDE.md) — CLI framework and command definitions
+- [**storage**](packages/storage/CLAUDE.md) — Artifact and log storage abstraction (local, InsForge, combined)
+
+### `apps/` — Applications (4 apps)
+
+- [**control-service**](apps/control-service/CLAUDE.md) — Express.js orchestration hub (port 7474), governs all execution
+- [**cli**](apps/cli/CLAUDE.md) — Command-line interface wrapper using control-service API
+- [**web-control-plane**](apps/web-control-plane/CLAUDE.md) — React operator control plane UI for governance
+- [**web-landing**](apps/web-landing/CLAUDE.md) — Next.js landing page with docs and examples
+
+### `extensions/` — IDE Extensions (1 extension)
+
+- [**code-kit-vscode**](extensions/code-kit-vscode/CLAUDE.md) — VS Code integration with sidebar views and approvals
 
 ## Development Setup
 
@@ -76,13 +87,23 @@ sudo apt-get install redis-server && sudo systemctl start redis-server
 
 **Note**: Windows users should use Docker or WSL2 for development. Native Windows PostgreSQL/Redis setup is not tested.
 
-## Architecture & Configuration
+## Cross-Cutting Documentation (5+ guides)
 
-Comprehensive guides for system design, policy configuration, and testing:
+Comprehensive guides for system design, policy configuration, testing, and automation:
+
+**Core Architecture & Design:**
 
 - [**System Architecture**](docs/ARCHITECTURE.md) — System layers, request/execution flows, package dependency graph
 - [**Config Schema**](docs/CONFIG_SCHEMA.md) — policy.json reference, mode-specific overrides, role definitions
+
+**Testing & Quality:**
+
 - [**Testing Guide**](docs/TESTING.md) — Consolidated test commands, patterns, and fixtures
+- [**Security Runbooks**](docs/SECURITY_RUNBOOKS.md) — Credential rotation, incident response, audit verification
+
+**Phase 3 Automation:**
+
+- [**Phase 3 Workflow Design**](docs/PHASE_3_WORKFLOW_DESIGN.md) — Auto-approval chains, alert acknowledgment, test verification, healing, rollback workflows
 
 ## Key Testing Commands
 
